@@ -24,9 +24,25 @@ const configuredOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,ht
   .filter(Boolean);
 
 app.disable('x-powered-by');
+
+// Explicit Cross-Origin Resource Sharing (CORS) for laundryfresh.anushatechnologies.com & all clients
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Admin-Token, Range');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Range, X-Content-Range, Content-Disposition, Content-Length');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => callback(null, true),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Token', 'X-Requested-With', 'Accept', 'Origin'],
@@ -37,7 +53,6 @@ app.options('*', cors());
 app.use((_, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('X-Frame-Options', 'DENY');
   next();
 });
 app.use(express.json({ limit: '10mb' }));
