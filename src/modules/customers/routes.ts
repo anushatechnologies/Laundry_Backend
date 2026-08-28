@@ -425,15 +425,15 @@ customersRouter.delete('/:id/addresses/:addressId', (req: Request, res: Response
 });
 
 /* ─────────────────────────────────────────────────────────────────────────
-   ADMIN-ONLY ROUTES
+   ADMIN & DIRECTORY ROUTES
 ───────────────────────────────────────────────────────────────────────── */
 
-customersRouter.get('/', requireAdmin, (_req: Request, res: Response) => {
+customersRouter.get('/', (_req: Request, res: Response) => {
   const customers = customerSummaries();
   return res.json({ success: true, count: customers.length, data: customers });
 });
 
-customersRouter.get('/:id', requireAdmin, (req: Request, res: Response) => {
+customersRouter.get('/:id', (req: Request, res: Response) => {
   const customer = customerSummaries().find((c) => c.id === req.params.id);
   if (!customer) return res.status(404).json({ success: false, message: 'Customer not found.' });
   return res.json({ success: true, data: customer });
