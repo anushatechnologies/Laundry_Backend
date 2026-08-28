@@ -556,3 +556,114 @@ export function getOtpVerificationEmail(name: string, otp: string): { subject: s
 
   return { subject, html, text };
 }
+
+// 8. Template: Welcome New Customer Account
+export function getWelcomeCustomerEmail(name: string, email: string, phone: string): { subject: string; html: string; text: string } {
+  const subject = `🎉 Welcome to LaundryFresh, ${name || 'Friend'}! Your Account is Ready`;
+
+  const html = getEmailWrapper(
+    'Welcome to LaundryFresh',
+    `Welcome to LaundryFresh! Enjoy premium doorstep laundry, dry cleaning, and fabric care.`,
+    `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="width: 64px; height: 64px; background-color: #F3E8FF; color: #7E22CE; border-radius: 50%; font-size: 32px; line-height: 64px; margin: 0 auto 12px auto;">
+        ✨
+      </div>
+      <h1 style="font-size: 22px; font-weight: 800; color: ${BRAND_DARK}; margin: 0 0 6px 0;">
+        Welcome to LaundryFresh!
+      </h1>
+      <p style="font-size: 14px; color: ${TEXT_MUTED}; margin: 0;">
+        Hello <strong>${name || 'Valued Customer'}</strong>, we're thrilled to have you with us.
+      </p>
+    </div>
+
+    <div style="background-color: #FAF5FF; border: 1px solid #E9D5FF; border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+      <div style="font-size: 14px; font-weight: 700; color: #6B21A8; margin-bottom: 10px;">
+        👤 Your Account Details:
+      </div>
+      <table width="100%" style="font-size: 13px; color: #4B5563;">
+        <tr>
+          <td style="padding: 4px 0; color: #6B7280;">Name:</td>
+          <td style="padding: 4px 0; font-weight: 700; color: #111827;">${name}</td>
+        </tr>
+        <tr>
+          <td style="padding: 4px 0; color: #6B7280;">Mobile:</td>
+          <td style="padding: 4px 0; font-weight: 700; color: #111827;">+91 ${phone}</td>
+        </tr>
+        ${email ? `
+        <tr>
+          <td style="padding: 4px 0; color: #6B7280;">Email:</td>
+          <td style="padding: 4px 0; font-weight: 700; color: #111827;">${email}</td>
+        </tr>` : ''}
+      </table>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 24px;">
+      <a href="https://laundry-website-peach.vercel.app/book" class="btn" style="background-color: #5B214F; color: #ffffff !important; display: inline-block; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 14px;">
+        Schedule Your First Pickup →
+      </a>
+    </div>
+
+    <div style="border-top: 1px solid #E2E8F0; padding-top: 16px; font-size: 12px; color: #94A3B8; text-align: center;">
+      Use coupon <strong>WELCOME100</strong> at checkout for ₹100 flat discount on your first order!
+    </div>
+  `
+  );
+
+  const text = `Welcome to LaundryFresh, ${name}!\nYour account (+91 ${phone}) is now active.\nBook now: https://laundry-website-peach.vercel.app/book`;
+
+  return { subject, html, text };
+}
+
+// 9. Template: Admin New Order Alert
+export function getAdminNewOrderAlertEmail(data: OrderEmailData): { subject: string; html: string; text: string } {
+  const subject = `🔔 NEW ORDER RECEIVED: #${data.orderId} (₹${data.totalAmount || 0}) - ${data.customerName}`;
+
+  const html = getEmailWrapper(
+    'New Order Alert',
+    `New order #${data.orderId} booked by ${data.customerName} for pickup on ${data.pickupDate || 'Today'}.`,
+    `
+    <div style="background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+      <div style="font-size: 16px; font-weight: 800; color: #065F46; margin-bottom: 8px;">
+        📦 New Order #${data.orderId} Placed!
+      </div>
+      <div style="font-size: 13px; color: #047857;">
+        Total Value: <strong>₹${data.totalAmount || 0}</strong> (${data.paymentMethod || 'ONLINE'})
+      </div>
+    </div>
+
+    <div class="card" style="padding: 20px; margin-bottom: 20px; border: 1px solid #E2E8F0; border-radius: 14px;">
+      <table width="100%" style="font-size: 13px; color: #374151;">
+        <tr>
+          <td style="padding: 6px 0; color: #6B7280; width: 120px;">Customer:</td>
+          <td style="padding: 6px 0; font-weight: 700; color: #111827;">${data.customerName} (+91 ${data.customerPhone || ''})</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #6B7280;">Pickup Window:</td>
+          <td style="padding: 6px 0; font-weight: 700; color: #111827;">${data.pickupDate || ''} | ${data.pickupTimeSlot || ''}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #6B7280;">Address:</td>
+          <td style="padding: 6px 0; font-weight: 600; color: #374151;">${data.pickupAddress || 'Customer Doorstep'}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #6B7280;">Items:</td>
+          <td style="padding: 6px 0; font-weight: 600; color: #374151;">
+            ${data.itemsSummary?.map((it) => `${it.qty}x ${it.name}`).join(', ') || 'Custom Garment Package'}
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="https://laundry.anushatechnologies.com/api/orders/${data.orderId}" style="display: inline-block; background-color: #0F172A; color: #ffffff !important; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 700;">
+        Open Admin Order Manager →
+      </a>
+    </div>
+  `
+  );
+
+  const text = `NEW ORDER #${data.orderId} from ${data.customerName} (+91 ${data.customerPhone})\nPickup: ${data.pickupDate} ${data.pickupTimeSlot}\nTotal: ₹${data.totalAmount}`;
+
+  return { subject, html, text };
+}

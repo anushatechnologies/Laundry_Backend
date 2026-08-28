@@ -8,7 +8,7 @@ import {
   verifyRefreshToken,
   type CustomerTokenPayload,
 } from '../../lib/customer-tokens';
-import { sendOtpNotification } from '../../lib/email';
+import { sendOtpNotification, sendWelcomeCustomerNotification } from '../../lib/email';
 import { sendSmsOtp } from '../../lib/sms';
 import { getFirebaseAuth } from '../../lib/firebase-admin';
 
@@ -215,6 +215,12 @@ customersRouter.post('/verify-otp', (req: Request, res: Response) => {
       totalOrders: 0,
       totalSpent: 0,
     };
+
+    if (customerEmail) {
+      sendWelcomeCustomerNotification(customerEmail, customerName, customerEmail, phone).catch((err) =>
+        console.error('Welcome email error:', err)
+      );
+    }
   }
 
   return tokenResponse(res, customer, `cust_${phone}`);
@@ -300,6 +306,13 @@ customersRouter.post('/register', async (req: Request, res: Response) => {
   };
 
   registeredCustomers.set(newCustomer.id, newCustomer);
+
+  if (newCustomer.email) {
+    sendWelcomeCustomerNotification(newCustomer.email, newCustomer.name, newCustomer.email, phone).catch((err) =>
+      console.error('Welcome email error:', err)
+    );
+  }
+
   return tokenResponse(res, newCustomer, uid, 201);
 });
 

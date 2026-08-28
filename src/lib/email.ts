@@ -8,6 +8,8 @@ import {
   getOutForDeliveryEmail,
   getOrderDeliveredEmail,
   getOtpVerificationEmail,
+  getWelcomeCustomerEmail,
+  getAdminNewOrderAlertEmail,
 } from './emailTemplates';
 
 export interface SendMailOptions {
@@ -23,6 +25,7 @@ const SMTP_USER = process.env.SMTP_USER || '';
 const SMTP_PASS = process.env.SMTP_PASS || '';
 const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || SMTP_PORT === 465;
 const EMAIL_FROM = process.env.EMAIL_FROM || '"LaundryFresh Notifications" <notifications@laundryfresh.in>';
+const ADMIN_ALERT_EMAIL = process.env.ADMIN_ALERT_EMAIL || SMTP_USER || 'anushabazaar4@gmail.com';
 
 let transporter: nodemailer.Transporter | null = null;
 
@@ -129,4 +132,14 @@ export async function sendOrderDeliveredNotification(to: string, data: OrderEmai
 export async function sendOtpNotification(to: string, name: string, otp: string) {
   const { subject, html, text } = getOtpVerificationEmail(name, otp);
   return sendEmail({ to, subject, html, text });
+}
+
+export async function sendWelcomeCustomerNotification(to: string, name: string, email: string, phone: string) {
+  const { subject, html, text } = getWelcomeCustomerEmail(name, email, phone);
+  return sendEmail({ to, subject, html, text });
+}
+
+export async function sendAdminOrderAlert(data: OrderEmailData) {
+  const { subject, html, text } = getAdminNewOrderAlertEmail(data);
+  return sendEmail({ to: ADMIN_ALERT_EMAIL, subject, html, text });
 }

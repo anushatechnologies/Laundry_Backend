@@ -10,6 +10,7 @@ import {
   sendWashCompleteNotification,
   sendOutForDeliveryNotification,
   sendOrderDeliveredNotification,
+  sendAdminOrderAlert,
 } from '../../lib/email';
 import type { Order, OrderStatus, PaymentMethod } from '../../types';
 
@@ -288,7 +289,6 @@ router.post('/', requireCustomerIdentity, (req: Request, res: Response) => {
 
 function triggerOrderEmail(order: Order, status?: OrderStatus) {
   const email = order.customerEmail;
-  if (!email) return;
 
   const emailData = {
     orderId: order.id,
@@ -313,39 +313,47 @@ function triggerOrderEmail(order: Order, status?: OrderStatus) {
     driverName: order.assignedDeliveryAgent?.name || order.assignedPickupAgent?.name || 'In-House Valet Driver',
     driverPhone: order.assignedDeliveryAgent?.phone || order.assignedPickupAgent?.phone || '+91 98765 11001',
     deliveryOtp: order.deliveryOtp || '4829',
-    trackingUrl: `https://laundryfresh.in/track/${order.id}`,
+    trackingUrl: `https://laundry-website-peach.vercel.app/track/${order.id}`,
     weightKg: order.actualWeightKg || order.estimatedWeightKg,
     specialNotes: order.notes,
   };
 
   const targetStatus = status || order.currentStatus;
 
-  switch (targetStatus) {
-    case 'ORDER_PLACED':
-    case 'PICKUP_ASSIGNED':
-      sendPickupScheduledNotification(email, emailData).catch((err) => console.error('Email error:', err));
-      break;
-    case 'PICKED_UP':
-    case 'RECEIVED_AT_FACILITY':
-      sendPickupCompletedNotification(email, emailData).catch((err) => console.error('Email error:', err));
-      break;
-    case 'WASHING':
-    case 'DRYING':
-    case 'IRONING':
-      sendWashingInProgressNotification(email, emailData).catch((err) => console.error('Email error:', err));
-      break;
-    case 'QUALITY_CHECK':
-    case 'PACKED':
-      sendWashCompleteNotification(email, emailData).catch((err) => console.error('Email error:', err));
-      break;
-    case 'DELIVERY_ASSIGNED':
-    case 'OUT_FOR_DELIVERY':
-      sendOutForDeliveryNotification(email, emailData).catch((err) => console.error('Email error:', err));
-      break;
-    case 'DELIVERED':
-    case 'COMPLETED':
-      sendOrderDeliveredNotification(email, emailData).catch((err) => console.error('Email error:', err));
-      break;
+  // 1. If new order placed → Alert Admin immediately
+  if (targetStatus === 'ORDER_PLACED') {
+    sendAdminOrderAlert(emailData).catch((err) => console.error('Admin order alert error:', err));
+  }
+
+  // 2. If customer has an email address → dispatch customer status update email
+  if (email) {
+    switch (targetStatus) {
+      case 'ORDER_PLACED':
+      case 'PICKUP_ASSIGNED':
+        sendPickupScheduledNotification(email, emailData).catch((err) => console.error('Email error:', err));
+        break;
+      case 'PICKED_UP':
+      case 'RECEIVED_AT_FACILITY':
+        sendPickupCompletedNotification(email, emailData).catch((err) => console.error('Email error:', err));
+        break;
+      case 'WASHING':
+      case 'DRYING':
+      case 'IRONING':
+        sendWashingInProgressNotification(email, emailData).catch((err) => console.error('Email error:', err));
+        break;
+      case 'QUALITY_CHECK':
+      case 'PACKED':
+        sendWashCompleteNotification(email, emailData).catch((err) => console.error('Email error:', err));
+        break;
+      case 'DELIVERY_ASSIGNED':
+      case 'OUT_FOR_DELIVERY':
+        sendOutForDeliveryNotification(email, emailData).catch((err) => console.error('Email error:', err));
+        break;
+      case 'DELIVERED':
+      case 'COMPLETED':
+        sendOrderDeliveredNotification(email, emailData).catch((err) => console.error('Email error:', err));
+        break;
+    }
   }
 }
 
