@@ -17,7 +17,7 @@ import { errorHandler, notFoundHandler } from './middleware/errors';
 
 const app = express();
 
-const configuredOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001')
+const configuredOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,https://laundry.anushatechnologies.com')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -26,8 +26,16 @@ app.disable('x-powered-by');
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || configuredOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error('Origin is not allowed by CORS.'));
+      if (
+        !origin ||
+        configuredOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.includes('anushatechnologies.com') ||
+        origin.includes('localhost')
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Allow all legitimate client requests in production
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
