@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FAF5FF"/><stop offset="100%" stop-color="#F3E8FF"/></linearGradient>
+        <linearGradient id="salwarGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7E22CE"/><stop offset="100%" stop-color="#581C87"/></linearGradient>
+        <filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="12" flood-opacity="0.25"/></filter>
+      </defs>
+      <rect width="400" height="400" fill="url(#bg)"/>
+      <g filter="url(#shadow)">
+        <!-- Anarkali Frock Kurti -->
+        <path d="M145 90 L85 160 L115 175 L145 140 L100 340 L300 340 L255 140 L285 175 L315 160 L255 90 Q200 130 145 90 Z" fill="url(#salwarGrad)"/>
+        <!-- Gold Embroidered Yoke -->
+        <path d="M150 90 Q200 130 250 90 L235 170 L165 170 Z" fill="#FBBF24"/>
+        <circle cx="200" cy="115" r="4" fill="#581C87"/>
+        <circle cx="200" cy="135" r="4" fill="#581C87"/>
+        <circle cx="200" cy="155" r="4" fill="#581C87"/>
+        <!-- Dupatta Draped over shoulder -->
+        <path d="M95 100 Q130 220 120 340" stroke="#EC4899" stroke-width="16" fill="none" opacity="0.85" stroke-linecap="round"/>
+        <path d="M295 120 Q265 240 280 340" stroke="#EC4899" stroke-width="12" fill="none" opacity="0.85" stroke-linecap="round"/>
+        <!-- Golden Gota Patti Border -->
+        <rect x="100" y="328" width="200" height="12" fill="#FBBF24"/>
+      </g>
+    </svg>

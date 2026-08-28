@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FDF4FF"/><stop offset="100%" stop-color="#FAE8FF"/></linearGradient>
+        <linearGradient id="sweaterGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#BE185D"/><stop offset="100%" stop-color="#831843"/></linearGradient>
+        <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-opacity="0.25"/></filter>
+      </defs>
+      <rect width="400" height="400" fill="url(#bg)"/>
+      <g filter="url(#shadow)">
+        <!-- Folded Sweater -->
+        <rect x="100" y="90" width="200" height="220" rx="18" fill="url(#sweaterGrad)"/>
+        <!-- Knit Collar -->
+        <ellipse cx="200" cy="90" rx="45" ry="20" fill="#9D174D" stroke="#F472B6" stroke-width="4"/>
+        <!-- Cable knit pattern lines -->
+        <path d="M140 120 Q145 160 140 200 Q145 240 140 280" stroke="#F472B6" stroke-width="3" fill="none" opacity="0.6"/>
+        <path d="M170 120 Q175 160 170 200 Q175 240 170 280" stroke="#F472B6" stroke-width="3" fill="none" opacity="0.6"/>
+        <path d="M200 120 Q205 160 200 200 Q205 240 200 280" stroke="#F472B6" stroke-width="3" fill="none" opacity="0.6"/>
+        <path d="M230 120 Q235 160 230 200 Q235 240 230 280" stroke="#F472B6" stroke-width="3" fill="none" opacity="0.6"/>
+        <path d="M260 120 Q265 160 260 200 Q265 240 260 280" stroke="#F472B6" stroke-width="3" fill="none" opacity="0.6"/>
+        <!-- Ribbed Cuff Base -->
+        <rect x="100" y="295" width="200" height="15" rx="4" fill="#9D174D"/>
+      </g>
+    </svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFF1F2"/><stop offset="100%" stop-color="#FFE4E6"/></linearGradient>
+        <linearGradient id="blouseGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E11D48"/><stop offset="100%" stop-color="#9F1239"/></linearGradient>
+        <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-opacity="0.25"/></filter>
+      </defs>
+      <rect width="400" height="400" fill="url(#bg)"/>
+      <g filter="url(#shadow)">
+        <!-- Blouse Body -->
+        <path d="M125 100 L75 160 L115 180 L135 150 L135 270 L265 270 L265 150 L285 180 L325 160 L275 100 Q200 180 125 100 Z" fill="url(#blouseGrad)"/>
+        <!-- Sweetheart Neckline Gold Zari Piping -->
+        <path d="M125 100 Q200 180 275 100" stroke="#FBBF24" stroke-width="6" fill="none"/>
+        <!-- Back Dori & Latkan Tassels -->
+        <path d="M165 95 Q200 130 185 180" stroke="#FBBF24" stroke-width="2" fill="none"/>
+        <path d="M235 95 Q200 130 215 180" stroke="#FBBF24" stroke-width="2" fill="none"/>
+        <polygon points="180,180 190,180 185,195" fill="#F59E0B"/>
+        <polygon points="210,180 220,180 215,195" fill="#F59E0B"/>
+        <!-- Embroidered Waistband -->
+        <rect x="135" y="258" width="130" height="12" fill="#FBBF24"/>
+      </g>
+    </svg>
