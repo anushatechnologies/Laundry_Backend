@@ -57,7 +57,17 @@ jobs:
           RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
           RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa "$USER@$HOST" << 'EOF'
+          SSH_USER="${USER:-ec2-user}"
+          if ! ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i ~/.ssh/id_rsa "$SSH_USER@$HOST" "echo SSH_CONNECTED" 2>/dev/null; then
+            if ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i ~/.ssh/id_rsa "ec2-user@$HOST" "echo SSH_CONNECTED" 2>/dev/null; then
+              SSH_USER="ec2-user"
+            elif ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i ~/.ssh/id_rsa "ubuntu@$HOST" "echo SSH_CONNECTED" 2>/dev/null; then
+              SSH_USER="ubuntu"
+            fi
+          fi
+          echo "Connecting and deploying as: $SSH_USER@$HOST"
+
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa "$SSH_USER@$HOST" << 'EOF'
             export PATH=$PATH:/usr/local/bin:/usr/bin:~/.nvm/versions/node/$(node -v 2>/dev/null)/bin
 
             echo "Connected to $(hostname) as $(whoami)"
