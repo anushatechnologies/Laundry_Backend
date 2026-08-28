@@ -19,11 +19,13 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER || 'ubuntu' }}
+          username: ${{ secrets.EC2_USER || 'ec2-user' }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script_stop: true
           script: |
+            export PATH=$PATH:/usr/local/bin:/usr/bin:~/.nvm/versions/node/$(node -v 2>/dev/null)/bin
+
             # 1. Navigate to application folder or clone if not present
             APP_DIR="/var/www/laundry-backend"
             if [ ! -d "$APP_DIR" ]; then
