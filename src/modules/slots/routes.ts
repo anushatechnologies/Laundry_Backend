@@ -19,11 +19,12 @@ export interface TimeSlot {
 }
 
 const getTodayStr = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
 };
 
 function parseTimeStringToMinutes(timeStr: string): number {
@@ -47,7 +48,14 @@ function isSlotExpired(dateStr: string, startTimeStr: string, bufferMinutes = 30
   if (dateStr > todayStr) return false;
 
   const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const istTimeStr = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false,
+  }).format(now);
+  const [istH, istM] = istTimeStr.split(':').map(Number);
+  const currentMinutes = (istH || 0) * 60 + (istM || 0);
   const slotStartMinutes = parseTimeStringToMinutes(startTimeStr);
 
   return currentMinutes >= slotStartMinutes - bufferMinutes;
