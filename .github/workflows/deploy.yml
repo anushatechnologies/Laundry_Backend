@@ -22,6 +22,7 @@ jobs:
           username: ${{ secrets.EC2_USER || 'ec2-user' }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
+          timeout: 60s
           script_stop: true
           script: |
             export PATH=$PATH:/usr/local/bin:/usr/bin:~/.nvm/versions/node/$(node -v 2>/dev/null)/bin
