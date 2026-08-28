@@ -25,23 +25,14 @@ const configuredOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,ht
 app.disable('x-powered-by');
 app.use(
   cors({
-    origin(origin, callback) {
-      if (
-        !origin ||
-        configuredOrigins.includes(origin) ||
-        origin.endsWith('.vercel.app') ||
-        origin.includes('anushatechnologies.com') ||
-        origin.includes('localhost')
-      ) {
-        return callback(null, true);
-      }
-      return callback(null, true); // Allow all legitimate client requests in production
-    },
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Token'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Token', 'X-Requested-With', 'Accept', 'Origin'],
+    optionsSuccessStatus: 200,
   })
 );
+app.options('*', cors());
 app.use((_, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
