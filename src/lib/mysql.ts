@@ -86,14 +86,14 @@ async function createTables() {
   await database.query(`
     CREATE TABLE IF NOT EXISTS categories (
       id VARCHAR(255) PRIMARY KEY, name VARCHAR(255) NOT NULL, slug VARCHAR(255) NOT NULL,
-      icon VARCHAR(255), description TEXT, is_popular TINYINT(1) DEFAULT 0
+      icon VARCHAR(255), description TEXT, is_popular TINYINT(1) DEFAULT 0, color VARCHAR(50)
     )
   `);
   await database.query(`
     CREATE TABLE IF NOT EXISTS cloth_types (
       id VARCHAR(255) PRIMARY KEY, name VARCHAR(255) NOT NULL, icon VARCHAR(255),
       category_tag VARCHAR(255), category_label VARCHAR(255), description TEXT,
-      is_active TINYINT(1) DEFAULT 1, sort_order INT DEFAULT 0
+      image_url TEXT, is_active TINYINT(1) DEFAULT 1, sort_order INT DEFAULT 0
     )
   `);
   await database.query(`
@@ -164,14 +164,27 @@ async function createTables() {
       is_active TINYINT(1) DEFAULT 1, rating DECIMAL(3, 2), orders_processed INT DEFAULT 0
     )
   `);
+  await database.query(`
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id VARCHAR(255) PRIMARY KEY, name VARCHAR(255), slug VARCHAR(255),
+      duration_months INT, price DECIMAL(10, 2), original_price DECIMAL(10, 2),
+      validity_days INT, included_kg DECIMAL(10, 2), free_pickup_delivery TINYINT(1) DEFAULT 1,
+      priority_service TINYINT(1) DEFAULT 0, max_family_members INT DEFAULT 1,
+      features JSON, popular TINYINT(1) DEFAULT 0, is_active TINYINT(1) DEFAULT 1
+    )
+  `);
 
-  // Existing installations may predate payment persistence columns.
-  for (const column of [
-    'ADD COLUMN payment_transaction_id VARCHAR(255) NULL',
-    'ADD COLUMN payment_gateway_order_id VARCHAR(255) NULL',
-  ]) {
-    await database.query(`ALTER TABLE orders ${column}`).catch((error: { code?: string }) => {
-      if (error.code !== 'ER_DUP_FIELDNAME') throw error;
+  // Column upgrade migrations
+  const alterMigrations: [string, string][] = [
+    ['categories', 'ADD COLUMN color VARCHAR(50) NULL'],
+    ['cloth_types', 'ADD COLUMN image_url TEXT NULL'],
+    ['orders', 'ADD COLUMN payment_transaction_id VARCHAR(255) NULL'],
+    ['orders', 'ADD COLUMN payment_gateway_order_id VARCHAR(255) NULL'],
+  ];
+
+  for (const [table, columnDef] of alterMigrations) {
+    await database.query(`ALTER TABLE ${table} ${columnDef}`).catch((error: { code?: string }) => {
+      if (error.code !== 'ER_DUP_FIELDNAME') console.warn(`Migration notice for ${table}:`, error.code);
     });
   }
 }
