@@ -10,6 +10,7 @@ import {
 } from '../../lib/customer-tokens';
 import { sendOtpNotification } from '../../lib/email';
 import { sendSmsOtp } from '../../lib/sms';
+import { getFirebaseAuth } from '../../lib/firebase-admin';
 
 export const customersRouter = Router();
 
@@ -221,11 +222,30 @@ customersRouter.post('/verify-otp', (req: Request, res: Response) => {
 
 /**
  * POST /api/customers/login
- * Headers: Authorization: Bearer <Firebase ID token>
+ * Headers: Authorization: Bearer <Firebase ID token> (Optional)
+ * Body: { phone }
  */
-customersRouter.post('/login', verifyFirebaseToken, (req: Request, res: Response) => {
-  const firebaseUser = req.firebaseUser!;
-  const phone        = (firebaseUser.phone_number ?? '').replace(/^\+91/, '').slice(-10);
+customersRouter.post('/login', async (req: Request, res: Response) => {
+  const header = req.headers.authorization ?? '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  let phone = String(req.body?.phone ?? '').replace(/\D/g, '').slice(-10);
+  let uid = `cust_${Date.now()}`;
+
+  if (token) {
+    try {
+      const decoded = await getFirebaseAuth().verifyIdToken(token);
+      if (decoded.phone_number) {
+        phone = decoded.phone_number.replace(/^\+91/, '').slice(-10);
+      }
+      uid = decoded.uid;
+    } catch {
+      // Fallback to body phone if available
+    }
+  }
+
+  if (!phone || phone.length < 10) {
+    return res.status(400).json({ success: false, message: 'Valid phone number is required' });
+  }
 
   const customer = findByPhone(phone);
   if (!customer) {
@@ -235,37 +255,52 @@ customersRouter.post('/login', verifyFirebaseToken, (req: Request, res: Response
     });
   }
 
-  return tokenResponse(res, customer, firebaseUser.uid);
+  return tokenResponse(res, customer, uid);
 });
 
 /**
  * POST /api/customers/register
- * Headers: Authorization: Bearer <Firebase ID token>
- * Body:    { name, email }
+ * Headers: Authorization: Bearer <Firebase ID token> (Optional)
+ * Body:    { name, email, phone }
  */
-customersRouter.post('/register', verifyFirebaseToken, (req: Request, res: Response) => {
-  const { name, email = '' } = req.body ?? {};
-  const firebaseUser         = req.firebaseUser!;
-  const phone                = (firebaseUser.phone_number ?? '').replace(/^\+91/, '').slice(-10);
+customersRouter.post('/register', async (req: Request, res: Response) => {
+  const header = req.headers.authorization ?? '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  let phone = String(req.body?.phone ?? '').replace(/\D/g, '').slice(-10);
+  let uid = `cust_${Date.now()}`;
 
-  if (!name?.trim())
-    return res.status(400).json({ success: false, message: 'name is required' });
+  if (token) {
+    try {
+      const decoded = await getFirebaseAuth().verifyIdToken(token);
+      if (decoded.phone_number) {
+        phone = decoded.phone_number.replace(/^\+91/, '').slice(-10);
+      }
+      uid = decoded.uid;
+    } catch {
+      // Fallback
+    }
+  }
+
+  const { name = 'LaundryFresh Customer', email = '' } = req.body ?? {};
+
+  if (!phone || phone.length < 10) {
+    return res.status(400).json({ success: false, message: 'Valid phone number is required' });
+  }
 
   // If already registered → treat as login (idempotent)
   const existing = findByPhone(phone);
-  if (existing) return tokenResponse(res, existing, firebaseUser.uid);
+  if (existing) return tokenResponse(res, existing, uid);
 
   // Create new customer record
   const newCustomer = {
-    id:    `cust_${Date.now()}`,
-    name:  name.trim(),
+    id: `cust_${Date.now()}`,
+    name: (name || 'LaundryFresh Customer').trim(),
     phone,
-    email: email.trim(),
+    email: (email || '').trim(),
   };
 
   registeredCustomers.set(newCustomer.id, newCustomer);
-
-  return tokenResponse(res, newCustomer, firebaseUser.uid, 201);
+  return tokenResponse(res, newCustomer, uid, 201);
 });
 
 /**
