@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { db } from '../../lib/db';
 import { requireAdmin } from '../../middleware/admin';
 import { verifyAccessToken } from '../../lib/customer-tokens';
+import { sendAdminOrderAlert, sendPickupScheduledNotification } from '../../lib/email';
 
 const router = Router();
 
@@ -207,8 +208,44 @@ router.post('/verify-signature', requireCustomerOrderAccess, (req: Request, res:
     return res.status(400).json({ success: false, message: 'Payment verification failed.' });
   }
 
-  return res.json({ success: true, data: paymentView(db.markOrderPaymentPaid(order.id, razorpay_payment_id)) });
+  const paidOrder = db.markOrderPaymentPaid(order.id, razorpay_payment_id);
+  notifyPaymentSuccess(paidOrder);
+  return res.json({ success: true, data: paymentView(paidOrder) });
 });
+
+async function notifyPaymentSuccess(order: any) {
+  if (!order) return;
+  try {
+    const orderData = {
+      orderId: order.id,
+      customerName: order.customerName || 'Valued Customer',
+      customerEmail: order.customerEmail,
+      customerPhone: order.customerPhone,
+      totalAmount: order.totalAmount,
+      pickupDate: order.pickupSlot?.date || 'As scheduled',
+      pickupTimeSlot: order.pickupSlot?.time || '10:00 AM - 12:00 PM',
+      pickupAddress: order.address?.street || 'Customer Address',
+      serviceName: 'Premium Fabric Care & Laundry',
+      paymentStatus: 'PAID',
+      paymentMethod: order.paymentMethod || 'RAZORPAY_UPI',
+      deliveryOtp: order.deliveryOtp || '8492',
+      trackingUrl: `https://laundry-website-peach.vercel.app/track/${order.id}`,
+    };
+
+    // 1. Notify Admin
+    sendAdminOrderAlert(orderData).catch((e) => console.warn('Admin alert email error:', e));
+
+    // 2. Notify Customer if email provided
+    if (order.customerEmail) {
+      sendPickupScheduledNotification(order.customerEmail, orderData).catch((e) =>
+        console.warn('Customer confirmation email error:', e)
+      );
+    }
+    console.log(`[NOTIFICATIONS DISPATCHED] Order #${order.id} payment alerts sent.`);
+  } catch (err) {
+    console.warn('[NOTIFICATIONS ERROR]', err);
+  }
+}
 
 router.post('/mark-failed', requireCustomerOrderAccess, (req: Request, res: Response) => {
   const parsed = createPaymentSchema.safeParse(req.body);
@@ -256,7 +293,8 @@ router.post('/webhook', (req: Request, res: Response) => {
     if (internalOrderId) {
       const existingOrder = db.getOrderById(internalOrderId);
       if (existingOrder && existingOrder.paymentStatus !== 'PAID') {
-        db.markOrderPaymentPaid(internalOrderId, paymentId);
+        const paid = db.markOrderPaymentPaid(internalOrderId, paymentId);
+        notifyPaymentSuccess(paid);
         console.log(`[Razorpay Webhook] Marked order #${internalOrderId} as PAID (${paymentId})`);
       }
     }
