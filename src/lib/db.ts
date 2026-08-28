@@ -820,6 +820,27 @@ class BackendDatabase {
           hubId: r.hub_id,
         }));
       }
+
+      // Sync Subscriptions
+      const [subRows]: any = await pool.query('SELECT * FROM subscriptions');
+      if (subRows && subRows.length > 0) {
+        this.subscriptionPlans = subRows.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          slug: r.slug,
+          durationMonths: Number(r.duration_months || 1),
+          price: Number(r.price),
+          originalPrice: r.original_price ? Number(r.original_price) : undefined,
+          validityDays: Number(r.validity_days || 30),
+          includedKg: Number(r.included_kg || 20),
+          freePickupDelivery: Boolean(r.free_pickup_delivery),
+          priorityService: Boolean(r.priority_service),
+          maxFamilyMembers: Number(r.max_family_members || 1),
+          features: typeof r.features === 'string' ? JSON.parse(r.features) : (Array.isArray(r.features) ? r.features : []),
+          popular: Boolean(r.popular),
+          isActive: Boolean(r.is_active),
+        }));
+      }
     } catch (err) {
       console.error('Error syncing data from MySQL:', err);
     }
@@ -1473,6 +1494,14 @@ class BackendDatabase {
     } else {
       this.subscriptionPlans.unshift(plan);
     }
+
+    if (isDbConnected && pool) {
+      pool.query(
+        'REPLACE INTO subscriptions (id, name, slug, duration_months, price, original_price, validity_days, included_kg, free_pickup_delivery, priority_service, max_family_members, features, popular, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [plan.id, plan.name, plan.slug, plan.durationMonths || 1, plan.price, plan.originalPrice || null, plan.validityDays || 30, plan.includedKg || 20, plan.freePickupDelivery ? 1 : 0, plan.priorityService ? 1 : 0, plan.maxFamilyMembers || 1, JSON.stringify(plan.features || []), plan.popular ? 1 : 0, plan.isActive ? 1 : 0]
+      ).catch((err) => console.error('Error inserting subscription to MySQL:', err));
+    }
+
     return plan;
   }
 
@@ -1480,12 +1509,26 @@ class BackendDatabase {
     const idx = this.subscriptionPlans.findIndex((p: any) => p.id === id);
     if (idx === -1) return null;
     this.subscriptionPlans[idx] = { ...this.subscriptionPlans[idx], ...updates };
-    return this.subscriptionPlans[idx];
+    const plan = this.subscriptionPlans[idx];
+
+    if (isDbConnected && pool) {
+      pool.query(
+        'REPLACE INTO subscriptions (id, name, slug, duration_months, price, original_price, validity_days, included_kg, free_pickup_delivery, priority_service, max_family_members, features, popular, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [plan.id, plan.name, plan.slug, plan.durationMonths || 1, plan.price, plan.originalPrice || null, plan.validityDays || 30, plan.includedKg || 20, plan.freePickupDelivery ? 1 : 0, plan.priorityService ? 1 : 0, plan.maxFamilyMembers || 1, JSON.stringify(plan.features || []), plan.popular ? 1 : 0, plan.isActive ? 1 : 0]
+      ).catch((err) => console.error('Error updating subscription in MySQL:', err));
+    }
+
+    return plan;
   }
 
   deleteSubscriptionPlan(id: string): boolean {
     const beforeLen = this.subscriptionPlans.length;
     this.subscriptionPlans = this.subscriptionPlans.filter((p: any) => p.id !== id);
+
+    if (isDbConnected && pool) {
+      pool.query('DELETE FROM subscriptions WHERE id = ?', [id]).catch((err) => console.error('Error deleting subscription from MySQL:', err));
+    }
+
     return this.subscriptionPlans.length < beforeLen;
   }
 

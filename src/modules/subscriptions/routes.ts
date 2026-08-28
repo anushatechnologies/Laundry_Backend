@@ -20,9 +20,9 @@ router.post('/plans', requireAdmin, (req: Request, res: Response) => {
   const days = parseInt(validityDays) || months * 30;
 
   const newPlan = {
-    id: `sub-${Date.now()}`,
+    id: req.body.id ? String(req.body.id) : `sub-${Date.now()}`,
     name: String(name).trim(),
-    slug: String(name).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+    slug: req.body.slug ? String(req.body.slug) : String(name).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
     durationMonths: months,
     price: parseFloat(price) || 0,
     originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
@@ -30,6 +30,7 @@ router.post('/plans', requireAdmin, (req: Request, res: Response) => {
     includedKg: parseFloat(includedKg) || 20,
     freePickupDelivery: freePickupDelivery !== undefined ? Boolean(freePickupDelivery) : true,
     priorityService: priorityService !== undefined ? Boolean(priorityService) : false,
+    maxFamilyMembers: req.body.maxFamilyMembers ? parseInt(req.body.maxFamilyMembers) : 1,
     features: Array.isArray(features) ? features : (features ? [String(features)] : []),
     popular: Boolean(popular),
     isActive: isActive !== undefined ? Boolean(isActive) : true,

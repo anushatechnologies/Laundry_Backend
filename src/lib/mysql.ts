@@ -281,6 +281,14 @@ async function seedTablesIfEmpty(data: InitialData) {
       await database.query('INSERT INTO staff (id, name, email, phone, role, assigned_facility, assigned_zone, is_active, rating, orders_processed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [item.id, item.name, item.email, item.phone, item.role, item.assignedFacility || null, item.assignedZone || null, item.isActive ? 1 : 0, item.rating || null, item.ordersProcessed || 0]);
     }
   }
+  if (await tableIsEmpty('subscriptions')) {
+    for (const item of (data as any).subscriptionPlans || []) {
+      await database.query(
+        'INSERT INTO subscriptions (id, name, slug, duration_months, price, original_price, validity_days, included_kg, free_pickup_delivery, priority_service, max_family_members, features, popular, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [item.id, item.name, item.slug, item.durationMonths || 1, item.price, item.originalPrice || null, item.validityDays || 30, item.includedKg || 20, item.freePickupDelivery ? 1 : 0, item.priorityService ? 1 : 0, item.maxFamilyMembers || 1, JSON.stringify(item.features || []), item.popular ? 1 : 0, item.isActive ? 1 : 0]
+      );
+    }
+  }
   if (await tableIsEmpty('orders')) {
     for (const item of data.orders) {
       await database.query(
