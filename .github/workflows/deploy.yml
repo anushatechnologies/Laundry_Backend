@@ -80,6 +80,13 @@ jobs:
             RAZORPAY_KEY_SECRET=${{ secrets.RAZORPAY_KEY_SECRET }}
             EOF
 
+            # Write serviceAccountKey.json if secret is provided
+            if [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+              cat << 'FIREBASE_EOF' > serviceAccountKey.json
+            ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+            FIREBASE_EOF
+            fi
+
             # 4. Install dependencies & Build
             npm install --production=false
             npm run build

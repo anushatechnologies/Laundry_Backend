@@ -9,6 +9,19 @@ export function getFirebaseAdmin(): App {
   if (_app) return _app;
   if (getApps().length) { _app = getApp(); return _app; }
 
+  // Check for raw JSON string in environment variable
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      _app = initializeApp({
+        credential: cert(serviceAccount),
+      });
+      return _app;
+    } catch (e) {
+      console.warn('Failed to parse FIREBASE_SERVICE_ACCOUNT JSON:', e);
+    }
+  }
+
   const serviceKeyPath = path.resolve(__dirname, '../../serviceAccountKey.json');
   if (fs.existsSync(serviceKeyPath)) {
     try {
