@@ -33,11 +33,23 @@ router.get('/check', (req: Request, res: Response) => {
   if (zone?.isServiceable) {
     return res.json({
       success: true,
-      data: { isServiceable: true, zone, message: `Service available in ${zone.areaName}, ${zone.city}` },
+      serviceable: true,
+      isServiceable: true,
+      data: { isServiceable: true, serviceable: true, zone, pincode: pin, areaName: zone.areaName, city: zone.city, message: `Service available in ${zone.areaName}, ${zone.city}` },
     });
   }
 
-  return res.json({ success: true, data: { isServiceable: false, message: 'Currently out of service coverage.' } });
+  return res.json({
+    success: true,
+    serviceable: false,
+    isServiceable: false,
+    data: {
+      isServiceable: false,
+      serviceable: false,
+      pincode: pin,
+      message: `Service is currently not available in PIN ${pin}. We operate across 50+ areas in Hyderabad & Secunderabad and are expanding to your area soon!`,
+    },
+  });
 });
 
 router.post('/check', (req: Request, res: Response) => {
@@ -48,11 +60,23 @@ router.post('/check', (req: Request, res: Response) => {
   if (zone?.isServiceable) {
     return res.json({
       success: true,
-      data: { isServiceable: true, zone, message: `Service available in ${zone.areaName}, ${zone.city}` },
+      serviceable: true,
+      isServiceable: true,
+      data: { isServiceable: true, serviceable: true, zone, pincode: pin, areaName: zone.areaName, city: zone.city, message: `Service available in ${zone.areaName}, ${zone.city}` },
     });
   }
 
-  return res.json({ success: true, data: { isServiceable: false, message: 'Currently out of service coverage.' } });
+  return res.json({
+    success: true,
+    serviceable: false,
+    isServiceable: false,
+    data: {
+      isServiceable: false,
+      serviceable: false,
+      pincode: pin,
+      message: `Service is currently not available in PIN ${pin}. We operate across 50+ areas in Hyderabad & Secunderabad and are expanding to your area soon!`,
+    },
+  });
 });
 
 // Reverse geocoding with Google Maps API and OpenStreetMap Nominatim fallback
@@ -187,47 +211,32 @@ router.get('/:pincode', (req: Request, res: Response) => {
   if (!/^\d{6}$/.test(pin)) return validationError(res, 'A valid six-digit pincode is required.');
 
   const zone = db.checkPincode(pin);
-  if (zone) {
+  if (zone && zone.isServiceable) {
     return res.json({
       success: true,
-      serviceable: zone.isServiceable,
-      isServiceable: zone.isServiceable,
+      serviceable: true,
+      isServiceable: true,
       data: {
         pincode: pin,
-        isServiceable: zone.isServiceable,
-        serviceable: zone.isServiceable,
+        isServiceable: true,
+        serviceable: true,
         areaName: zone.areaName,
         city: zone.city,
         zone,
-        message: zone.isServiceable ? `Service available in ${zone.areaName}, ${zone.city}` : 'Currently out of service coverage.',
+        message: `Service available in ${zone.areaName}, ${zone.city}`,
       },
     });
   }
 
-  // Fallback for any valid 6-digit pincode so users are never blocked
-  const fallbackZone = {
-    pincode: pin,
-    areaName: 'Service Coverage Zone',
-    city: 'Hyderabad / Bengaluru',
-    isServiceable: true,
-    standardFee: 40,
-    minFreeOrderValue: 399,
-    expressAvailable: true,
-    averageTurnaroundHours: 24,
-  };
-
   return res.json({
     success: true,
-    serviceable: true,
-    isServiceable: true,
+    serviceable: false,
+    isServiceable: false,
     data: {
       pincode: pin,
-      isServiceable: true,
-      serviceable: true,
-      areaName: fallbackZone.areaName,
-      city: fallbackZone.city,
-      zone: fallbackZone,
-      message: `Service available in ${pin}`,
+      isServiceable: false,
+      serviceable: false,
+      message: `Service is currently not available in PIN ${pin}. We operate across 50+ areas in Hyderabad & Secunderabad and are expanding to your area soon!`,
     },
   });
 });
