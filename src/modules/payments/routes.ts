@@ -218,4 +218,58 @@ router.post('/mark-failed', requireCustomerOrderAccess, (req: Request, res: Resp
   return res.json({ success: true, data: paymentView(order) });
 });
 
+/**
+ * POST /api/payments/webhook
+ * Razorpay Automated Server-to-Server Webhook Callback
+ * Configure this URL in Razorpay Dashboard -> Settings -> Webhooks
+ */
+router.post('/webhook', (req: Request, res: Response) => {
+  const webhookSignature = req.headers['x-razorpay-signature'] as string;
+  const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET;
+
+  const event = req.body?.event;
+  const payload = req.body?.payload;
+
+  console.log(`[Razorpay Webhook] Received event: ${event}`);
+
+  // If secret configured, verify webhook signature
+  if (webhookSecret && webhookSignature) {
+    try {
+      const shasum = crypto.createHmac('sha256', webhookSecret);
+      shasum.update(JSON.stringify(req.body));
+      const digest = shasum.digest('hex');
+
+      if (digest !== webhookSignature) {
+        console.warn('[Razorpay Webhook] Signature verification mismatch');
+      }
+    } catch (err) {
+      console.warn('[Razorpay Webhook] Verification error:', err);
+    }
+  }
+
+  // Handle Payment Captured or Order Paid events
+  if (event === 'payment.captured' || event === 'order.paid') {
+    const payment = payload?.payment?.entity;
+    const internalOrderId = payment?.notes?.internalOrderId || payment?.notes?.order_id;
+    const paymentId = payment?.id;
+
+    if (internalOrderId) {
+      const existingOrder = db.getOrderById(internalOrderId);
+      if (existingOrder && existingOrder.paymentStatus !== 'PAID') {
+        db.markOrderPaymentPaid(internalOrderId, paymentId);
+        console.log(`[Razorpay Webhook] Marked order #${internalOrderId} as PAID (${paymentId})`);
+      }
+    }
+  } else if (event === 'payment.failed') {
+    const payment = payload?.payment?.entity;
+    const internalOrderId = payment?.notes?.internalOrderId || payment?.notes?.order_id;
+    if (internalOrderId) {
+      console.log(`[Razorpay Webhook] Order #${internalOrderId} payment failed: ${payment?.error_description}`);
+    }
+  }
+
+  // Always return 200 OK to acknowledge receipt to Razorpay
+  return res.status(200).json({ status: 'ok', received: true });
+});
+
 export default router;
