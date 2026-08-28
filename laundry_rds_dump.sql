@@ -1,6 +1,6 @@
 -- =========================================================================
 -- LaundryFresh AWS RDS MySQL Complete Database Dump & Seed Script
--- Generated at: 2026-08-28T09:29:54.865Z
+-- Generated at: 2026-08-28T09:33:09.703Z
 -- =========================================================================
 
 CREATE DATABASE IF NOT EXISTS `laundry` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
