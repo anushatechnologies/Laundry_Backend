@@ -184,6 +184,32 @@ async function createTables() {
       updated_at VARCHAR(100)
     )
   `);
+  await database.query(`
+    CREATE TABLE IF NOT EXISTS hubs (
+      id VARCHAR(255) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      code VARCHAR(100),
+      city VARCHAR(100),
+      state VARCHAR(100),
+      address TEXT,
+      latitude DECIMAL(10, 6),
+      longitude DECIMAL(10, 6),
+      contact_phone VARCHAR(50),
+      contact_email VARCHAR(150),
+      capacity_kg_per_day INT DEFAULT 500,
+      operating_hours VARCHAR(100),
+      max_service_radius_km INT DEFAULT 30,
+      base_distance_km INT DEFAULT 3,
+      base_delivery_fare DECIMAL(10, 2) DEFAULT 30.00,
+      per_km_fare DECIMAL(10, 2) DEFAULT 10.00,
+      free_delivery_above DECIMAL(10, 2) DEFAULT 399.00,
+      pincodes JSON,
+      in_house_vehicles JSON,
+      is_active TINYINT(1) DEFAULT 1,
+      created_at VARCHAR(100),
+      updated_at VARCHAR(100)
+    )
+  `);
 
   // Column upgrade migrations
   const alterMigrations: [string, string][] = [
