@@ -173,6 +173,17 @@ async function createTables() {
       features JSON, popular TINYINT(1) DEFAULT 0, is_active TINYINT(1) DEFAULT 1
     )
   `);
+  await database.query(`
+    CREATE TABLE IF NOT EXISTS customers (
+      id VARCHAR(255) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      phone VARCHAR(100) NOT NULL UNIQUE,
+      email VARCHAR(255),
+      role VARCHAR(50) DEFAULT 'CUSTOMER',
+      created_at VARCHAR(100),
+      updated_at VARCHAR(100)
+    )
+  `);
 
   // Column upgrade migrations
   const alterMigrations: [string, string][] = [

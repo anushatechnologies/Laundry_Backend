@@ -11,6 +11,7 @@ import {
 import { sendOtpNotification, sendWelcomeCustomerNotification } from '../../lib/email';
 import { sendSmsOtp } from '../../lib/sms';
 import { getFirebaseAuth } from '../../lib/firebase-admin';
+import { pool, isDbConnected } from '../../lib/mysql';
 
 export const customersRouter = Router();
 
@@ -24,7 +25,7 @@ const customerOtpStore = new Map<string, { code: string; expiresAt: number; name
    Internal helpers
 ───────────────────────────────────────────────────────────────────────── */
 
-/** Build a customer summary map from existing orders */
+/** Build a customer summary map from existing orders and registered customers */
 function customerSummaries() {
   const map = new Map<
     string,
@@ -216,6 +217,13 @@ customersRouter.post('/verify-otp', (req: Request, res: Response) => {
       totalSpent: 0,
     };
 
+    if (isDbConnected && pool) {
+      pool.query(
+        'INSERT INTO customers (id, name, phone, email, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=VALUES(updated_at)',
+        [newCustomer.id, newCustomer.name, newCustomer.phone, newCustomer.email, 'CUSTOMER', new Date().toISOString(), new Date().toISOString()]
+      ).catch((err) => console.error('Error saving customer to MySQL:', err));
+    }
+
     if (customerEmail) {
       sendWelcomeCustomerNotification(customerEmail, customerName, customerEmail, phone).catch((err) =>
         console.error('Welcome email error:', err)
@@ -306,6 +314,13 @@ customersRouter.post('/register', async (req: Request, res: Response) => {
   };
 
   registeredCustomers.set(newCustomer.id, newCustomer);
+
+  if (isDbConnected && pool) {
+    pool.query(
+      'INSERT INTO customers (id, name, phone, email, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=VALUES(updated_at)',
+      [newCustomer.id, newCustomer.name, newCustomer.phone, newCustomer.email, 'CUSTOMER', new Date().toISOString(), new Date().toISOString()]
+    ).catch((err) => console.error('Error saving customer to MySQL:', err));
+  }
 
   if (newCustomer.email) {
     sendWelcomeCustomerNotification(newCustomer.email, newCustomer.name, newCustomer.email, phone).catch((err) =>
