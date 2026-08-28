@@ -144,17 +144,14 @@ jobs:
             npm run build
 
             # 6. Restart PM2 Process
-            if pm2 describe laundry-api > /dev/null 2>&1; then
-              echo "Restarting existing PM2 laundry-api..."
-              pm2 restart laundry-api --update-env
-            else
-              echo "Starting new PM2 laundry-api..."
-              pm2 start dist/server.js --name laundry-api
-              pm2 save
-            fi
+            echo "Starting/Reloading PM2 process..."
+            pm2 delete laundry-api 2>/dev/null || true
+            pm2 start dist/server.js --name laundry-api
+            pm2 save
 
-            # 7. Configure Nginx Reverse Proxy (Port 80 -> Port 5000)
-            echo "Configuring Nginx Reverse Proxy..."
+            # 7. Configure Nginx Reverse Proxy & SELinux permissions
+            echo "Configuring Nginx Reverse Proxy & SELinux..."
+            sudo setsebool -P httpd_can_network_connect 1 2>/dev/null || true
             sudo tee /etc/nginx/nginx.conf > /dev/null << 'NGINX_CONF'
 user nginx;
 worker_processes auto;
