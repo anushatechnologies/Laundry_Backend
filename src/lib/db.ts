@@ -112,47 +112,71 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
 ];
 
 export const INITIAL_CLOTH_TYPES: ClothType[] = [
-  // Men's Clothing
+  // ── MEN'S CLOTHING ──
   { id: 'cloth-shirt', name: 'Shirt', icon: '👔', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Regular casual & formal shirts', isActive: true, sortOrder: 1 },
   { id: 'cloth-tshirt', name: 'T-Shirt', icon: '👕', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Polo & round-neck t-shirts', isActive: true, sortOrder: 2 },
   { id: 'cloth-jeans', name: 'Jeans / Denim', icon: '👖', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Heavy denim and cotton jeans', isActive: true, sortOrder: 3 },
   { id: 'cloth-trouser', name: 'Formal Trouser / Chinos', icon: '👖', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Cotton trousers, chinos & pants', isActive: true, sortOrder: 4 },
   { id: 'cloth-kurta-m', name: 'Kurta (Men)', icon: '🥻', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Cotton & festive silk kurtas', isActive: true, sortOrder: 5 },
-  { id: 'cloth-blazer', name: 'Blazer / Coat', icon: '🧥', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Single or double-breasted formal blazer', isActive: true, sortOrder: 6 },
-  { id: 'cloth-suit-2p', name: 'Suit 2-Piece', icon: '👔', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Blazer + Trouser combo set', isActive: true, sortOrder: 7 },
-  { id: 'cloth-sweater', name: 'Sweater / Pullover', icon: '🧶', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Woolen & blended sweaters', isActive: true, sortOrder: 8 },
-  { id: 'cloth-jacket', name: 'Winter Jacket', icon: '🧥', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Fleece, windcheater & padded jacket', isActive: true, sortOrder: 9 },
+  { id: 'cloth-dhoti', name: 'Dhoti / Mundu / Lungi', icon: '🥻', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Traditional cotton & silk lower wear', isActive: true, sortOrder: 6 },
+  { id: 'cloth-sherwani', name: 'Sherwani / Indo-Western', icon: '🤴', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Groom & wedding ethnic designer wear', isActive: true, sortOrder: 7 },
+  { id: 'cloth-nehru', name: 'Nehru Jacket / Waistcoat', icon: '🧥', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Sleeveless Modi / Nehru bandhgala jacket', isActive: true, sortOrder: 8 },
+  { id: 'cloth-blazer', name: 'Blazer / Coat', icon: '🧥', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Single or double-breasted formal blazer', isActive: true, sortOrder: 9 },
+  { id: 'cloth-suit-2p', name: 'Suit 2-Piece', icon: '👔', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Blazer + Trouser combo set', isActive: true, sortOrder: 10 },
+  { id: 'cloth-suit-3p', name: 'Suit 3-Piece', icon: '👔', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Blazer + Vest + Trouser combo set', isActive: true, sortOrder: 11 },
+  { id: 'cloth-sweater', name: 'Sweater / Pullover', icon: '🧶', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Woolen & blended sweaters', isActive: true, sortOrder: 12 },
+  { id: 'cloth-jacket', name: 'Winter Jacket', icon: '🧥', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Fleece, windcheater & padded jacket', isActive: true, sortOrder: 13 },
+  { id: 'cloth-tracksuit', name: 'Tracksuit / Gym Set', icon: '🏃', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Athletic hoodie and trackpants', isActive: true, sortOrder: 14 },
+  { id: 'cloth-tie', name: 'Tie / Pocket Square', icon: '👔', categoryTag: 'MENS', categoryLabel: "Men's Clothing", description: 'Silk ties, bowties and pocket squares', isActive: true, sortOrder: 15 },
 
-  // Women's Clothing
-  { id: 'cloth-saree-reg', name: 'Saree (Daily / Cotton)', icon: '🥻', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Cotton, chiffon, georgette daily sarees', isActive: true, sortOrder: 10 },
-  { id: 'cloth-saree-silk', name: 'Silk Saree (Kanchipuram / Zari)', icon: '🥻', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Pure silk, Banarasi & embroidered zari sarees', isActive: true, sortOrder: 11 },
-  { id: 'cloth-blouse', name: 'Blouse', icon: '👚', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Padded & designer embroidered blouses', isActive: true, sortOrder: 12 },
-  { id: 'cloth-kurti', name: 'Kurti / Tunic', icon: '👚', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Casual & partywear kurtis', isActive: true, sortOrder: 13 },
-  { id: 'cloth-salwar', name: 'Salwar Kameez / Suit Set', icon: '👗', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: '3-Piece Top, Bottom & Dupatta set', isActive: true, sortOrder: 14 },
-  { id: 'cloth-lehenga', name: 'Bridal / Party Lehenga', icon: '👰', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Heavy flared lehenga with stone & zardozi work', isActive: true, sortOrder: 15 },
-  { id: 'cloth-dress-w', name: 'Dress / Western Gown', icon: '👗', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Maxi dress, evening gowns & party dresses', isActive: true, sortOrder: 16 },
+  // ── WOMEN'S CLOTHING ──
+  { id: 'cloth-saree-reg', name: 'Saree (Daily / Cotton)', icon: '🥻', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Cotton, chiffon, georgette daily sarees', isActive: true, sortOrder: 16 },
+  { id: 'cloth-saree-silk', name: 'Silk Saree (Kanchipuram / Zari)', icon: '🥻', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Pure silk, Banarasi & embroidered zari sarees', isActive: true, sortOrder: 17 },
+  { id: 'cloth-saree-heavy', name: 'Heavy Designer Saree', icon: '🥻', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Stone work, cutwork and heavy bridal sarees', isActive: true, sortOrder: 18 },
+  { id: 'cloth-blouse', name: 'Blouse', icon: '👚', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Regular cotton & silk blouses', isActive: true, sortOrder: 19 },
+  { id: 'cloth-blouse-padded', name: 'Blouse (Padded / Zari)', icon: '👚', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Padded & designer embroidered blouses', isActive: true, sortOrder: 20 },
+  { id: 'cloth-kurti', name: 'Kurti / Tunic', icon: '👚', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Casual & partywear kurtis', isActive: true, sortOrder: 21 },
+  { id: 'cloth-salwar', name: 'Salwar Kameez / Suit Set', icon: '👗', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: '3-Piece Top, Bottom & Dupatta set', isActive: true, sortOrder: 22 },
+  { id: 'cloth-sharara', name: 'Sharara / Gharara Set', icon: '👗', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Flared festive ethnic party wear', isActive: true, sortOrder: 23 },
+  { id: 'cloth-dupatta', name: 'Dupatta / Stole', icon: '🧣', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Cotton, chiffon and silk stoles', isActive: true, sortOrder: 24 },
+  { id: 'cloth-leggings', name: 'Leggings / Plazo', icon: '👖', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Stretch cotton leggings, jeggings and plazos', isActive: true, sortOrder: 25 },
+  { id: 'cloth-lehenga', name: 'Bridal / Party Lehenga', icon: '👰', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Heavy flared lehenga with stone & zardozi work', isActive: true, sortOrder: 26 },
+  { id: 'cloth-dress-w', name: 'Dress / Western Gown', icon: '👗', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Maxi dress, evening gowns & party dresses', isActive: true, sortOrder: 27 },
+  { id: 'cloth-shawl', name: 'Kashmiri / Pashmina Shawl', icon: '🧣', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Pure wool & delicate embroidered shawls', isActive: true, sortOrder: 28 },
+  { id: 'cloth-nighty', name: 'Nighty / Loungewear', icon: '👘', categoryTag: 'WOMENS', categoryLabel: "Women's Clothing", description: 'Cotton nighties, kaftans and pyjamas', isActive: true, sortOrder: 29 },
 
-  // Kids
-  { id: 'cloth-kid-shirt', name: 'Kids Shirt / Top', icon: '👕', categoryTag: 'KIDS', categoryLabel: 'Kids Clothing', description: 'Infant to teenage shirts and tops', isActive: true, sortOrder: 17 },
-  { id: 'cloth-kid-pant', name: 'Kids Pant / Shorts', icon: '🩳', categoryTag: 'KIDS', categoryLabel: 'Kids Clothing', description: 'Kids denim, track pants & shorts', isActive: true, sortOrder: 18 },
-  { id: 'cloth-kid-dress', name: 'Kids Frock / Dress', icon: '👗', categoryTag: 'KIDS', categoryLabel: 'Kids Clothing', description: 'Girls dresses and party frocks', isActive: true, sortOrder: 19 },
-  { id: 'cloth-kid-uniform', name: 'School Uniform Set', icon: '🎒', categoryTag: 'KIDS', categoryLabel: 'Kids Clothing', description: 'Shirt + Skirt/Trouser with tie and badge', isActive: true, sortOrder: 20 },
+  // ── KIDS & BABY CARE ──
+  { id: 'cloth-kid-shirt', name: 'Kids Shirt / Top', icon: '👕', categoryTag: 'KIDS', categoryLabel: 'Kids Clothing', description: 'Infant to teenage shirts and tops', isActive: true, sortOrder: 30 },
+  { id: 'cloth-kid-pant', name: 'Kids Pant / Shorts', icon: '🩳', categoryTag: 'KIDS', categoryLabel: 'Kids Clothing', description: 'Kids denim, track pants & shorts', isActive: true, sortOrder: 31 },
+  { id: 'cloth-kid-dress', name: 'Kids Frock / Dress', icon: '👗', categoryTag: 'KIDS', categoryLabel: 'Kids Clothing', description: 'Girls dresses and party frocks', isActive: true, sortOrder: 32 },
+  { id: 'cloth-kid-uniform', name: 'School Uniform Set', icon: '🎒', categoryTag: 'KIDS', categoryLabel: 'Kids Clothing', description: 'Shirt + Skirt/Trouser with tie and badge', isActive: true, sortOrder: 33 },
+  { id: 'cloth-baby-romper', name: 'Baby Rompers (Pack of 3)', icon: '👶', categoryTag: 'KIDS', categoryLabel: 'Baby Care', description: 'Hypoallergenic sanitizing wash for infant onesies', isActive: true, sortOrder: 34 },
+  { id: 'cloth-soft-toy', name: 'Soft Toys / Teddy Bear', icon: '🧸', categoryTag: 'KIDS', categoryLabel: 'Baby Care', description: 'Anti-allergen ozone sanitization for plush toys', isActive: true, sortOrder: 35 },
 
-  // Home Textiles
-  { id: 'cloth-bedsheet-s', name: 'Bedsheet (Single)', icon: '🛏️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Single bedsheet + 1 pillow cover', isActive: true, sortOrder: 21 },
-  { id: 'cloth-bedsheet-d', name: 'Bedsheet (Double / King)', icon: '🛏️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Double/King bedsheet + 2 pillow covers', isActive: true, sortOrder: 22 },
-  { id: 'cloth-blanket', name: 'Blanket / Quilt (Single)', icon: '🛋️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Medium weight single quilt or fleece blanket', isActive: true, sortOrder: 23 },
-  { id: 'cloth-comforter', name: 'Heavy Comforter / Rajai (Double)', icon: '🛋️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Heavy double winter comforter or duvet', isActive: true, sortOrder: 24 },
-  { id: 'cloth-curtain', name: 'Curtains (Per Panel)', icon: '🪟', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Window and door curtains up to 9ft', isActive: true, sortOrder: 25 },
-  { id: 'cloth-towel', name: 'Bath Towel', icon: '🛁', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Plush cotton bath towels and robes', isActive: true, sortOrder: 26 },
+  // ── HOME & BEDDING TEXTILES ──
+  { id: 'cloth-bedsheet-s', name: 'Bedsheet (Single)', icon: '🛏️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Single bedsheet + 1 pillow cover', isActive: true, sortOrder: 36 },
+  { id: 'cloth-bedsheet-d', name: 'Bedsheet (Double / King)', icon: '🛏️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Double/King bedsheet + 2 pillow covers', isActive: true, sortOrder: 37 },
+  { id: 'cloth-pillow-cover', name: 'Pillow Covers (Pair)', icon: '🛋️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Standard size bed pillow slips', isActive: true, sortOrder: 38 },
+  { id: 'cloth-blanket', name: 'Blanket / Quilt (Single)', icon: '🛋️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Medium weight single quilt or fleece blanket', isActive: true, sortOrder: 39 },
+  { id: 'cloth-blanket-d', name: 'Blanket / Mink (Double)', icon: '🛋️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Heavy double mink blanket with sanitization', isActive: true, sortOrder: 40 },
+  { id: 'cloth-comforter', name: 'Heavy Comforter / Rajai (Double)', icon: '🛋️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Heavy double winter comforter or duvet', isActive: true, sortOrder: 41 },
+  { id: 'cloth-curtain', name: 'Curtains (Per Panel)', icon: '🪟', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Window and door curtains up to 9ft', isActive: true, sortOrder: 42 },
+  { id: 'cloth-towel', name: 'Bath Towel', icon: '🛁', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Plush cotton bath towels and robes', isActive: true, sortOrder: 43 },
+  { id: 'cloth-sofa-cover', name: 'Sofa Covers (Set of 5)', icon: '🛋️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Living room cushion & sofa fabric covers', isActive: true, sortOrder: 44 },
+  { id: 'cloth-tablecloth', name: 'Tablecloth / Runner', icon: '🍽️', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: '6-8 seater dining tablecloth and runner', isActive: true, sortOrder: 45 },
+  { id: 'cloth-doormat', name: 'Door Mat / Small Rug', icon: '🚪', categoryTag: 'HOME_TEXTILES', categoryLabel: 'Home & Bedding', description: 'Entrance & bath microfiber mats', isActive: true, sortOrder: 46 },
 
-  // Footwear
-  { id: 'cloth-shoes-sneaker', name: 'Sneakers / Sports Shoes', icon: '👟', categoryTag: 'FOOTWEAR', categoryLabel: 'Footwear', description: 'Mesh, knit & canvas running shoes', isActive: true, sortOrder: 27 },
-  { id: 'cloth-shoes-formal', name: 'Formal Leather Shoes', icon: '👞', categoryTag: 'FOOTWEAR', categoryLabel: 'Footwear', description: 'Leather conditioning, buff & polish', isActive: true, sortOrder: 28 },
+  // ── FOOTWEAR & SHOES ──
+  { id: 'cloth-shoes-sneaker', name: 'Sneakers / Sports Shoes', icon: '👟', categoryTag: 'FOOTWEAR', categoryLabel: 'Footwear', description: 'Mesh, knit & canvas running shoes', isActive: true, sortOrder: 47 },
+  { id: 'cloth-shoes-formal', name: 'Formal Leather Shoes', icon: '👞', categoryTag: 'FOOTWEAR', categoryLabel: 'Footwear', description: 'Leather conditioning, buff & polish', isActive: true, sortOrder: 48 },
+  { id: 'cloth-shoes-suede', name: 'Suede / Nubuck Shoes', icon: '👞', categoryTag: 'FOOTWEAR', categoryLabel: 'Footwear', description: 'Delicate suede shampoo & waterproofing', isActive: true, sortOrder: 49 },
 
-  // Bags & Accessories
-  { id: 'cloth-bag-backpack', name: 'Backpack / School Bag', icon: '🎒', categoryTag: 'ACCESSORIES', categoryLabel: 'Bags & Accessories', description: 'Canvas & polyester laptop backpacks', isActive: true, sortOrder: 29 },
-  { id: 'cloth-bag-luxury', name: 'Luxury Handbag', icon: '👜', categoryTag: 'ACCESSORIES', categoryLabel: 'Bags & Accessories', description: 'Designer leather and fabric handbags', isActive: true, sortOrder: 30 },
+  // ── BAGS & TRAVEL LUGGAGE ──
+  { id: 'cloth-bag-backpack', name: 'Backpack / School Bag', icon: '🎒', categoryTag: 'ACCESSORIES', categoryLabel: 'Bags & Accessories', description: 'Canvas & polyester laptop backpacks', isActive: true, sortOrder: 50 },
+  { id: 'cloth-bag-luxury', name: 'Luxury Handbag', icon: '👜', categoryTag: 'ACCESSORIES', categoryLabel: 'Bags & Accessories', description: 'Designer leather and fabric handbags', isActive: true, sortOrder: 51 },
+  { id: 'cloth-trolley-cabin', name: 'Cabin Trolley Bag (20")', icon: '🧳', categoryTag: 'ACCESSORIES', categoryLabel: 'Travel & Luggage', description: 'Deep vacuum & outer shell sanitization', isActive: true, sortOrder: 52 },
+  { id: 'cloth-trolley-large', name: 'Check-in Suitcase (28")', icon: '🧳', categoryTag: 'ACCESSORIES', categoryLabel: 'Travel & Luggage', description: 'Large luggage antibacterial shampooing', isActive: true, sortOrder: 53 },
+  { id: 'cloth-helmet', name: 'Bike Riding Helmet', icon: '🪖', categoryTag: 'ACCESSORIES', categoryLabel: 'Accessories', description: 'Inner foam anti-odor deep sanitization', isActive: true, sortOrder: 54 },
 ];
 
 export const INITIAL_SERVICE_MASTERS: ServiceMaster[] = [
@@ -160,8 +184,10 @@ export const INITIAL_SERVICE_MASTERS: ServiceMaster[] = [
   { id: 'srv-m-wash-iron', name: 'Wash & Steam Iron', slug: 'wash-and-iron', icon: '👔', pricingType: 'PER_KG', baseKgPrice: 85, minOrderKg: 3, turnaroundHours: 36, description: 'Eco-wash + industrial steam pressing on hangers.', isActive: true },
   { id: 'srv-m-dry-clean', name: 'Dry Cleaning', slug: 'dry-cleaning', icon: '🧥', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Hydrocarbon solvent treatment with breathable garment cover.', isActive: true },
   { id: 'srv-m-steam-iron', name: 'Steam Pressing Only', slug: 'steam-iron', icon: '♨️', pricingType: 'PER_ITEM', turnaroundHours: 18, description: 'High-pressure wrinkle removal with shape restoration.', isActive: true },
+  { id: 'srv-m-charak', name: 'Saree Polishing & Charak', slug: 'saree-charak', icon: '🥻', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Traditional starching, roll pressing & zari shine revival.', isActive: true },
+  { id: 'srv-m-starch', name: 'Starch & Crisp Finish', slug: 'starch-finish', icon: '✨', pricingType: 'PER_ITEM', turnaroundHours: 24, description: 'Stiff starching for crisp cotton shirts, dhotis & uniforms.', isActive: true },
+  { id: 'srv-m-spa', name: 'Deep Shoe & Leather Spa', slug: 'shoe-spa', icon: '👟', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Ultrasonic stain treatment and antibacterial ozone sanitization.', isActive: true },
   { id: 'srv-m-express', name: 'Express Emergency Laundry', slug: 'express-emergency', icon: '⚡', pricingType: 'PER_KG', baseKgPrice: 120, minOrderKg: 3, turnaroundHours: 12, description: 'Dedicated machine slot with same-day return.', isActive: true },
-  { id: 'srv-m-spa', name: 'Deep Shoe & Leather Spa', slug: 'shoe-spa', icon: '✨', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Ultrasonic stain treatment and antibacterial ozone sanitization.', isActive: true },
 ];
 
 export const INITIAL_SERVICE_PRICE_MATRIX: ServicePriceItem[] = [
@@ -304,19 +330,116 @@ export const INITIAL_SERVICE_PRICE_MATRIX: ServicePriceItem[] = [
   { id: 'pr-towel-wf', clothTypeId: 'cloth-towel', clothName: 'Bath Towel', clothIcon: '🛁', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-wash-fold', serviceName: 'Wash & Fold', price: 35, expressPrice: 55, turnaroundHours: 24, isActive: true },
   { id: 'pr-towel-wi', clothTypeId: 'cloth-towel', clothName: 'Bath Towel', clothIcon: '🛁', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 50, expressPrice: 75, turnaroundHours: 36, isActive: true },
 
-  // ── FOOTWEAR ──
-  // Sneakers
-  { id: 'pr-sneakers-spa', clothTypeId: 'cloth-shoes-sneaker', clothName: 'Sneakers / Sports Shoes', clothIcon: '👟', categoryTag: 'FOOTWEAR', serviceId: 'srv-m-spa', serviceName: 'Deep Shoe & Leather Spa', price: 250, expressPrice: 350, turnaroundHours: 48, isActive: true },
+  // ── MEN'S ACCESSORIES & ETHNIC ──
+  // Dhoti / Mundu
+  { id: 'pr-dhoti-wf', clothTypeId: 'cloth-dhoti', clothName: 'Dhoti / Mundu / Lungi', clothIcon: '🥻', categoryTag: 'MENS', serviceId: 'srv-m-wash-fold', serviceName: 'Wash & Fold', price: 35, expressPrice: 55, turnaroundHours: 24, isActive: true },
+  { id: 'pr-dhoti-wi', clothTypeId: 'cloth-dhoti', clothName: 'Dhoti / Mundu / Lungi', clothIcon: '🥻', categoryTag: 'MENS', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 55, expressPrice: 80, turnaroundHours: 36, isActive: true },
+  { id: 'pr-dhoti-dc', clothTypeId: 'cloth-dhoti', clothName: 'Dhoti / Mundu / Lungi', clothIcon: '🥻', categoryTag: 'MENS', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 90, expressPrice: 130, turnaroundHours: 48, isActive: true },
+  { id: 'pr-dhoti-si', clothTypeId: 'cloth-dhoti', clothName: 'Dhoti / Mundu / Lungi', clothIcon: '🥻', categoryTag: 'MENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 25, expressPrice: 40, turnaroundHours: 18, isActive: true },
+  { id: 'pr-dhoti-st', clothTypeId: 'cloth-dhoti', clothName: 'Dhoti / Mundu / Lungi', clothIcon: '🥻', categoryTag: 'MENS', serviceId: 'srv-m-starch', serviceName: 'Starch & Crisp Finish', price: 30, expressPrice: 45, turnaroundHours: 24, isActive: true },
 
-  // Formal Leather Shoes
-  { id: 'pr-shoes-formal-spa', clothTypeId: 'cloth-shoes-formal', clothName: 'Formal Leather Shoes', clothIcon: '👞', categoryTag: 'FOOTWEAR', serviceId: 'srv-m-spa', serviceName: 'Deep Shoe & Leather Spa', price: 290, expressPrice: 390, turnaroundHours: 48, isActive: true },
+  // Sherwani / Indo-Western
+  { id: 'pr-sherwani-dc', clothTypeId: 'cloth-sherwani', clothName: 'Sherwani / Indo-Western', clothIcon: '🤴', categoryTag: 'MENS', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 450, expressPrice: 650, turnaroundHours: 72, isActive: true },
+  { id: 'pr-sherwani-si', clothTypeId: 'cloth-sherwani', clothName: 'Sherwani / Indo-Western', clothIcon: '🤴', categoryTag: 'MENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 150, expressPrice: 220, turnaroundHours: 24, isActive: true },
 
-  // ── BAGS & ACCESSORIES ──
-  // Backpack
-  { id: 'pr-backpack-spa', clothTypeId: 'cloth-bag-backpack', clothName: 'Backpack / School Bag', clothIcon: '🎒', categoryTag: 'ACCESSORIES', serviceId: 'srv-m-spa', serviceName: 'Deep Shoe & Leather Spa', price: 180, expressPrice: 260, turnaroundHours: 48, isActive: true },
+  // Nehru Jacket
+  { id: 'pr-nehru-dc', clothTypeId: 'cloth-nehru', clothName: 'Nehru Jacket / Waistcoat', clothIcon: '🧥', categoryTag: 'MENS', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 120, expressPrice: 180, turnaroundHours: 48, isActive: true },
+  { id: 'pr-nehru-si', clothTypeId: 'cloth-nehru', clothName: 'Nehru Jacket / Waistcoat', clothIcon: '🧥', categoryTag: 'MENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 50, expressPrice: 75, turnaroundHours: 18, isActive: true },
 
-  // Luxury Handbag
-  { id: 'pr-handbag-spa', clothTypeId: 'cloth-bag-luxury', clothName: 'Luxury Handbag', clothIcon: '👜', categoryTag: 'ACCESSORIES', serviceId: 'srv-m-spa', serviceName: 'Deep Shoe & Leather Spa', price: 490, expressPrice: 690, turnaroundHours: 72, isActive: true },
+  // Suit 3-Piece
+  { id: 'pr-suit-3p-dc', clothTypeId: 'cloth-suit-3p', clothName: 'Suit 3-Piece', clothIcon: '👔', categoryTag: 'MENS', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 450, expressPrice: 600, turnaroundHours: 48, isActive: true },
+  { id: 'pr-suit-3p-si', clothTypeId: 'cloth-suit-3p', clothName: 'Suit 3-Piece', clothIcon: '👔', categoryTag: 'MENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 180, expressPrice: 250, turnaroundHours: 24, isActive: true },
+
+  // Tracksuit
+  { id: 'pr-tracksuit-wf', clothTypeId: 'cloth-tracksuit', clothName: 'Tracksuit / Gym Set', clothIcon: '🏃', categoryTag: 'MENS', serviceId: 'srv-m-wash-fold', serviceName: 'Wash & Fold', price: 45, expressPrice: 70, turnaroundHours: 24, isActive: true },
+  { id: 'pr-tracksuit-wi', clothTypeId: 'cloth-tracksuit', clothName: 'Tracksuit / Gym Set', clothIcon: '🏃', categoryTag: 'MENS', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 70, expressPrice: 100, turnaroundHours: 36, isActive: true },
+  { id: 'pr-tracksuit-si', clothTypeId: 'cloth-tracksuit', clothName: 'Tracksuit / Gym Set', clothIcon: '🏃', categoryTag: 'MENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 35, expressPrice: 50, turnaroundHours: 18, isActive: true },
+
+  // Tie
+  { id: 'pr-tie-dc', clothTypeId: 'cloth-tie', clothName: 'Tie / Pocket Square', clothIcon: '👔', categoryTag: 'MENS', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 40, expressPrice: 60, turnaroundHours: 48, isActive: true },
+  { id: 'pr-tie-si', clothTypeId: 'cloth-tie', clothName: 'Tie / Pocket Square', clothIcon: '👔', categoryTag: 'MENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 15, expressPrice: 25, turnaroundHours: 18, isActive: true },
+
+  // ── WOMEN'S SPECIAL & ETHNIC ──
+  // Heavy Saree
+  { id: 'pr-saree-heavy-dc', clothTypeId: 'cloth-saree-heavy', clothName: 'Heavy Designer Saree', clothIcon: '🥻', categoryTag: 'WOMENS', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 300, expressPrice: 420, turnaroundHours: 48, isActive: true },
+  { id: 'pr-saree-heavy-ch', clothTypeId: 'cloth-saree-heavy', clothName: 'Heavy Designer Saree', clothIcon: '🥻', categoryTag: 'WOMENS', serviceId: 'srv-m-charak', serviceName: 'Saree Polishing & Charak', price: 180, expressPrice: 260, turnaroundHours: 48, isActive: true },
+  { id: 'pr-saree-heavy-si', clothTypeId: 'cloth-saree-heavy', clothName: 'Heavy Designer Saree', clothIcon: '🥻', categoryTag: 'WOMENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 100, expressPrice: 150, turnaroundHours: 24, isActive: true },
+
+  // Silk Saree Charak
+  { id: 'pr-saree-silk-ch', clothTypeId: 'cloth-saree-silk', clothName: 'Silk Saree (Kanchipuram / Zari)', clothIcon: '🥻', categoryTag: 'WOMENS', serviceId: 'srv-m-charak', serviceName: 'Saree Polishing & Charak', price: 150, expressPrice: 220, turnaroundHours: 48, isActive: true },
+
+  // Blouse Padded
+  { id: 'pr-blouse-pad-wi', clothTypeId: 'cloth-blouse-padded', clothName: 'Blouse (Padded / Zari)', clothIcon: '👚', categoryTag: 'WOMENS', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 45, expressPrice: 65, turnaroundHours: 36, isActive: true },
+  { id: 'pr-blouse-pad-dc', clothTypeId: 'cloth-blouse-padded', clothName: 'Blouse (Padded / Zari)', clothIcon: '👚', categoryTag: 'WOMENS', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 80, expressPrice: 120, turnaroundHours: 48, isActive: true },
+  { id: 'pr-blouse-pad-si', clothTypeId: 'cloth-blouse-padded', clothName: 'Blouse (Padded / Zari)', clothIcon: '👚', categoryTag: 'WOMENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 25, expressPrice: 40, turnaroundHours: 18, isActive: true },
+
+  // Sharara Set
+  { id: 'pr-sharara-wi', clothTypeId: 'cloth-sharara', clothName: 'Sharara / Gharara Set', clothIcon: '👗', categoryTag: 'WOMENS', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 140, expressPrice: 200, turnaroundHours: 36, isActive: true },
+  { id: 'pr-sharara-dc', clothTypeId: 'cloth-sharara', clothName: 'Sharara / Gharara Set', clothIcon: '👗', categoryTag: 'WOMENS', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 280, expressPrice: 390, turnaroundHours: 48, isActive: true },
+  { id: 'pr-sharara-si', clothTypeId: 'cloth-sharara', clothName: 'Sharara / Gharara Set', clothIcon: '👗', categoryTag: 'WOMENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 90, expressPrice: 130, turnaroundHours: 24, isActive: true },
+
+  // Dupatta
+  { id: 'pr-dupatta-wi', clothTypeId: 'cloth-dupatta', clothName: 'Dupatta / Stole', clothIcon: '🧣', categoryTag: 'WOMENS', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 30, expressPrice: 45, turnaroundHours: 36, isActive: true },
+  { id: 'pr-dupatta-dc', clothTypeId: 'cloth-dupatta', clothName: 'Dupatta / Stole', clothIcon: '🧣', categoryTag: 'WOMENS', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 50, expressPrice: 75, turnaroundHours: 48, isActive: true },
+  { id: 'pr-dupatta-si', clothTypeId: 'cloth-dupatta', clothName: 'Dupatta / Stole', clothIcon: '🧣', categoryTag: 'WOMENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 15, expressPrice: 25, turnaroundHours: 18, isActive: true },
+
+  // Leggings
+  { id: 'pr-leggings-wf', clothTypeId: 'cloth-leggings', clothName: 'Leggings / Plazo', clothIcon: '👖', categoryTag: 'WOMENS', serviceId: 'srv-m-wash-fold', serviceName: 'Wash & Fold', price: 25, expressPrice: 40, turnaroundHours: 24, isActive: true },
+  { id: 'pr-leggings-wi', clothTypeId: 'cloth-leggings', clothName: 'Leggings / Plazo', clothIcon: '👖', categoryTag: 'WOMENS', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 35, expressPrice: 55, turnaroundHours: 36, isActive: true },
+  { id: 'pr-leggings-si', clothTypeId: 'cloth-leggings', clothName: 'Leggings / Plazo', clothIcon: '👖', categoryTag: 'WOMENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 15, expressPrice: 25, turnaroundHours: 18, isActive: true },
+
+  // Shawl
+  { id: 'pr-shawl-dc', clothTypeId: 'cloth-shawl', clothName: 'Kashmiri / Pashmina Shawl', clothIcon: '🧣', categoryTag: 'WOMENS', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 160, expressPrice: 240, turnaroundHours: 48, isActive: true },
+  { id: 'pr-shawl-si', clothTypeId: 'cloth-shawl', clothName: 'Kashmiri / Pashmina Shawl', clothIcon: '🧣', categoryTag: 'WOMENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 40, expressPrice: 60, turnaroundHours: 18, isActive: true },
+
+  // Nighty
+  { id: 'pr-nighty-wf', clothTypeId: 'cloth-nighty', clothName: 'Nighty / Loungewear', clothIcon: '👘', categoryTag: 'WOMENS', serviceId: 'srv-m-wash-fold', serviceName: 'Wash & Fold', price: 30, expressPrice: 50, turnaroundHours: 24, isActive: true },
+  { id: 'pr-nighty-wi', clothTypeId: 'cloth-nighty', clothName: 'Nighty / Loungewear', clothIcon: '👘', categoryTag: 'WOMENS', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 45, expressPrice: 65, turnaroundHours: 36, isActive: true },
+  { id: 'pr-nighty-si', clothTypeId: 'cloth-nighty', clothName: 'Nighty / Loungewear', clothIcon: '👘', categoryTag: 'WOMENS', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 20, expressPrice: 35, turnaroundHours: 18, isActive: true },
+
+  // ── BABY CARE & KIDS ETHNIC ──
+  // Baby Rompers
+  { id: 'pr-baby-romper-wf', clothTypeId: 'cloth-baby-romper', clothName: 'Baby Rompers (Pack of 3)', clothIcon: '👶', categoryTag: 'KIDS', serviceId: 'srv-m-wash-fold', serviceName: 'Wash & Fold', price: 35, expressPrice: 55, turnaroundHours: 24, isActive: true },
+  { id: 'pr-baby-romper-wi', clothTypeId: 'cloth-baby-romper', clothName: 'Baby Rompers (Pack of 3)', clothIcon: '👶', categoryTag: 'KIDS', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 50, expressPrice: 75, turnaroundHours: 36, isActive: true },
+
+  // Soft Toys
+  { id: 'pr-soft-toy-spa', clothTypeId: 'cloth-soft-toy', clothName: 'Soft Toys / Teddy Bear', clothIcon: '🧸', categoryTag: 'KIDS', serviceId: 'srv-m-spa', serviceName: 'Deep Shoe & Leather Spa', price: 160, expressPrice: 240, turnaroundHours: 48, isActive: true },
+
+  // ── ADDITIONAL HOME TEXTILES ──
+  // Pillow Covers
+  { id: 'pr-pillow-cover-wf', clothTypeId: 'cloth-pillow-cover', clothName: 'Pillow Covers (Pair)', clothIcon: '🛋️', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-wash-fold', serviceName: 'Wash & Fold', price: 25, expressPrice: 40, turnaroundHours: 24, isActive: true },
+  { id: 'pr-pillow-cover-wi', clothTypeId: 'cloth-pillow-cover', clothName: 'Pillow Covers (Pair)', clothIcon: '🛋️', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 35, expressPrice: 55, turnaroundHours: 36, isActive: true },
+  { id: 'pr-pillow-cover-si', clothTypeId: 'cloth-pillow-cover', clothName: 'Pillow Covers (Pair)', clothIcon: '🛋️', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 15, expressPrice: 25, turnaroundHours: 18, isActive: true },
+
+  // Blanket Double
+  { id: 'pr-blanket-d-wf', clothTypeId: 'cloth-blanket-d', clothName: 'Blanket / Mink (Double)', clothIcon: '🛋️', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-wash-fold', serviceName: 'Wash & Fold', price: 240, expressPrice: 340, turnaroundHours: 36, isActive: true },
+  { id: 'pr-blanket-d-dc', clothTypeId: 'cloth-blanket-d', clothName: 'Blanket / Mink (Double)', clothIcon: '🛋️', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 320, expressPrice: 440, turnaroundHours: 48, isActive: true },
+
+  // Sofa Covers
+  { id: 'pr-sofa-cover-wi', clothTypeId: 'cloth-sofa-cover', clothName: 'Sofa Covers (Set of 5)', clothIcon: '🛋️', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 140, expressPrice: 200, turnaroundHours: 36, isActive: true },
+  { id: 'pr-sofa-cover-dc', clothTypeId: 'cloth-sofa-cover', clothName: 'Sofa Covers (Set of 5)', clothIcon: '🛋️', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 220, expressPrice: 320, turnaroundHours: 48, isActive: true },
+  { id: 'pr-sofa-cover-si', clothTypeId: 'cloth-sofa-cover', clothName: 'Sofa Covers (Set of 5)', clothIcon: '🛋️', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 60, expressPrice: 90, turnaroundHours: 24, isActive: true },
+
+  // Tablecloth
+  { id: 'pr-tablecloth-wi', clothTypeId: 'cloth-tablecloth', clothName: 'Tablecloth / Runner', clothIcon: '🍽️', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-wash-iron', serviceName: 'Wash & Steam Iron', price: 70, expressPrice: 100, turnaroundHours: 36, isActive: true },
+  { id: 'pr-tablecloth-dc', clothTypeId: 'cloth-tablecloth', clothName: 'Tablecloth / Runner', clothIcon: '🍽️', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-dry-clean', serviceName: 'Dry Cleaning', price: 120, expressPrice: 170, turnaroundHours: 48, isActive: true },
+  { id: 'pr-tablecloth-si', clothTypeId: 'cloth-tablecloth', clothName: 'Tablecloth / Runner', clothIcon: '🍽️', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-steam-iron', serviceName: 'Steam Pressing Only', price: 35, expressPrice: 50, turnaroundHours: 18, isActive: true },
+
+  // Door Mat
+  { id: 'pr-doormat-wf', clothTypeId: 'cloth-doormat', clothName: 'Door Mat / Small Rug', clothIcon: '🚪', categoryTag: 'HOME_TEXTILES', serviceId: 'srv-m-wash-fold', serviceName: 'Wash & Fold', price: 60, expressPrice: 90, turnaroundHours: 24, isActive: true },
+
+  // ── SPECIAL SHOES, TRAVEL & ACCESSORIES ──
+  // Suede Shoes
+  { id: 'pr-shoes-suede-spa', clothTypeId: 'cloth-shoes-suede', clothName: 'Suede / Nubuck Shoes', clothIcon: '👞', categoryTag: 'FOOTWEAR', serviceId: 'srv-m-spa', serviceName: 'Deep Shoe & Leather Spa', price: 350, expressPrice: 480, turnaroundHours: 48, isActive: true },
+
+  // Cabin Trolley Bag
+  { id: 'pr-trolley-cabin-spa', clothTypeId: 'cloth-trolley-cabin', clothName: 'Cabin Trolley Bag (20")', clothIcon: '🧳', categoryTag: 'ACCESSORIES', serviceId: 'srv-m-spa', serviceName: 'Deep Shoe & Leather Spa', price: 250, expressPrice: 350, turnaroundHours: 48, isActive: true },
+
+  // Check-in Suitcase
+  { id: 'pr-trolley-large-spa', clothTypeId: 'cloth-trolley-large', clothName: 'Check-in Suitcase (28")', clothIcon: '🧳', categoryTag: 'ACCESSORIES', serviceId: 'srv-m-spa', serviceName: 'Deep Shoe & Leather Spa', price: 390, expressPrice: 550, turnaroundHours: 48, isActive: true },
+
+  // Bike Helmet
+  { id: 'pr-helmet-spa', clothTypeId: 'cloth-helmet', clothName: 'Bike Riding Helmet', clothIcon: '🪖', categoryTag: 'ACCESSORIES', serviceId: 'srv-m-spa', serviceName: 'Deep Shoe & Leather Spa', price: 180, expressPrice: 260, turnaroundHours: 48, isActive: true },
 ];
 
 export const INITIAL_PRICING_SETTINGS: PricingSettings = {
