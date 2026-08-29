@@ -1351,7 +1351,18 @@ class BackendDatabase {
   }
 
   getPincodes(): PincodeZone[] { return this.pincodes; }
-  checkPincode(pin: string) { return this.pincodes.find((p) => p.pincode === pin.trim()); }
+  checkPincode(pin: string) {
+    const clean = String(pin || '').trim();
+    let found = this.pincodes.find((p) => p.pincode === clean);
+    if (!found) {
+      const initial = INITIAL_PINCODES.find((p) => p.pincode === clean);
+      if (initial) {
+        found = { ...initial };
+        this.pincodes.push(found);
+      }
+    }
+    return found;
+  }
 
   addPincode(pin: PincodeZone): PincodeZone {
     const existingIdx = this.pincodes.findIndex((p) => p.pincode.trim() === pin.pincode.trim());
