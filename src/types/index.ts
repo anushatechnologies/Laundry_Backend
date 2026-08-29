@@ -600,3 +600,21 @@ export interface BulkPricingItem {
   maxQuantity?: number;
   isActive: boolean;
 }
+
+export interface Banner {
+  id: string;
+  title: string;
+  subtitle: string;
+  badgeText?: string;
+  imageUrl: string;
+  couponCode?: string;
+  discountPercent?: number;
+  actionType?: 'CATEGORY' | 'SERVICE' | 'OFFER' | 'BOOK' | 'URL';
+  actionTarget?: string;
+  displayOrder: number;
+  isActive: boolean;
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}

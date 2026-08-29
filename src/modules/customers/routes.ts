@@ -642,6 +642,99 @@ customersRouter.get('/:id', (req: Request, res: Response) => {
   return res.json({ success: true, data: customer });
 });
 
+/**
+ * PUT /api/customers/:id - Update customer profile (Name, Email, Phone, Wishlist)
+ */
+customersRouter.put('/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { name, email, phone, wishlist } = req.body;
+
+  const updated = db.updateCustomerProfile(id, {
+    name: name !== undefined ? String(name).trim() : undefined,
+    email: email !== undefined ? String(email).trim().toLowerCase() : undefined,
+    phone: phone ? String(phone).trim() : undefined,
+    wishlist: Array.isArray(wishlist) ? wishlist : undefined,
+  });
+
+  if (!updated) {
+    const created = db.addCustomer({
+      id,
+      name: name || 'Valued Customer',
+      email: email || '',
+      phone: phone || '',
+    });
+    return res.json({
+      success: true,
+      message: 'Profile saved successfully',
+      data: created,
+    });
+  }
+
+  // Also sync order names/emails
+  if (name || email) {
+    db.getOrders()
+      .filter((o) => o.customerId === id || (o.customerPhone && o.customerPhone.slice(-10) === updated.phone?.slice(-10)))
+      .forEach((o) => {
+        if (name) o.customerName = name;
+        if (email) o.customerEmail = email;
+      });
+  }
+
+  return res.json({
+    success: true,
+    message: 'Profile updated successfully',
+    data: updated,
+  });
+});
+
+/**
+ * GET /api/customers/info/policies - Returns full customer legal & support policies
+ */
+customersRouter.get('/info/policies', (_req: Request, res: Response) => {
+  return res.json({
+    success: true,
+    data: {
+      support: {
+        phone: '+91 91219 99999',
+        whatsapp: '+91 91219 99999',
+        email: 'support@laundryfresh.com',
+        timings: 'Everyday 7:00 AM – 10:00 PM',
+        address: 'Anusha Laundry Hub, Road No. 5, Kukatpally, Hyderabad, Telangana 500072',
+      },
+      refundPolicy: {
+        title: 'Refund & Fabric Damage Protection Policy',
+        lastUpdated: '2026-08-01',
+        highlights: [
+          '100% Free Re-wash Guarantee if you are not satisfied with cleaning quality.',
+          'Zero-bleed color guarantee on silk sarees, designer lehengas, and woolens.',
+          'Fabric damage compensation up to 10x the processing charge or evaluated garment value.',
+          'Doorstep inspection and instant claim resolution within 48 business hours.',
+          'Refunds credited back to original payment method or LaundryFresh Wallet instantly.',
+        ],
+      },
+      privacyPolicy: {
+        title: 'Privacy Policy',
+        lastUpdated: '2026-08-01',
+        highlights: [
+          'Your personal information (Phone number, Email, Address, GPS location) is strictly used for order pickup, delivery, and invoice notifications.',
+          'We do not sell, rent, or share customer data with third-party advertisers.',
+          'All payments are processed securely via RBI-compliant 256-bit encrypted Razorpay gateways.',
+        ],
+      },
+      termsPolicy: {
+        title: 'Terms & Conditions',
+        lastUpdated: '2026-08-01',
+        highlights: [
+          'Pickup slots are allocated in 30-minute intervals from 7:00 AM to 9:00 PM.',
+          'Please verify all pockets for cash, jewellery, or pens prior to handover.',
+          'Garments must be collected within 15 days of delivery notification.',
+          'Express 24-hour service is subject to fabric suitability and hub capacity.',
+        ],
+      },
+    },
+  });
+});
+
 customersRouter.put('/:id/plan', requireAdmin, (_req: Request, res: Response) =>
   res.status(501).json({ success: false, message: 'Customer subscription assignment is not configured.' })
 );

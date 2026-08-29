@@ -15,6 +15,7 @@ import {
   ClothCategoryTag,
   BulkPricingItem,
   BulkLaundryType,
+  Banner,
 } from '../types';
 import { pool, isDbConnected } from './mysql';
 
@@ -1996,6 +1997,142 @@ class BackendDatabase {
     }
 
     return record;
+  }
+
+  // --- BANNERS SYSTEM ---
+  banners: Banner[] = [
+    {
+      id: 'banner-1',
+      title: '50% Flat Discount on First Order',
+      subtitle: 'Pure Ozone Sanitization & Doorstep Pickup across Hyderabad',
+      badgeText: 'FIRST ORDER SPECIAL',
+      couponCode: 'FIRST50',
+      discountPercent: 50,
+      imageUrl: 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=1200&q=80',
+      actionType: 'BOOK',
+      actionTarget: '',
+      displayOrder: 1,
+      isActive: true,
+      createdAt: '2026-01-01 10:00',
+      updatedAt: '2026-01-01 10:00',
+    },
+    {
+      id: 'banner-2',
+      title: 'Royal Bridal & Silk Saree Spa',
+      subtitle: 'Zero-bleed Charak Polish & Hand Steam Pressing',
+      badgeText: 'PREMIUM DRY CLEAN',
+      couponCode: 'SILKSPA',
+      discountPercent: 25,
+      imageUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=1200&q=80',
+      actionType: 'CATEGORY',
+      actionTarget: 'bridal-wear',
+      displayOrder: 2,
+      isActive: true,
+      createdAt: '2026-01-01 10:00',
+      updatedAt: '2026-01-01 10:00',
+    },
+    {
+      id: 'banner-3',
+      title: 'Bulk Everyday Laundry @ ₹49/KG',
+      subtitle: 'Wash, Tumble Dry & Crisp Fold with Eco-friendly Softeners',
+      badgeText: 'FAMILY SAVER',
+      couponCode: 'BULKSAVE',
+      discountPercent: 20,
+      imageUrl: 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?auto=format&fit=crop&w=1200&q=80',
+      actionType: 'CATEGORY',
+      actionTarget: 'bulk-laundry',
+      displayOrder: 3,
+      isActive: true,
+      createdAt: '2026-01-01 10:00',
+      updatedAt: '2026-01-01 10:00',
+    },
+    {
+      id: 'banner-4',
+      title: 'Express 24-Hour Doorstep Delivery',
+      subtitle: 'Urgent suits, shirts & dresses delivered within 24 hours',
+      badgeText: 'SUPER EXPRESS',
+      couponCode: 'EXPRESS24',
+      discountPercent: 15,
+      imageUrl: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
+      actionType: 'BOOK',
+      actionTarget: '',
+      displayOrder: 4,
+      isActive: true,
+      createdAt: '2026-01-01 10:00',
+      updatedAt: '2026-01-01 10:00',
+    },
+  ];
+
+  getBanners(onlyActive = false): Banner[] {
+    const list = onlyActive ? this.banners.filter((b) => b.isActive) : this.banners;
+    return [...list].sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  getBannerById(id: string): Banner | undefined {
+    return this.banners.find((b) => b.id === id);
+  }
+
+  createBanner(data: Partial<Banner>): Banner {
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const newBanner: Banner = {
+      id: data.id || `banner_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      title: data.title || 'Special Promotion',
+      subtitle: data.subtitle || 'Doorstep Laundry Service',
+      badgeText: data.badgeText || 'SPECIAL OFFER',
+      imageUrl: data.imageUrl || 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=1200&q=80',
+      couponCode: data.couponCode || '',
+      discountPercent: data.discountPercent || 0,
+      actionType: data.actionType || 'BOOK',
+      actionTarget: data.actionTarget || '',
+      displayOrder: typeof data.displayOrder === 'number' ? data.displayOrder : this.banners.length + 1,
+      isActive: data.isActive !== undefined ? data.isActive : true,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.banners.push(newBanner);
+    return newBanner;
+  }
+
+  updateBanner(id: string, data: Partial<Banner>): Banner | null {
+    const idx = this.banners.findIndex((b) => b.id === id);
+    if (idx === -1) return null;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    this.banners[idx] = {
+      ...this.banners[idx],
+      ...data,
+      updatedAt: now,
+    };
+    return this.banners[idx];
+  }
+
+  deleteBanner(id: string): boolean {
+    const idx = this.banners.findIndex((b) => b.id === id);
+    if (idx === -1) return false;
+    this.banners.splice(idx, 1);
+    return true;
+  }
+
+  updateCustomerProfile(
+    idOrPhone: string,
+    data: { name?: string; email?: string; phone?: string; wishlist?: string[] }
+  ): any | null {
+    const cleanPhone = String(idOrPhone || '').replace(/\D/g, '').slice(-10);
+    const idx = this.customers.findIndex(
+      (c) => c.id === idOrPhone || (cleanPhone && c.phone?.replace(/\D/g, '').slice(-10) === cleanPhone)
+    );
+    if (idx === -1) return null;
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    this.customers[idx] = {
+      ...this.customers[idx],
+      name: data.name !== undefined ? data.name : this.customers[idx].name,
+      email: data.email !== undefined ? data.email : this.customers[idx].email,
+      phone: data.phone ? data.phone.replace(/\D/g, '').slice(-10) : this.customers[idx].phone,
+      wishlist: data.wishlist !== undefined ? data.wishlist : this.customers[idx].wishlist,
+      updatedAt: now,
+    };
+    return this.customers[idx];
   }
 }
 
