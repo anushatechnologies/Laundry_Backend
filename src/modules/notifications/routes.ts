@@ -12,6 +12,13 @@ import {
 } from '../../lib/email';
 import {
   OrderEmailData,
+  EmailTemplateConfig,
+  getEmailTemplatesStore,
+  getTemplateById,
+  getTemplateByEvent,
+  updateEmailTemplateInStore,
+  resetEmailTemplateInStore,
+  toggleTemplateActiveInStore,
   getPickupScheduledEmail,
   getPickupCompletedEmail,
   getWashingInProgressEmail,
@@ -22,6 +29,54 @@ import {
 } from '../../lib/emailTemplates';
 
 const router = Router();
+
+const sampleData: OrderEmailData = {
+  orderId: 'LAU-8829',
+  customerName: 'Rahul Verma',
+  customerEmail: 'rahul.verma@example.com',
+  customerPhone: '+91 98765 43210',
+  pickupDate: 'Thursday, 28 Aug',
+  pickupTimeSlot: '08:00 AM - 10:00 AM',
+  deliveryDate: 'Friday, 29 Aug',
+  deliveryTimeSlot: '04:00 PM - 06:00 PM',
+  pickupAddress: 'Survey 64, Hitech City Main Road, Madhapur, Hyderabad - 500081',
+  serviceName: 'Premium Dry Cleaning & Steam Press',
+  itemsSummary: [
+    { name: 'Formal Shirt (Steam Press)', qty: 3, price: 35 },
+    { name: 'Denim Jeans (Wash & Fold)', qty: 2, price: 50 },
+    { name: 'Silk Saree (Dry Cleaning)', qty: 1, price: 180 },
+  ],
+  totalAmount: 425,
+  taxAmount: 40,
+  deliveryFee: 0,
+  paymentStatus: 'PAID',
+  paymentMethod: 'UPI / Google Pay',
+  driverName: 'Vikram Singh (In-House Fleet)',
+  driverPhone: '+91 98765 11001',
+  deliveryOtp: '7392',
+  trackingUrl: 'https://laundryfresh.in/track/LAU-8829',
+};
+
+function renderPreviewForConfig(cfg: EmailTemplateConfig): { subject: string; html: string; text: string; isActive: boolean } {
+  switch (cfg.event) {
+    case 'PICKUP_SCHEDULED':
+      return getPickupScheduledEmail(sampleData, cfg);
+    case 'PICKUP_COMPLETED':
+      return getPickupCompletedEmail(sampleData, cfg);
+    case 'WASHING_IN_PROGRESS':
+      return getWashingInProgressEmail(sampleData, cfg);
+    case 'WASH_COMPLETED':
+      return getWashCompleteEmail(sampleData, cfg);
+    case 'OUT_FOR_DELIVERY':
+      return getOutForDeliveryEmail(sampleData, cfg);
+    case 'ORDER_DELIVERED':
+      return getOrderDeliveredEmail(sampleData, cfg);
+    case 'OTP_VERIFICATION':
+      return getOtpVerificationEmail('Rahul Verma', '7392', cfg);
+    default:
+      return getPickupScheduledEmail(sampleData, cfg);
+  }
+}
 
 // 1. Get SMTP Configuration & Connection Status
 router.get('/smtp-status', async (req: Request, res: Response) => {
@@ -38,98 +93,107 @@ router.get('/smtp-status', async (req: Request, res: Response) => {
   });
 });
 
-// 2. Get All Readymade Email Templates (with live preview HTML)
+// 2. Get All Readymade Email Templates (with live preview HTML and full editable settings)
 router.get('/templates', (req: Request, res: Response) => {
-  const sampleData: OrderEmailData = {
-    orderId: 'LAU-8829',
-    customerName: 'Rahul Verma',
-    customerEmail: 'rahul.verma@example.com',
-    customerPhone: '+91 98765 43210',
-    pickupDate: 'Thursday, 28 Aug',
-    pickupTimeSlot: '08:00 AM - 10:00 AM',
-    deliveryDate: 'Friday, 29 Aug',
-    deliveryTimeSlot: '04:00 PM - 06:00 PM',
-    pickupAddress: 'Tower B, Apt 402, Green Glen Layout, Bellandur, Bangalore - 560103',
-    serviceName: 'Premium Dry Cleaning & Steam Press',
-    itemsSummary: [
-      { name: 'Formal Shirt (Steam Press)', qty: 3, price: 35 },
-      { name: 'Denim Jeans (Wash & Fold)', qty: 2, price: 50 },
-      { name: 'Silk Saree (Dry Cleaning)', qty: 1, price: 180 },
-    ],
-    totalAmount: 425,
-    taxAmount: 40,
-    deliveryFee: 0,
-    paymentStatus: 'PAID',
-    paymentMethod: 'UPI / Google Pay',
-    driverName: 'Vikram Singh (In-House Fleet)',
-    driverPhone: '+91 98765 11001',
-    deliveryOtp: '7392',
-    trackingUrl: 'https://laundryfresh.in/track/LAU-8829',
-  };
+  const configs = getEmailTemplatesStore();
+  const enriched = configs.map((cfg) => {
+    const rendered = renderPreviewForConfig(cfg);
+    return {
+      ...cfg,
+      subject: rendered.subject,
+      rawSubject: cfg.subject,
+      html: rendered.html,
+      text: rendered.text,
+    };
+  });
 
-  const templates = [
-    {
-      id: 'EMAIL-PICKUP-SCHEDULED',
-      name: 'Pickup Scheduled & Order Confirmed',
-      category: 'ORDER_LIFECYCLE',
-      event: 'PICKUP_SCHEDULED',
-      description: 'Triggered when customer books a laundry pickup slot.',
-      ...getPickupScheduledEmail(sampleData),
-    },
-    {
-      id: 'EMAIL-PICKUP-COMPLETED',
-      name: 'Driver Picked Up & Reached Hub',
-      category: 'ORDER_LIFECYCLE',
-      event: 'PICKUP_COMPLETED',
-      description: 'Triggered when valet driver collects the bag and brings it to hub.',
-      ...getPickupCompletedEmail(sampleData),
-    },
-    {
-      id: 'EMAIL-WASH-IN-PROGRESS',
-      name: 'Washing & Fabric Care In-Progress',
-      category: 'ORDER_LIFECYCLE',
-      event: 'WASHING_IN_PROGRESS',
-      description: 'Triggered when clothes start washing / organic dry cleaning.',
-      ...getWashingInProgressEmail(sampleData),
-    },
-    {
-      id: 'EMAIL-WASH-COMPLETED',
-      name: 'Wash Complete & Garments Packed',
-      category: 'ORDER_LIFECYCLE',
-      event: 'WASH_COMPLETED',
-      description: 'Triggered when garments are washed, steam pressed, QC inspected, and packed.',
-      ...getWashCompleteEmail(sampleData),
-    },
-    {
-      id: 'EMAIL-OUT-FOR-DELIVERY',
-      name: 'Out for Delivery (with OTP)',
-      category: 'ORDER_LIFECYCLE',
-      event: 'OUT_FOR_DELIVERY',
-      description: 'Triggered when delivery valet departs hub with the delivery verification OTP.',
-      ...getOutForDeliveryEmail(sampleData),
-    },
-    {
-      id: 'EMAIL-ORDER-DELIVERED',
-      name: 'Delivered & Tax Invoice Receipt',
-      category: 'ORDER_LIFECYCLE',
-      event: 'ORDER_DELIVERED',
-      description: 'Triggered after successful handover with full invoice and review link.',
-      ...getOrderDeliveredEmail(sampleData),
-    },
-    {
-      id: 'EMAIL-OTP-LOGIN',
-      name: 'Customer Authentication OTP',
-      category: 'AUTH',
-      event: 'OTP_VERIFICATION',
-      description: 'Sent during phone/email OTP login.',
-      ...getOtpVerificationEmail('Rahul Verma', '7392'),
-    },
-  ];
-
-  res.json({ success: true, count: templates.length, data: templates });
+  res.json({ success: true, count: enriched.length, data: enriched });
 });
 
-// 3. Send Transactional Email for Lifecycle Events
+// 3. Get Single Email Template
+router.get('/templates/:id', (req: Request, res: Response) => {
+  const cfg = getTemplateById(req.params.id);
+  if (!cfg) {
+    return res.status(404).json({ success: false, message: 'Template not found' });
+  }
+  const rendered = renderPreviewForConfig(cfg);
+  return res.json({
+    success: true,
+    data: {
+      ...cfg,
+      subject: rendered.subject,
+      rawSubject: cfg.subject,
+      html: rendered.html,
+      text: rendered.text,
+    },
+  });
+});
+
+// 4. Update Email Template Settings (Subject, headline, custom message, sender info, active toggle)
+router.put('/templates/:id', (req: Request, res: Response) => {
+  const updated = updateEmailTemplateInStore(req.params.id, req.body);
+  if (!updated) {
+    return res.status(404).json({ success: false, message: 'Template not found' });
+  }
+
+  const rendered = renderPreviewForConfig(updated);
+  return res.json({
+    success: true,
+    message: 'Email template updated successfully',
+    data: {
+      ...updated,
+      subject: rendered.subject,
+      rawSubject: updated.subject,
+      html: rendered.html,
+      text: rendered.text,
+    },
+  });
+});
+
+// 5. Quick Toggle Active/Inactive Status
+router.post('/templates/:id/toggle', (req: Request, res: Response) => {
+  const isActive = req.body.isActive !== undefined ? Boolean(req.body.isActive) : undefined;
+  const updated = toggleTemplateActiveInStore(req.params.id, isActive);
+  if (!updated) {
+    return res.status(404).json({ success: false, message: 'Template not found' });
+  }
+
+  const rendered = renderPreviewForConfig(updated);
+  return res.json({
+    success: true,
+    message: `Notification template "${updated.name}" is now ${updated.isActive ? 'ACTIVE' : 'DEACTIVATED'}`,
+    data: {
+      ...updated,
+      subject: rendered.subject,
+      rawSubject: updated.subject,
+      html: rendered.html,
+      text: rendered.text,
+    },
+  });
+});
+
+// 6. Reset Template to Default Factory Settings
+router.post('/templates/:id/reset', (req: Request, res: Response) => {
+  const reset = resetEmailTemplateInStore(req.params.id);
+  if (!reset) {
+    return res.status(404).json({ success: false, message: 'Template not found' });
+  }
+
+  const rendered = renderPreviewForConfig(reset);
+  return res.json({
+    success: true,
+    message: 'Template reset to factory default settings',
+    data: {
+      ...reset,
+      subject: rendered.subject,
+      rawSubject: reset.subject,
+      html: rendered.html,
+      text: rendered.text,
+    },
+  });
+});
+
+// 7. Send Transactional Email for Lifecycle Events
 router.post('/send-email', async (req: Request, res: Response) => {
   try {
     const { to, templateType, orderData, customSubject, customHtml } = req.body;
@@ -138,7 +202,7 @@ router.post('/send-email', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Recipient email "to" is required.' });
     }
 
-    let result;
+    let result: any;
 
     switch (templateType) {
       case 'PICKUP_SCHEDULED':
@@ -160,6 +224,7 @@ router.post('/send-email', async (req: Request, res: Response) => {
         result = await sendOrderDeliveredNotification(to, orderData || { orderId: 'LAU-NEW', customerName: 'Customer' });
         break;
       case 'OTP':
+      case 'OTP_VERIFICATION':
         result = await sendOtpNotification(to, orderData?.customerName || 'Customer', orderData?.otp || '123456');
         break;
       case 'CUSTOM':
@@ -169,6 +234,10 @@ router.post('/send-email', async (req: Request, res: Response) => {
         }
         result = await sendEmail({ to, subject: customSubject, html: customHtml });
         break;
+    }
+
+    if (result.skipped) {
+      return res.json({ success: true, message: result.message || 'Notification skipped (deactivated by admin)', skipped: true });
     }
 
     if (result.success) {
@@ -181,28 +250,27 @@ router.post('/send-email', async (req: Request, res: Response) => {
   }
 });
 
-// 4. Send Test Email (for Admin verification)
+// 8. Send Test Email (for Admin verification)
 router.post('/test-email', async (req: Request, res: Response) => {
   try {
-    const { to } = req.body;
+    const { to, templateId } = req.body;
     if (!to) {
       return res.status(400).json({ success: false, message: 'Recipient email "to" is required.' });
     }
 
-    const testData: OrderEmailData = {
-      orderId: 'TEST-1001',
-      customerName: 'Admin Tester',
-      pickupDate: 'Today',
-      pickupTimeSlot: 'Immediate',
-      pickupAddress: 'HSR Layout Sector 4, Bangalore',
-      totalAmount: 299,
-      driverName: 'Fleet Agent 1',
-    };
+    const cfg = (templateId ? getTemplateById(templateId) : null) || getEmailTemplatesStore()[0];
+    const rendered = renderPreviewForConfig(cfg);
 
-    const result = await sendWashCompleteNotification(to, testData);
+    const result = await sendEmail({
+      to,
+      subject: `[TEST] ${rendered.subject}`,
+      html: rendered.html,
+      text: rendered.text,
+    });
+
     res.json({
       success: result.success,
-      message: result.success ? `Test "Wash Complete" email successfully dispatched to ${to}!` : 'Error sending test email',
+      message: result.success ? `Test "${cfg.name}" email successfully dispatched to ${to}!` : 'Error sending test email',
       error: result.error,
       messageId: result.messageId,
     });

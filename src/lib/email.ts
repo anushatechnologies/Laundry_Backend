@@ -68,7 +68,15 @@ export async function verifySmtpConnection(): Promise<{ isConnected: boolean; me
   }
 }
 
-export async function sendEmail(opts: SendMailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
+export interface SendEmailResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+  skipped?: boolean;
+  message?: string;
+}
+
+export async function sendEmail(opts: SendMailOptions): Promise<SendEmailResult> {
   try {
     const t = getTransporter();
     const isConfigured = Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS);
@@ -98,39 +106,67 @@ export async function sendEmail(opts: SendMailOptions): Promise<{ success: boole
   }
 }
 
-// Readymade Lifecycle Email Helpers
+// Readymade Lifecycle Email Helpers (Checks Admin Active/Inactive Status)
 export async function sendPickupScheduledNotification(to: string, data: OrderEmailData) {
-  const { subject, html, text } = getPickupScheduledEmail(data);
+  const { subject, html, text, isActive } = getPickupScheduledEmail(data);
+  if (!isActive) {
+    console.log(`[EMAIL SKIPPED] "Pickup Scheduled" notification is DEACTIVATED in Admin Panel for Order #${data.orderId}`);
+    return { success: true, skipped: true, message: 'Notification deactivated by Admin' };
+  }
   return sendEmail({ to, subject, html, text });
 }
 
 export async function sendPickupCompletedNotification(to: string, data: OrderEmailData) {
-  const { subject, html, text } = getPickupCompletedEmail(data);
+  const { subject, html, text, isActive } = getPickupCompletedEmail(data);
+  if (!isActive) {
+    console.log(`[EMAIL SKIPPED] "Pickup Completed" notification is DEACTIVATED in Admin Panel for Order #${data.orderId}`);
+    return { success: true, skipped: true, message: 'Notification deactivated by Admin' };
+  }
   return sendEmail({ to, subject, html, text });
 }
 
 export async function sendWashingInProgressNotification(to: string, data: OrderEmailData) {
-  const { subject, html, text } = getWashingInProgressEmail(data);
+  const { subject, html, text, isActive } = getWashingInProgressEmail(data);
+  if (!isActive) {
+    console.log(`[EMAIL SKIPPED] "Washing In-Progress" notification is DEACTIVATED in Admin Panel for Order #${data.orderId}`);
+    return { success: true, skipped: true, message: 'Notification deactivated by Admin' };
+  }
   return sendEmail({ to, subject, html, text });
 }
 
 export async function sendWashCompleteNotification(to: string, data: OrderEmailData) {
-  const { subject, html, text } = getWashCompleteEmail(data);
+  const { subject, html, text, isActive } = getWashCompleteEmail(data);
+  if (!isActive) {
+    console.log(`[EMAIL SKIPPED] "Wash Complete" notification is DEACTIVATED in Admin Panel for Order #${data.orderId}`);
+    return { success: true, skipped: true, message: 'Notification deactivated by Admin' };
+  }
   return sendEmail({ to, subject, html, text });
 }
 
 export async function sendOutForDeliveryNotification(to: string, data: OrderEmailData) {
-  const { subject, html, text } = getOutForDeliveryEmail(data);
+  const { subject, html, text, isActive } = getOutForDeliveryEmail(data);
+  if (!isActive) {
+    console.log(`[EMAIL SKIPPED] "Out for Delivery" notification is DEACTIVATED in Admin Panel for Order #${data.orderId}`);
+    return { success: true, skipped: true, message: 'Notification deactivated by Admin' };
+  }
   return sendEmail({ to, subject, html, text });
 }
 
 export async function sendOrderDeliveredNotification(to: string, data: OrderEmailData) {
-  const { subject, html, text } = getOrderDeliveredEmail(data);
+  const { subject, html, text, isActive } = getOrderDeliveredEmail(data);
+  if (!isActive) {
+    console.log(`[EMAIL SKIPPED] "Order Delivered" notification is DEACTIVATED in Admin Panel for Order #${data.orderId}`);
+    return { success: true, skipped: true, message: 'Notification deactivated by Admin' };
+  }
   return sendEmail({ to, subject, html, text });
 }
 
 export async function sendOtpNotification(to: string, name: string, otp: string) {
-  const { subject, html, text } = getOtpVerificationEmail(name, otp);
+  const { subject, html, text, isActive } = getOtpVerificationEmail(name, otp);
+  if (!isActive) {
+    console.log(`[EMAIL SKIPPED] "OTP Verification" notification is DEACTIVATED in Admin Panel`);
+    return { success: true, skipped: true, message: 'Notification deactivated by Admin' };
+  }
   return sendEmail({ to, subject, html, text });
 }
 
@@ -143,3 +179,4 @@ export async function sendAdminOrderAlert(data: OrderEmailData) {
   const { subject, html, text } = getAdminNewOrderAlertEmail(data);
   return sendEmail({ to: ADMIN_ALERT_EMAIL, subject, html, text });
 }
+
