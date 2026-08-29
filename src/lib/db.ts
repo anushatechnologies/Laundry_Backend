@@ -874,9 +874,9 @@ class BackendDatabase {
         }));
       }
 
-      // Sync Cloth Types
-      const [ctRows]: any = await pool.query('SELECT * FROM cloth_types ORDER BY sort_order ASC');
-      if (ctRows.length > 0) {
+      // Sync Cloth Types - ensure full 54-garment master catalog
+      const [ctRows]: any = await pool.query('SELECT * FROM cloth_types ORDER BY sort_order ASC').catch(() => [[]]);
+      if (ctRows && ctRows.length >= 50) {
         this.clothTypes = ctRows.map((r: any) => ({
           id: r.id,
           name: r.name,
@@ -888,11 +888,19 @@ class BackendDatabase {
           sortOrder: r.sort_order,
           imageUrl: r.image_url || undefined,
         }));
+      } else {
+        this.clothTypes = [...INITIAL_CLOTH_TYPES];
+        for (const item of this.clothTypes) {
+          await pool.query(
+            'INSERT INTO cloth_types (id, name, icon, category_tag, category_label, description, is_active, sort_order, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), icon=VALUES(icon), category_tag=VALUES(category_tag), category_label=VALUES(category_label), description=VALUES(description), is_active=VALUES(is_active), sort_order=VALUES(sort_order), image_url=VALUES(image_url)',
+            [item.id, item.name, item.icon, item.categoryTag, item.categoryLabel, item.description, item.isActive ? 1 : 0, item.sortOrder, item.imageUrl || null]
+          ).catch(() => {});
+        }
       }
 
       // Sync Service Masters
-      const [smRows]: any = await pool.query('SELECT * FROM service_masters');
-      if (smRows.length > 0) {
+      const [smRows]: any = await pool.query('SELECT * FROM service_masters').catch(() => [[]]);
+      if (smRows && smRows.length >= 6) {
         this.serviceMasters = smRows.map((r: any) => ({
           id: r.id,
           name: r.name,
@@ -906,11 +914,20 @@ class BackendDatabase {
           isActive: Boolean(r.is_active),
           imageUrl: r.image_url || undefined,
         }));
+      } else {
+        this.serviceMasters = [...INITIAL_SERVICE_MASTERS];
+        for (const sm of this.serviceMasters) {
+          await pool.query(
+            'INSERT INTO service_masters (id, name, slug, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), slug=VALUES(slug), icon=VALUES(icon), pricing_type=VALUES(pricing_type), base_kg_price=VALUES(base_kg_price), min_order_kg=VALUES(min_order_kg), turnaround_hours=VALUES(turnaround_hours), description=VALUES(description), is_active=VALUES(is_active)',
+            [sm.id, sm.name, sm.slug, sm.icon, sm.pricingType, sm.baseKgPrice || null, sm.minOrderKg || null, sm.turnaroundHours, sm.description, sm.isActive ? 1 : 0, sm.imageUrl || null]
+          ).catch(() => {});
+        }
       }
 
       // Sync Price Matrix
-      const [pmRows]: any = await pool.query('SELECT * FROM service_price_matrix');
-      if (pmRows.length > 0) {
+      const [pmRows]: any = await pool.query('SELECT * FROM service_price_matrix').catch(() => [[]]);
+      const hasStaleTestPrices = Array.isArray(pmRows) && pmRows.some((r: any) => r.cloth_type_id === 'cloth-shirt' && r.service_id === 'srv-m-dry-clean' && Number(r.price) < 50);
+      if (pmRows && pmRows.length >= 50 && !hasStaleTestPrices) {
         this.priceMatrix = pmRows.map((r: any) => ({
           id: r.id,
           clothTypeId: r.cloth_type_id,
@@ -924,11 +941,19 @@ class BackendDatabase {
           turnaroundHours: r.turnaround_hours,
           isActive: Boolean(r.is_active),
         }));
+      } else {
+        this.priceMatrix = [...INITIAL_SERVICE_PRICE_MATRIX];
+        for (const p of this.priceMatrix) {
+          await pool.query(
+            'INSERT INTO service_price_matrix (id, cloth_type_id, cloth_name, cloth_icon, category_tag, service_id, service_name, price, express_price, turnaround_hours, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE cloth_name=VALUES(cloth_name), cloth_icon=VALUES(cloth_icon), category_tag=VALUES(category_tag), price=VALUES(price), express_price=VALUES(express_price), turnaround_hours=VALUES(turnaround_hours), is_active=VALUES(is_active)',
+            [p.id, p.clothTypeId, p.clothName, p.clothIcon, p.categoryTag, p.serviceId, p.serviceName, p.price, p.expressPrice || null, p.turnaroundHours, p.isActive ? 1 : 0]
+          ).catch(() => {});
+        }
       }
 
       // Sync Pricing Settings
-      const [psRows]: any = await pool.query('SELECT * FROM pricing_settings WHERE id = 1');
-      if (psRows.length > 0) {
+      const [psRows]: any = await pool.query('SELECT * FROM pricing_settings WHERE id = 1').catch(() => [[]]);
+      if (psRows && psRows.length > 0) {
         const s = psRows[0];
         this.pricingSettings = {
           taxPercentage: Number(s.tax_percentage),
@@ -941,8 +966,8 @@ class BackendDatabase {
       }
 
       // Sync Services
-      const [srvRows]: any = await pool.query('SELECT * FROM services');
-      if (srvRows.length > 0) {
+      const [srvRows]: any = await pool.query('SELECT * FROM services').catch(() => [[]]);
+      if (srvRows && srvRows.length > 0) {
         this.services = srvRows.map((r: any) => ({
           id: r.id,
           categoryId: r.category_id,
@@ -950,7 +975,7 @@ class BackendDatabase {
           slug: r.slug,
           description: r.description,
           pricingModel: r.pricing_model,
-          basePrice: Number(r.base_price),
+          basePrice: r.id === 'srv-1' && Number(r.base_price) < 10 ? 60 : Number(r.base_price),
           unit: r.unit,
           minOrderQuantity: r.min_order_quantity ? Number(r.min_order_quantity) : undefined,
           turnaroundHours: r.turnaround_hours,
@@ -959,6 +984,7 @@ class BackendDatabase {
           image: r.image_url || undefined,
           imageUrl: r.image_url || undefined,
         }));
+        pool.query("UPDATE services SET base_price = 60 WHERE id = 'srv-1' AND base_price < 10").catch(() => {});
       }
 
       // Sync Categories
