@@ -292,13 +292,15 @@ customersRouter.post('/login', async (req: Request, res: Response) => {
     return res.status(400).json({ success: false, message: 'Valid phone number is required' });
   }
 
+  const { name = '', email = '' } = req.body ?? {};
+
   let customer = findByPhone(phone);
   if (!customer) {
     const saved = db.addCustomer({
       id: uid || `cust_${phone}`,
-      name: 'LaundryFresh Customer',
+      name: (name || 'LaundryFresh Customer').trim(),
       phone,
-      email: '',
+      email: (email || '').trim(),
     });
     customer = {
       id: saved.id,
@@ -308,6 +310,15 @@ customersRouter.post('/login', async (req: Request, res: Response) => {
       totalOrders: 0,
       totalSpent: 0,
     };
+  } else if (name || email) {
+    const updated = db.addCustomer({
+      id: customer.id,
+      name: name || customer.name,
+      phone,
+      email: email !== undefined ? email : customer.email,
+    });
+    customer.name = updated.name;
+    customer.email = updated.email;
   }
 
   return tokenResponse(res, customer, uid);
@@ -342,34 +353,30 @@ customersRouter.post('/register', async (req: Request, res: Response) => {
     return res.status(400).json({ success: false, message: 'Valid phone number is required' });
   }
 
-  // If already registered → treat as login (idempotent)
-  const existing = findByPhone(phone);
-  if (existing) return tokenResponse(res, existing, uid);
-
-  // Create new customer record
-  const newCustomer = {
-    id: `cust_${Date.now()}`,
+  // Create or update customer in database & MySQL
+  const saved = db.addCustomer({
+    id: uid || `cust_${phone}`,
     name: (name || 'LaundryFresh Customer').trim(),
     phone,
     email: (email || '').trim(),
+  });
+
+  const customer = {
+    id: saved.id,
+    name: saved.name,
+    phone: saved.phone,
+    email: saved.email,
+    totalOrders: 0,
+    totalSpent: 0,
   };
 
-  registeredCustomers.set(newCustomer.id, newCustomer);
-
-  if (isDbConnected && pool) {
-    pool.query(
-      'INSERT INTO customers (id, name, phone, email, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=VALUES(updated_at)',
-      [newCustomer.id, newCustomer.name, newCustomer.phone, newCustomer.email, 'CUSTOMER', new Date().toISOString(), new Date().toISOString()]
-    ).catch((err) => console.error('Error saving customer to MySQL:', err));
-  }
-
-  if (newCustomer.email) {
-    sendWelcomeCustomerNotification(newCustomer.email, newCustomer.name, newCustomer.email, phone).catch((err) =>
+  if (saved.email) {
+    sendWelcomeCustomerNotification(saved.email, saved.name, saved.email, phone).catch((err) =>
       console.error('Welcome email error:', err)
     );
   }
 
-  return tokenResponse(res, newCustomer, uid, 201);
+  return tokenResponse(res, customer, uid, 201);
 });
 
 /**
