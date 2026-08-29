@@ -2134,6 +2134,56 @@ class BackendDatabase {
     };
     return this.customers[idx];
   }
+
+  getCustomerWishlist(customerId: string): string[] {
+    const cleanPhone = String(customerId || '').replace(/\D/g, '').slice(-10);
+    const customer = this.customers.find(
+      (c) => c.id === customerId || (cleanPhone && c.phone?.replace(/\D/g, '').slice(-10) === cleanPhone)
+    );
+    return customer?.wishlist || [];
+  }
+
+  addToCustomerWishlist(customerId: string, itemId: string): string[] {
+    const cleanPhone = String(customerId || '').replace(/\D/g, '').slice(-10);
+    let customer = this.customers.find(
+      (c) => c.id === customerId || (cleanPhone && c.phone?.replace(/\D/g, '').slice(-10) === cleanPhone)
+    );
+    if (!customer) {
+      customer = this.addCustomer({ id: customerId, name: 'Valued Customer', phone: cleanPhone || '9121999999' });
+    }
+    const currentList = Array.isArray(customer.wishlist) ? customer.wishlist : [];
+    if (!currentList.includes(itemId)) {
+      customer.wishlist = [...currentList, itemId];
+      customer.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    }
+    return customer.wishlist;
+  }
+
+  removeFromCustomerWishlist(customerId: string, itemId: string): string[] {
+    const cleanPhone = String(customerId || '').replace(/\D/g, '').slice(-10);
+    const customer = this.customers.find(
+      (c) => c.id === customerId || (cleanPhone && c.phone?.replace(/\D/g, '').slice(-10) === cleanPhone)
+    );
+    if (!customer) return [];
+    customer.wishlist = (customer.wishlist || []).filter((id: string) => id !== itemId);
+    customer.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    return customer.wishlist;
+  }
+
+  mergeCustomerWishlist(customerId: string, itemIds: string[]): string[] {
+    const cleanPhone = String(customerId || '').replace(/\D/g, '').slice(-10);
+    let customer = this.customers.find(
+      (c) => c.id === customerId || (cleanPhone && c.phone?.replace(/\D/g, '').slice(-10) === cleanPhone)
+    );
+    if (!customer) {
+      customer = this.addCustomer({ id: customerId, name: 'Valued Customer', phone: cleanPhone || '9121999999' });
+    }
+    const currentList = Array.isArray(customer.wishlist) ? customer.wishlist : [];
+    const merged = Array.from(new Set([...currentList, ...itemIds.filter(Boolean)]));
+    customer.wishlist = merged;
+    customer.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    return customer.wishlist;
+  }
 }
 
 export const db = new BackendDatabase();

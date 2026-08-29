@@ -688,6 +688,49 @@ customersRouter.put('/:id', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/customers/:id/wishlist - Get customer's saved wishlist item IDs
+ */
+customersRouter.get('/:id/wishlist', (req: Request, res: Response) => {
+  const list = db.getCustomerWishlist(req.params.id);
+  return res.json({ success: true, count: list.length, data: list });
+});
+
+/**
+ * POST /api/customers/:id/wishlist - Add item to customer wishlist
+ */
+customersRouter.post('/:id/wishlist', (req: Request, res: Response) => {
+  const { itemId } = req.body;
+  if (!itemId) {
+    return res.status(400).json({ success: false, message: 'itemId is required' });
+  }
+  const updated = db.addToCustomerWishlist(req.params.id, String(itemId));
+  return res.json({ success: true, message: 'Added to wishlist', data: updated });
+});
+
+/**
+ * DELETE /api/customers/:id/wishlist/:itemId - Remove item from customer wishlist
+ */
+customersRouter.delete('/:id/wishlist/:itemId', (req: Request, res: Response) => {
+  const updated = db.removeFromCustomerWishlist(req.params.id, req.params.itemId);
+  return res.json({ success: true, message: 'Removed from wishlist', data: updated });
+});
+
+/**
+ * POST /api/customers/:id/wishlist/merge - Merge guest wishlist with customer account upon sign-in
+ */
+customersRouter.post('/:id/wishlist/merge', (req: Request, res: Response) => {
+  const { items } = req.body;
+  const itemIds = Array.isArray(items) ? items : [];
+  const merged = db.mergeCustomerWishlist(req.params.id, itemIds);
+  return res.json({
+    success: true,
+    message: 'Wishlist merged successfully',
+    count: merged.length,
+    data: merged,
+  });
+});
+
+/**
  * GET /api/customers/info/policies - Returns full customer legal & support policies
  */
 customersRouter.get('/info/policies', (_req: Request, res: Response) => {
