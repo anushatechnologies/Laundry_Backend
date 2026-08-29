@@ -185,6 +185,39 @@ async function createTables() {
     )
   `);
   await database.query(`
+    CREATE TABLE IF NOT EXISTS customer_addresses (
+      id VARCHAR(255) PRIMARY KEY,
+      customer_id VARCHAR(255) NOT NULL,
+      type VARCHAR(32) NOT NULL,
+      contact_name VARCHAR(255),
+      contact_phone VARCHAR(100),
+      house_no VARCHAR(255),
+      area VARCHAR(255),
+      street TEXT NOT NULL,
+      landmark VARCHAR(255),
+      city VARCHAR(120) NOT NULL,
+      state VARCHAR(120),
+      pincode VARCHAR(20) NOT NULL,
+      instructions TEXT,
+      is_default TINYINT(1) DEFAULT 0,
+      created_at VARCHAR(100),
+      updated_at VARCHAR(100),
+      INDEX customer_addresses_customer_id_idx (customer_id)
+    )
+  `);
+  await database.query(`
+    CREATE TABLE IF NOT EXISTS mobile_devices (
+      id VARCHAR(255) PRIMARY KEY,
+      customer_id VARCHAR(255) NOT NULL,
+      push_token VARCHAR(255) NOT NULL UNIQUE,
+      provider VARCHAR(32) NOT NULL,
+      platform VARCHAR(32) NOT NULL,
+      created_at VARCHAR(100),
+      updated_at VARCHAR(100),
+      INDEX mobile_devices_customer_id_idx (customer_id)
+    )
+  `);
+  await database.query(`
     CREATE TABLE IF NOT EXISTS hubs (
       id VARCHAR(255) PRIMARY KEY,
       name VARCHAR(255) NOT NULL,

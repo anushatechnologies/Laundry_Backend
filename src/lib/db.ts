@@ -625,6 +625,7 @@ class BackendDatabase {
   private packaging: any[] = [...INITIAL_PACKAGING];
   private machines: any[] = [...INITIAL_FACILITY_MACHINES];
   private maintenanceLogs: any[] = [...INITIAL_MAINTENANCE_LOGS];
+  private customers: any[] = [];
 
   async syncFromMysql() {
     if (!isDbConnected || !pool) return;
@@ -839,6 +840,20 @@ class BackendDatabase {
           features: typeof r.features === 'string' ? JSON.parse(r.features) : (Array.isArray(r.features) ? r.features : []),
           popular: Boolean(r.popular),
           isActive: Boolean(r.is_active),
+        }));
+      }
+
+      // Sync Customers
+      const [custRows]: any = await pool.query('SELECT * FROM customers').catch(() => [[]]);
+      if (custRows && custRows.length > 0) {
+        this.customers = custRows.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          phone: r.phone,
+          email: r.email || '',
+          role: r.role || 'CUSTOMER',
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
         }));
       }
     } catch (err) {
@@ -1568,6 +1583,59 @@ class BackendDatabase {
   }
 
   getMaintenanceLogs(): any[] { return this.maintenanceLogs; }
+
+  // Customer Persistent Storage
+  getCustomers(): any[] { return this.customers; }
+
+  findCustomerByPhone(phone: string): any | undefined {
+    const cleanPhone = String(phone || '').replace(/\D/g, '').slice(-10);
+    if (!cleanPhone) return undefined;
+    return this.customers.find(
+      (c) => c.phone?.replace(/\D/g, '').slice(-10) === cleanPhone
+    );
+  }
+
+  addCustomer(data: { id?: string; name?: string; phone: string; email?: string; role?: string }): any {
+    const cleanPhone = String(data.phone || '').replace(/\D/g, '').slice(-10);
+    const existingIdx = this.customers.findIndex(
+      (c) => c.phone?.replace(/\D/g, '').slice(-10) === cleanPhone
+    );
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    let record: any;
+
+    if (existingIdx !== -1) {
+      this.customers[existingIdx] = {
+        ...this.customers[existingIdx],
+        name: data.name || this.customers[existingIdx].name || 'Valued Customer',
+        email: data.email !== undefined ? data.email : this.customers[existingIdx].email,
+        role: data.role || this.customers[existingIdx].role || 'CUSTOMER',
+        updatedAt: now,
+      };
+      record = this.customers[existingIdx];
+    } else {
+      record = {
+        id: data.id || `cust_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        name: data.name || 'Valued Customer',
+        phone: cleanPhone,
+        email: data.email || '',
+        role: data.role || 'CUSTOMER',
+        createdAt: now,
+        updatedAt: now,
+      };
+      this.customers.unshift(record);
+    }
+
+    if (isDbConnected && pool) {
+      pool
+        .query(
+          'REPLACE INTO customers (id, name, phone, email, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [record.id, record.name, record.phone, record.email || null, record.role || 'CUSTOMER', record.createdAt, record.updatedAt]
+        )
+        .catch((err) => console.error('Error saving customer to MySQL:', err));
+    }
+
+    return record;
+  }
 }
 
 export const db = new BackendDatabase();

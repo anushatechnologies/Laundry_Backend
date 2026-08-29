@@ -13,6 +13,7 @@ import {
   sendAdminOrderAlert,
 } from '../../lib/email';
 import type { Order, OrderStatus, PaymentMethod } from '../../types';
+import { sendOrderStatusPushNotification } from '../../lib/push';
 
 const router = Router();
 
@@ -157,8 +158,9 @@ function priceItems(items: z.infer<typeof orderItemSchema>[], expressTier: Order
       .getPriceMatrix()
       .find((price) => price.isActive && item.id === `${price.clothTypeId}-${price.serviceId}` && item.serviceId === price.serviceId);
     const catalogService = db.getServices().find((service) => service.id === item.serviceId);
+    const serviceMaster = db.getServiceMasters().find((service) => service.id === item.serviceId && service.isActive);
 
-    if (!catalogPrice && !catalogService) {
+    if (!catalogPrice && !catalogService && !serviceMaster) {
       throw new Error(`The selected service is no longer available: ${item.serviceName}.`);
     }
 
@@ -166,13 +168,15 @@ function priceItems(items: z.infer<typeof orderItemSchema>[], expressTier: Order
       ? expressTier === 'REGULAR' || !catalogPrice.expressPrice
         ? catalogPrice.price
         : catalogPrice.expressPrice
-      : catalogService!.basePrice;
-    const pricingModel = catalogPrice ? 'PER_ITEM' : catalogService!.pricingModel;
+      : catalogService?.basePrice ?? serviceMaster?.baseKgPrice ?? 0;
+    const pricingModel = catalogPrice
+      ? 'PER_ITEM'
+      : catalogService?.pricingModel ?? (serviceMaster?.pricingType === 'PER_KG' ? 'PER_KG' : 'PER_ITEM');
 
     return {
       ...item,
-      serviceName: catalogPrice ? `${catalogPrice.clothName} (${catalogPrice.serviceName})` : catalogService!.name,
-      categoryName: catalogPrice ? catalogPrice.categoryTag : catalogService!.categoryId,
+      serviceName: catalogPrice ? `${catalogPrice.clothName} (${catalogPrice.serviceName})` : (catalogService?.name ?? serviceMaster!.name),
+      categoryName: catalogPrice ? catalogPrice.categoryTag : (catalogService?.categoryId ?? 'Bulk Laundry'),
       pricingModel,
       unitPrice,
       estimatedWeightKg: pricingModel === 'PER_KG' ? item.quantity : undefined,
@@ -319,6 +323,12 @@ function triggerOrderEmail(order: Order, status?: OrderStatus) {
   };
 
   const targetStatus = status || order.currentStatus;
+
+  // Push delivery is intentionally asynchronous. Order updates and customer
+  // emails must never be blocked by a mobile-device notification provider.
+  sendOrderStatusPushNotification(order, targetStatus).catch((err) =>
+    console.warn(`Order push notification error for #${order.id}:`, err)
+  );
 
   // 1. If new order placed → Alert Admin immediately
   if (targetStatus === 'ORDER_PLACED') {

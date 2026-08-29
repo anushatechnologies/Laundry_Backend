@@ -5,6 +5,7 @@ import { verifyFirebaseToken } from '../../middleware/verifyFirebaseToken';
 import {
   signAccessToken,
   signRefreshToken,
+  verifyAccessToken,
   verifyRefreshToken,
   type CustomerTokenPayload,
 } from '../../lib/customer-tokens';
@@ -25,7 +26,7 @@ const customerOtpStore = new Map<string, { code: string; expiresAt: number; name
    Internal helpers
 ───────────────────────────────────────────────────────────────────────── */
 
-/** Build a customer summary map from existing orders and registered customers */
+/** Build a customer summary map from persistent customers and existing orders */
 function customerSummaries() {
   const map = new Map<
     string,
@@ -36,28 +37,61 @@ function customerSummaries() {
     }
   >();
 
-  for (const order of db.getOrders()) {
-    const existing  = map.get(order.customerId);
-    const orderDate = order.createdAt || order.updatedAt;
-    if (existing) {
-      existing.totalOrders += 1;
-      existing.totalSpent  += Number(order.totalAmount) || 0;
-      if (orderDate && (!existing.lastOrderAt || orderDate > existing.lastOrderAt))
-        existing.lastOrderAt = orderDate;
-      continue;
-    }
-    map.set(order.customerId, {
-      id: order.customerId, name: order.customerName,
-      email: order.customerEmail, phone: order.customerPhone,
-      pincode: order.address?.pincode,
-      totalOrders: 1, totalSpent: Number(order.totalAmount) || 0,
-      joinedAt: orderDate, lastOrderAt: orderDate,
+  // 1. Load all persistent registered customers
+  for (const customer of db.getCustomers()) {
+    const cleanPhone = customer.phone?.replace(/\D/g, '').slice(-10);
+    if (!cleanPhone) continue;
+    map.set(cleanPhone, {
+      id: customer.id,
+      name: customer.name || 'Valued Customer',
+      email: customer.email || '',
+      phone: cleanPhone,
+      pincode: undefined,
+      totalOrders: 0,
+      totalSpent: 0,
+      joinedAt: customer.createdAt,
+      lastOrderAt: customer.updatedAt || customer.createdAt,
     });
   }
 
-  for (const customer of registeredCustomers.values()) {
-    if (!map.has(customer.id)) {
-      map.set(customer.id, { ...customer, totalOrders: 0, totalSpent: 0 });
+  // 2. Aggregate order statistics
+  for (const order of db.getOrders()) {
+    const cleanPhone = order.customerPhone?.replace(/\D/g, '').slice(-10);
+    if (!cleanPhone) continue;
+    const existing = map.get(cleanPhone);
+    const orderDate = order.createdAt || order.updatedAt;
+
+    if (existing) {
+      existing.totalOrders += 1;
+      existing.totalSpent += Number(order.totalAmount) || 0;
+      if (orderDate && (!existing.lastOrderAt || orderDate > existing.lastOrderAt)) {
+        existing.lastOrderAt = orderDate;
+      }
+      if (order.address?.pincode) {
+        existing.pincode = order.address.pincode;
+      }
+      if (order.customerName && order.customerName !== 'Valued Customer') {
+        existing.name = order.customerName;
+      }
+    } else {
+      map.set(cleanPhone, {
+        id: order.customerId,
+        name: order.customerName || 'Valued Customer',
+        email: order.customerEmail || '',
+        phone: cleanPhone,
+        pincode: order.address?.pincode,
+        totalOrders: 1,
+        totalSpent: Number(order.totalAmount) || 0,
+        joinedAt: orderDate,
+        lastOrderAt: orderDate,
+      });
+      // Also ensure this customer is persisted in db
+      db.addCustomer({
+        id: order.customerId,
+        name: order.customerName,
+        phone: cleanPhone,
+        email: order.customerEmail,
+      });
     }
   }
 
@@ -188,7 +222,10 @@ customersRouter.post('/verify-otp', (req: Request, res: Response) => {
   }
 
   const record = customerOtpStore.get(phone);
-  const isValidOtp = otp === '123456' || (record && record.code === otp && Date.now() <= record.expiresAt);
+  // A test code is permitted only when an explicit development flag is set.
+  // It must never silently work in a production customer app.
+  const allowDevelopmentTestOtp = process.env.NODE_ENV !== 'production' && process.env.ALLOW_TEST_OTP === 'true';
+  const isValidOtp = (allowDevelopmentTestOtp && otp === '123456') || (record && record.code === otp && Date.now() <= record.expiresAt);
 
   if (!isValidOtp) {
     return res.status(401).json({ success: false, message: 'Invalid or expired OTP code. Please try again.' });
@@ -201,28 +238,22 @@ customersRouter.post('/verify-otp', (req: Request, res: Response) => {
   if (!customer) {
     const customerName = (name || record?.name || 'LaundryFresh Customer').trim();
     const customerEmail = (email || record?.email || '').trim();
-    const newCustomer = {
-      id: `cust_${Date.now()}`,
+
+    // Persist permanently in BackendDatabase & MySQL
+    const savedCustomer = db.addCustomer({
       name: customerName,
       phone,
       email: customerEmail,
-    };
-    registeredCustomers.set(newCustomer.id, newCustomer);
+    });
+
     customer = {
-      id: newCustomer.id,
-      name: newCustomer.name,
-      phone: newCustomer.phone,
-      email: newCustomer.email,
+      id: savedCustomer.id,
+      name: savedCustomer.name,
+      phone: savedCustomer.phone,
+      email: savedCustomer.email,
       totalOrders: 0,
       totalSpent: 0,
     };
-
-    if (isDbConnected && pool) {
-      pool.query(
-        'INSERT INTO customers (id, name, phone, email, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=VALUES(updated_at)',
-        [newCustomer.id, newCustomer.name, newCustomer.phone, newCustomer.email, 'CUSTOMER', new Date().toISOString(), new Date().toISOString()]
-      ).catch((err) => console.error('Error saving customer to MySQL:', err));
-    }
 
     if (customerEmail) {
       sendWelcomeCustomerNotification(customerEmail, customerName, customerEmail, phone).catch((err) =>
@@ -366,8 +397,9 @@ customersRouter.post('/logout', (_req: Request, res: Response) => {
   return res.json({ success: true, message: 'Logged out successfully.' });
 });
 
-// In-memory customer addresses store
-const customerAddresses = new Map<string, Array<{
+// The in-memory map keeps local development usable. When MySQL is configured,
+// every address is also read and written durably through customer_addresses.
+type StoredAddress = {
   id: string;
   type: 'Home' | 'Office' | 'Other';
   contactName?: string;
@@ -381,21 +413,74 @@ const customerAddresses = new Map<string, Array<{
   pincode: string;
   instructions?: string;
   isDefault?: boolean;
-}>>();
+};
+
+const customerAddresses = new Map<string, StoredAddress[]>();
+
+function mapAddressRow(row: any): StoredAddress {
+  return {
+    id: row.id,
+    type: row.type === 'Office' || row.type === 'Other' ? row.type : 'Home',
+    contactName: row.contact_name || '',
+    contactPhone: row.contact_phone || '',
+    houseNo: row.house_no || '',
+    area: row.area || '',
+    street: row.street,
+    landmark: row.landmark || '',
+    city: row.city,
+    state: row.state || '',
+    pincode: row.pincode,
+    instructions: row.instructions || '',
+    isDefault: Boolean(row.is_default),
+  };
+}
+
+async function getCustomerAddresses(customerId: string): Promise<StoredAddress[]> {
+  if (isDbConnected && pool) {
+    const [rows]: any = await pool.query(
+      'SELECT * FROM customer_addresses WHERE customer_id = ? ORDER BY is_default DESC, updated_at DESC',
+      [customerId],
+    );
+    const addresses = rows.map(mapAddressRow);
+    customerAddresses.set(customerId, addresses);
+    return addresses;
+  }
+  return customerAddresses.get(customerId) || [];
+}
+
+function requireCustomerAddressOwner(req: Request, res: Response, next: () => void) {
+  const token = req.headers.authorization?.startsWith('Bearer ')
+    ? req.headers.authorization.slice(7)
+    : '';
+  if (!token) return res.status(401).json({ success: false, message: 'Customer sign-in is required.' });
+  try {
+    const customer = verifyAccessToken(token);
+    if (!customer.customerId || customer.customerId !== req.params.id) {
+      return res.status(403).json({ success: false, message: 'You can only access your own saved addresses.' });
+    }
+    return next();
+  } catch {
+    return res.status(401).json({ success: false, message: 'Customer session expired. Please sign in again.' });
+  }
+}
 
 /**
  * GET /api/customers/:id/addresses
  */
-customersRouter.get('/:id/addresses', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const list = customerAddresses.get(id) || [];
-  return res.json({ success: true, count: list.length, data: list });
+customersRouter.get('/:id/addresses', requireCustomerAddressOwner, async (req: Request, res: Response) => {
+  try {
+    const list = await getCustomerAddresses(req.params.id);
+    return res.json({ success: true, count: list.length, data: list });
+  } catch (error) {
+    console.error('Customer address lookup error:', error);
+    return res.status(500).json({ success: false, message: 'Saved addresses could not be loaded.' });
+  }
 });
 
 /**
  * POST /api/customers/:id/addresses
  */
-customersRouter.post('/:id/addresses', (req: Request, res: Response) => {
+customersRouter.post('/:id/addresses', requireCustomerAddressOwner, async (req: Request, res: Response) => {
   const { id } = req.params;
   const body = req.body ?? {};
   if (!body.street || !body.pincode) {
@@ -418,12 +503,30 @@ customersRouter.post('/:id/addresses', (req: Request, res: Response) => {
     isDefault: Boolean(body.isDefault),
   };
 
-  const list = customerAddresses.get(id) || [];
+  const list = await getCustomerAddresses(id);
   if (newAddress.isDefault) {
     list.forEach((a) => (a.isDefault = false));
   }
   list.unshift(newAddress);
   customerAddresses.set(id, list);
+
+  if (isDbConnected && pool) {
+    try {
+      const now = new Date().toISOString();
+      if (newAddress.isDefault) {
+        await pool.query('UPDATE customer_addresses SET is_default = 0, updated_at = ? WHERE customer_id = ?', [now, id]);
+      }
+      await pool.query(
+        `INSERT INTO customer_addresses (id, customer_id, type, contact_name, contact_phone, house_no, area, street, landmark, city, state, pincode, instructions, is_default, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE type = VALUES(type), contact_name = VALUES(contact_name), contact_phone = VALUES(contact_phone), house_no = VALUES(house_no), area = VALUES(area), street = VALUES(street), landmark = VALUES(landmark), city = VALUES(city), state = VALUES(state), pincode = VALUES(pincode), instructions = VALUES(instructions), is_default = VALUES(is_default), updated_at = VALUES(updated_at)`,
+        [newAddress.id, id, newAddress.type, newAddress.contactName || null, newAddress.contactPhone || null, newAddress.houseNo || null, newAddress.area || null, newAddress.street, newAddress.landmark || null, newAddress.city, newAddress.state || null, newAddress.pincode, newAddress.instructions || null, newAddress.isDefault ? 1 : 0, now, now],
+      );
+    } catch (error) {
+      console.error('Customer address persistence error:', error);
+      return res.status(500).json({ success: false, message: 'The address could not be saved.' });
+    }
+  }
 
   return res.status(201).json({ success: true, data: newAddress, addresses: list });
 });
@@ -431,11 +534,19 @@ customersRouter.post('/:id/addresses', (req: Request, res: Response) => {
 /**
  * DELETE /api/customers/:id/addresses/:addressId
  */
-customersRouter.delete('/:id/addresses/:addressId', (req: Request, res: Response) => {
+customersRouter.delete('/:id/addresses/:addressId', requireCustomerAddressOwner, async (req: Request, res: Response) => {
   const { id, addressId } = req.params;
-  const list = customerAddresses.get(id) || [];
+  const list = await getCustomerAddresses(id);
   const updated = list.filter((a) => a.id !== addressId);
   customerAddresses.set(id, updated);
+  if (isDbConnected && pool) {
+    try {
+      await pool.query('DELETE FROM customer_addresses WHERE customer_id = ? AND id = ?', [id, addressId]);
+    } catch (error) {
+      console.error('Customer address deletion error:', error);
+      return res.status(500).json({ success: false, message: 'The address could not be deleted.' });
+    }
+  }
   return res.json({ success: true, message: 'Address removed.', data: updated });
 });
 

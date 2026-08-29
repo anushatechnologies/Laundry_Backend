@@ -14,6 +14,7 @@ import customersRouter from './modules/customers/routes';
 import notificationsRouter from './modules/notifications/routes';
 import { auditRouter } from './modules/audit/routes';
 import { hubsRouter } from './modules/hubs/routes';
+import devicesRouter from './modules/devices/routes';
 import { errorHandler, notFoundHandler } from './middleware/errors';
 
 const app = express();
@@ -79,6 +80,7 @@ app.use('/api/customers', customersRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/audit', auditRouter);
 app.use('/api/hubs', hubsRouter);
+app.use('/api/devices', devicesRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
