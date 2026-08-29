@@ -266,6 +266,66 @@ customersRouter.post('/verify-otp', (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/customers/firebase-login
+ * Headers: Authorization: Bearer <Firebase ID token>
+ * Body: { name?: string, email?: string }
+ *
+ * Native Android Firebase Phone Auth confirms the SMS. This route verifies the
+ * resulting Firebase ID token server-side before issuing our customer session.
+ */
+customersRouter.post('/firebase-login', async (req: Request, res: Response) => {
+  const header = req.headers.authorization ?? '';
+  const idToken = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  if (!idToken) return res.status(401).json({ success: false, message: 'Firebase verification is required.' });
+
+  try {
+    const decoded = await getFirebaseAuth().verifyIdToken(idToken);
+    const phone = String(decoded.phone_number || '').replace(/\D/g, '').slice(-10);
+    if (phone.length !== 10) {
+      return res.status(422).json({ success: false, message: 'Firebase did not provide a verified Indian mobile number.' });
+    }
+
+    const { name = '', email = '' } = req.body ?? {};
+    let customer = findByPhone(phone);
+    if (!customer) {
+      const saved = db.addCustomer({
+        id: decoded.uid,
+        name: String(name || 'LaundryFresh Customer').trim(),
+        phone,
+        email: String(email || '').trim(),
+      });
+      customer = {
+        id: saved.id,
+        name: saved.name,
+        phone: saved.phone,
+        email: saved.email,
+        totalOrders: 0,
+        totalSpent: 0,
+      };
+      if (saved.email) {
+        sendWelcomeCustomerNotification(saved.email, saved.name, saved.email, phone).catch((error) =>
+          console.warn('Firebase customer welcome email error:', error),
+        );
+      }
+    } else if (name || email) {
+      const saved = db.addCustomer({
+        id: customer.id,
+        name: String(name || customer.name).trim(),
+        phone,
+        email: String(email || customer.email || '').trim(),
+      });
+      customer.name = saved.name;
+      customer.email = saved.email;
+    }
+
+    return tokenResponse(res, customer, decoded.uid);
+  } catch (error) {
+    console.warn('Firebase customer login rejected:', error instanceof Error ? error.message : error);
+    return res.status(401).json({ success: false, message: 'Firebase verification failed. Request a new code and try again.' });
+  }
+});
+
+/**
  * POST /api/customers/login
  * Headers: Authorization: Bearer <Firebase ID token> (Optional)
  * Body: { phone }

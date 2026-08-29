@@ -185,11 +185,14 @@ function priceItems(items: z.infer<typeof orderItemSchema>[], expressTier: Order
   });
 }
 
-function calculateCouponDiscount(code: string | undefined, itemTotal: number) {
+function calculateCouponDiscount(code: string | undefined, itemTotal: number, customerId: string) {
   if (!code) return { couponCode: undefined, discountAmount: 0 };
   const coupon = db.getCoupons().find((item) => item.isActive && item.code.toUpperCase() === code.toUpperCase());
   if (!coupon) throw new Error('That coupon is no longer valid.');
   if (new Date(`${coupon.expiryDate}T23:59:59`).getTime() < Date.now()) throw new Error('That coupon has expired.');
+  if (coupon.firstOrderOnly && db.getOrders().some((order) => order.customerId === customerId && order.currentStatus !== 'CANCELLED')) {
+    throw new Error('That coupon is only available on a first order.');
+  }
   if (itemTotal < coupon.minOrderValue) throw new Error(`A minimum order value of ₹${coupon.minOrderValue} is required for this coupon.`);
 
   const rawDiscount = coupon.discountType === 'FLAT' ? coupon.discountValue : (itemTotal * coupon.discountValue) / 100;
@@ -249,7 +252,7 @@ router.post('/', requireCustomerIdentity, (req: Request, res: Response) => {
 
     const items = priceItems(input.items, input.expressTier);
     const itemTotal = Number(items.reduce((total, item) => total + item.subtotal, 0).toFixed(2));
-    const { couponCode, discountAmount } = calculateCouponDiscount(input.couponCode, itemTotal);
+    const { couponCode, discountAmount } = calculateCouponDiscount(input.couponCode, itemTotal, input.customerId);
     const settings = db.getPricingSettings();
     const pickupDeliveryFee = itemTotal >= zone.minFreeOrderValue ? 0 : zone.standardFee;
     const expressFee = input.expressTier === 'REGULAR' ? 0 : input.expressTier === 'SAME_DAY' ? settings.expressDeliveryFee * 2 : settings.expressDeliveryFee;

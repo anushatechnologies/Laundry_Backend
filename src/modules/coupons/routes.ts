@@ -6,7 +6,8 @@ const router = Router();
 
 // GET /api/coupons - List all active coupons
 router.get('/', (req: Request, res: Response) => {
-  res.json({ success: true, count: db.getCoupons().length, data: db.getCoupons() });
+  const activeCoupons = db.getCoupons().filter((coupon) => coupon.isActive && new Date(`${coupon.expiryDate}T23:59:59`).getTime() >= Date.now());
+  res.json({ success: true, count: activeCoupons.length, data: activeCoupons });
 });
 
 // POST /api/coupons - Create new coupon
@@ -59,11 +60,19 @@ router.post('/apply', (req: Request, res: Response) => {
   const coupon = db.getCoupons().find((c) => c.code.toUpperCase() === (code || '').toUpperCase() && c.isActive);
 
   if (!coupon) {
-    return res.json({ success: false, data: { isValid: false, discount: 0, message: 'Invalid or expired coupon code' } });
+    return res.json({ success: true, data: { isValid: false, discount: 0, message: 'Invalid or expired coupon code' } });
+  }
+
+  if (new Date(`${coupon.expiryDate}T23:59:59`).getTime() < Date.now()) {
+    return res.json({ success: true, data: { isValid: false, discount: 0, message: 'This coupon has expired' } });
+  }
+
+  if (coupon.firstOrderOnly && !Boolean(isFirstOrder)) {
+    return res.json({ success: true, data: { isValid: false, discount: 0, message: 'This coupon is only available on your first order' } });
   }
 
   if (orderTotal < coupon.minOrderValue) {
-    return res.json({ success: false, data: { isValid: false, discount: 0, message: `Minimum order value of ₹${coupon.minOrderValue} required` } });
+    return res.json({ success: true, data: { isValid: false, discount: 0, message: `Minimum order value of ₹${coupon.minOrderValue} required` } });
   }
 
   let discount = coupon.discountType === 'FLAT' ? coupon.discountValue : (orderTotal * coupon.discountValue) / 100;
