@@ -90,7 +90,7 @@ const createOrderSchema = z.object({
   customerId: z.string().trim().min(1).max(100),
   customerName: z.string().trim().min(2).max(120),
   customerPhone: z.string().trim().min(6).max(30),
-  customerEmail: z.string().email().max(254).optional(),
+  customerEmail: z.string().trim().email().max(254).optional().or(z.literal('')).nullable(),
   address: z.object({
     id: z.string().trim().min(1).max(100),
     type: z.enum(['Home', 'Office', 'Other']),
