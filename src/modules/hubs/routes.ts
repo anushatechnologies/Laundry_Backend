@@ -90,7 +90,7 @@ let hubsStore: HubBranch[] = [
     code: 'HUB-HYD-01',
     city: 'Hyderabad',
     state: 'Telangana',
-    address: 'Survey 64, Hitech City Main Road, Madhapur, Hyderabad',
+    address: 'Survey 64, Hitech City Main Road, Madhapur, Hyderabad - 500081',
     latitude: 17.4483,
     longitude: 78.3915,
     contactPhone: '+91 40 4567 8900',
@@ -102,7 +102,14 @@ let hubsStore: HubBranch[] = [
     baseDeliveryFare: 40,
     perKmFare: 12,
     freeDeliveryAbove: 499,
-    pincodes: ['500081', '500072', '500032', '500033', '500084', '500090'],
+    pincodes: [
+      '500081','500032','500084','500072','500085','500033','500034','500089','500075',
+      '500049','500050','500090','500018','500082','500016','500003','500026','500009',
+      '500015','500011','500062','500047','500040','500056','500014','500055','500037',
+      '500008','500028','500004','500001','500029','500020','500044','500007','500017',
+      '500039','500076','500068','500074','500070','500035','500036','500059','500053',
+      '500077','500030','500052','500088','500043',
+    ],
     isActive: true,
     inHouseVehicles: [
       {
@@ -112,6 +119,16 @@ let hubsStore: HubBranch[] = [
         driverName: 'Kishore Kumar',
         driverPhone: '+91 99887 76655',
         capacityKg: 200,
+        status: 'IDLE',
+        currentHubId: 'hub-hyd-madhapur',
+      },
+      {
+        id: 'BIKE-HYD-01',
+        vehicleType: 'DELIVERY_BIKE',
+        registrationNo: 'TS-09-BK-1143',
+        driverName: 'Ramesh Reddy',
+        driverPhone: '+91 99887 55443',
+        capacityKg: 40,
         status: 'IDLE',
         currentHubId: 'hub-hyd-madhapur',
       },
@@ -139,6 +156,128 @@ function calculateHaversineDistanceKm(lat1: number, lon1: number, lat2: number, 
 // ─────────────────────────────────────────────────────────────────────────────
 // REST API ROUTES
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/hubs/nearest?lat=17.44&lng=78.39&limit=5&pincode=500081
+ * Returns active hubs sorted by distance from customer coordinates,
+ * enriched with per-hub distanceKm and estimated delivery fee.
+ */
+hubsRouter.get('/nearest', async (req: Request, res: Response) => {
+  const lat = parseFloat(String(req.query.lat || ''));
+  const lng = parseFloat(String(req.query.lng || ''));
+  const pincode = String(req.query.pincode || '').trim();
+  const limit = Math.min(parseInt(String(req.query.limit || '5')), 20);
+  const orderTotal = Number(req.query.orderTotal || 0);
+
+  // Load hubs from MySQL if connected, else use in-memory store
+  let allHubs: HubBranch[] = hubsStore;
+  if (isDbConnected && pool) {
+    try {
+      const [rows]: any = await pool.query('SELECT * FROM hubs WHERE is_active = 1');
+      if (Array.isArray(rows) && rows.length > 0) {
+        allHubs = rows.map((r: any) => ({
+          ...r,
+          latitude: Number(r.latitude),
+          longitude: Number(r.longitude),
+          pincodes: typeof r.pincodes === 'string' ? JSON.parse(r.pincodes) : r.pincodes || [],
+          inHouseVehicles: typeof r.in_house_vehicles === 'string' ? JSON.parse(r.in_house_vehicles) : [],
+          capacityKgPerDay: Number(r.capacity_kg_per_day || 500),
+          baseDistanceKm: Number(r.base_distance_km || 3),
+          baseDeliveryFare: Number(r.base_delivery_fare || 30),
+          perKmFare: Number(r.per_km_fare || 10),
+          freeDeliveryAbove: Number(r.free_delivery_above || 399),
+          maxServiceRadiusKm: Number(r.max_service_radius_km || 30),
+          isActive: Boolean(r.is_active ?? 1),
+        }));
+      }
+    } catch { /* fallback to in-memory */ }
+  }
+
+  const activeHubs = allHubs.filter((h) => h.isActive);
+
+  // Compute distance for each hub
+  const hubsWithDistance = activeHubs.map((hub) => {
+    let distanceKm = 999;
+    if (!isNaN(lat) && !isNaN(lng)) {
+      distanceKm = calculateHaversineDistanceKm(lat, lng, hub.latitude, hub.longitude);
+    } else if (pincode) {
+      // If no GPS, check if hub serves this pincode (set distance = 3km default)
+      if (hub.pincodes.includes(pincode)) distanceKm = 3;
+    }
+
+    // Delivery fee estimate
+    const subtotal = orderTotal;
+    let deliveryFee = hub.baseDeliveryFare;
+    if (subtotal >= hub.freeDeliveryAbove && distanceKm <= 7) {
+      deliveryFee = 0;
+    } else if (distanceKm <= hub.baseDistanceKm) {
+      deliveryFee = hub.baseDeliveryFare;
+    } else if (distanceKm <= 7) {
+      deliveryFee = Math.round(hub.baseDeliveryFare + (distanceKm - hub.baseDistanceKm) * hub.perKmFare);
+    } else if (distanceKm <= hub.maxServiceRadiusKm) {
+      deliveryFee = Math.round(hub.baseDeliveryFare + 40 + (distanceKm - 7) * (hub.perKmFare + 2));
+    } else {
+      deliveryFee = Math.round(180 + (distanceKm - hub.maxServiceRadiusKm) * 15);
+    }
+
+    const withinRadius = distanceKm <= hub.maxServiceRadiusKm;
+    const isFreeDelivery = subtotal >= hub.freeDeliveryAbove && distanceKm <= 7;
+    const isServicingPincode = pincode ? hub.pincodes.includes(pincode) : withinRadius;
+
+    return {
+      ...hub,
+      distanceKm: Math.round(distanceKm * 10) / 10,
+      estimatedDeliveryFee: deliveryFee,
+      isFreeDelivery,
+      withinRadius,
+      isServicingPincode,
+      isRecommended: isServicingPincode || (withinRadius && distanceKm <= 10),
+    };
+  });
+
+  // Sort: pincode-serving hubs first, then by distance
+  hubsWithDistance.sort((a, b) => {
+    if (a.isServicingPincode && !b.isServicingPincode) return -1;
+    if (!a.isServicingPincode && b.isServicingPincode) return 1;
+    return a.distanceKm - b.distanceKm;
+  });
+
+  return res.json({
+    success: true,
+    count: hubsWithDistance.length,
+    data: hubsWithDistance.slice(0, limit),
+    customerLocation: { lat, lng, pincode },
+  });
+});
+
+/**
+ * GET /api/hubs/nearest-for-pincode?pincode=500081
+ * Returns the single best hub for a given pincode (territory match first, then closest)
+ */
+hubsRouter.get('/nearest-for-pincode', (req: Request, res: Response) => {
+  const pincode = String(req.query.pincode || '').trim();
+  if (!pincode || !/^\d{6}$/.test(pincode)) {
+    return res.status(400).json({ success: false, message: 'Valid 6-digit pincode required' });
+  }
+
+  // Territory match first
+  let matched = hubsStore.find((h) => h.isActive && h.pincodes.includes(pincode));
+
+  // Fallback to first active hub
+  if (!matched) matched = hubsStore.find((h) => h.isActive);
+
+  if (!matched) {
+    return res.status(404).json({ success: false, message: 'No active hub found for this pincode' });
+  }
+
+  return res.json({
+    success: true,
+    data: {
+      hub: matched,
+      isDirectTerritory: matched.pincodes.includes(pincode),
+    },
+  });
+});
 
 /**
  * GET /api/hubs
