@@ -1121,9 +1121,9 @@ class BackendDatabase {
         }));
       }
 
-      // Sync Pincodes
+      // Sync Pincodes — seed all 50 Hyderabad pincodes if MySQL table is sparse
       const [pinRows]: any = await pool.query('SELECT * FROM pincodes');
-      if (pinRows.length > 0) {
+      if (pinRows.length >= 50) {
         this.pincodes = pinRows.map((r: any) => ({
           pincode: r.pincode,
           areaName: r.area_name,
@@ -1134,6 +1134,24 @@ class BackendDatabase {
           expressAvailable: Boolean(r.express_available),
           averageTurnaroundHours: r.average_turnaround_hours,
         }));
+      } else {
+        // MySQL has fewer than 50 pincodes — re-seed all INITIAL_PINCODES
+        this.pincodes = [...INITIAL_PINCODES];
+        for (const p of INITIAL_PINCODES) {
+          await pool.query(
+            `INSERT INTO pincodes (pincode, area_name, city, is_serviceable, standard_fee, min_free_order_value, express_available, average_turnaround_hours)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+               area_name = VALUES(area_name),
+               city = VALUES(city),
+               is_serviceable = VALUES(is_serviceable),
+               standard_fee = VALUES(standard_fee),
+               min_free_order_value = VALUES(min_free_order_value),
+               express_available = VALUES(express_available),
+               average_turnaround_hours = VALUES(average_turnaround_hours)`,
+            [p.pincode, p.areaName, p.city, p.isServiceable ? 1 : 0, p.standardFee, p.minFreeOrderValue, p.expressAvailable ? 1 : 0, p.averageTurnaroundHours]
+          ).catch(() => {});
+        }
       }
 
       // Sync Staff
