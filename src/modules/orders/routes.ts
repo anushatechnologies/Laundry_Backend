@@ -326,7 +326,7 @@ function triggerOrderEmail(order: Order, status?: OrderStatus) {
 
   // Push delivery is intentionally asynchronous. Order updates and customer
   // emails must never be blocked by a mobile-device notification provider.
-  sendOrderStatusPushNotification(order, targetStatus).catch((err) =>
+  sendOrderStatusPushNotification(order, targetStatus).catch((err: any) =>
     console.warn(`Order push notification error for #${order.id}:`, err)
   );
 
