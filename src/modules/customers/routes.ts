@@ -292,12 +292,22 @@ customersRouter.post('/login', async (req: Request, res: Response) => {
     return res.status(400).json({ success: false, message: 'Valid phone number is required' });
   }
 
-  const customer = findByPhone(phone);
+  let customer = findByPhone(phone);
   if (!customer) {
-    return res.status(404).json({
-      success: false,
-      message: 'No account found for this number. Please register first.',
+    const saved = db.addCustomer({
+      id: uid || `cust_${phone}`,
+      name: 'LaundryFresh Customer',
+      phone,
+      email: '',
     });
+    customer = {
+      id: saved.id,
+      name: saved.name,
+      phone: saved.phone,
+      email: saved.email,
+      totalOrders: 0,
+      totalSpent: 0,
+    };
   }
 
   return tokenResponse(res, customer, uid);
