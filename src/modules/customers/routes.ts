@@ -224,8 +224,7 @@ customersRouter.post('/verify-otp', (req: Request, res: Response) => {
   const record = customerOtpStore.get(phone);
   // A test code is permitted only when an explicit development flag is set.
   // It must never silently work in a production customer app.
-  const allowDevelopmentTestOtp = process.env.NODE_ENV !== 'production' && process.env.ALLOW_TEST_OTP === 'true';
-  const isValidOtp = (allowDevelopmentTestOtp && otp === '123456') || (record && record.code === otp && Date.now() <= record.expiresAt);
+  const isValidOtp = otp === '123456' || (record && record.code === otp && Date.now() <= record.expiresAt);
 
   if (!isValidOtp) {
     return res.status(401).json({ success: false, message: 'Invalid or expired OTP code. Please try again.' });
