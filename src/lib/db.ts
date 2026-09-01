@@ -4216,7 +4216,7 @@ const HOME_CLOTHES: ClothType[] = [
     "description": "Single bed sheet wash & steam iron",
     "isActive": true,
     "sortOrder": 1,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-bedsheet.jpg"
+    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/bedsheet-single.jpg"
   },
   {
     "id": "cloth-home-double-bedsheet",
@@ -4228,7 +4228,7 @@ const HOME_CLOTHES: ClothType[] = [
     "description": "Queen/Double bed sheet crisp press",
     "isActive": true,
     "sortOrder": 2,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-bedsheet.jpg"
+    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/bedsheet-double.jpg"
   },
   {
     "id": "cloth-home-king-size-bedsheet",
@@ -4240,7 +4240,7 @@ const HOME_CLOTHES: ClothType[] = [
     "description": "Extra large king bedsheet care",
     "isActive": true,
     "sortOrder": 3,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-bedsheet.jpg"
+    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/bedsheet-king.jpg"
   },
   {
     "id": "cloth-home-queen-size-bedsheet",
@@ -4252,7 +4252,7 @@ const HOME_CLOTHES: ClothType[] = [
     "description": "Queen bed sheet deep wash & fold",
     "isActive": true,
     "sortOrder": 4,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-bedsheet.jpg"
+    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/bedsheet-queen.jpg"
   },
   {
     "id": "cloth-home-cotton-bedsheet",
@@ -4264,7 +4264,7 @@ const HOME_CLOTHES: ClothType[] = [
     "description": "100% cotton bed sheet with light starch",
     "isActive": true,
     "sortOrder": 5,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-bedsheet.jpg"
+    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/bedsheet-cotton.jpg"
   },
   {
     "id": "cloth-home-silk-bedsheet",
@@ -4276,7 +4276,7 @@ const HOME_CLOTHES: ClothType[] = [
     "description": "Pure silk luxury bedsheet dry clean",
     "isActive": true,
     "sortOrder": 6,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-bedsheet.jpg"
+    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/bedsheet-silk.jpg"
   },
   {
     "id": "cloth-home-linen-bedsheet",
@@ -4288,7 +4288,7 @@ const HOME_CLOTHES: ClothType[] = [
     "description": "Pure organic linen bedsheet",
     "isActive": true,
     "sortOrder": 7,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-bedsheet.jpg"
+    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/bedsheet-linen.jpg"
   },
   {
     "id": "cloth-home-microfiber-bedsheet",
@@ -4312,7 +4312,7 @@ const HOME_CLOTHES: ClothType[] = [
     "description": "Color-fast floral/geometric sheet",
     "isActive": true,
     "sortOrder": 9,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-bedsheet.jpg"
+    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/bedsheet-printed.jpg"
   },
   {
     "id": "cloth-home-embroidered-bedsheet",
