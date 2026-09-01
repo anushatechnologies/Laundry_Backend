@@ -6625,87 +6625,12 @@ const HOME_CLOTHES: ClothType[] = [
     "imageUrl": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80"
   }
 ];
-const FOOTWEAR_CLOTHES: ClothType[] = [
-  {
-    "id": "cloth-shoes-sneaker",
-    "name": "Sneakers / Sports Shoes",
-    "icon": "👟",
-    "categoryTag": "FOOTWEAR",
-    "categoryLabel": "Footwear",
-    "subCategory": "Shoes",
-    "description": "Mesh, knit & canvas running shoes",
-    "isActive": true,
-    "sortOrder": 1,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shoes-sneaker.jpg"
-  },
-  {
-    "id": "cloth-shoes-formal",
-    "name": "Formal Leather Shoes",
-    "icon": "👞",
-    "categoryTag": "FOOTWEAR",
-    "categoryLabel": "Footwear",
-    "subCategory": "Shoes",
-    "description": "Leather conditioning, buff & polish",
-    "isActive": true,
-    "sortOrder": 2,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shoes-formal.jpg"
-  },
-  {
-    "id": "cloth-shoes-suede",
-    "name": "Suede / Nubuck Shoes",
-    "icon": "🥾",
-    "categoryTag": "FOOTWEAR",
-    "categoryLabel": "Footwear",
-    "subCategory": "Shoes",
-    "description": "Delicate suede shampoo & waterproofing",
-    "isActive": true,
-    "sortOrder": 3,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shoes-suede.jpg"
-  },
-  {
-    "id": "cloth-bag-backpack",
-    "name": "Backpack / Laptop Bag",
-    "icon": "🎒",
-    "categoryTag": "FOOTWEAR",
-    "categoryLabel": "Bags & Accessories",
-    "subCategory": "Bags",
-    "description": "Deep fabric & nylon scrub sanitization",
-    "isActive": true,
-    "sortOrder": 4,
-    "imageUrl": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80"
-  },
-  {
-    "id": "cloth-bag-leather",
-    "name": "Luxury Leather Handbag",
-    "icon": "👜",
-    "categoryTag": "FOOTWEAR",
-    "categoryLabel": "Bags & Accessories",
-    "subCategory": "Bags",
-    "description": "Conditioning, edge restoration & color refresh",
-    "isActive": true,
-    "sortOrder": 5,
-    "imageUrl": "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80"
-  },
-  {
-    "id": "cloth-luggage-trolley",
-    "name": "Trolley Suitcase",
-    "icon": "🧳",
-    "categoryTag": "FOOTWEAR",
-    "categoryLabel": "Bags & Accessories",
-    "subCategory": "Luggage",
-    "description": "Exterior shell scrub, wheel sanitization & interior vacuum",
-    "isActive": true,
-    "sortOrder": 6,
-    "imageUrl": "https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?auto=format&fit=crop&w=600&q=80"
-  }
-];
 
 export const INITIAL_CLOTH_TYPES: ClothType[] = [
   ...MENS_CLOTHES,
   ...WOMENS_CLOTHES,
   ...KIDS_CLOTHES,
   ...HOME_CLOTHES,
-  ...FOOTWEAR_CLOTHES,
 ];
 
 export const INITIAL_SERVICE_MASTERS: ServiceMaster[] = [
@@ -23160,171 +23085,12 @@ const HOME_PRICES: ServicePriceItem[] = [
     "isActive": true
   }
 ];
-const FOOTWEAR_PRICES: ServicePriceItem[] = [
-  {
-    "id": "pr-shoes-sneaker-spa",
-    "clothTypeId": "cloth-shoes-sneaker",
-    "clothName": "Sneakers / Sports Shoes",
-    "clothIcon": "👟",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-spa",
-    "serviceName": "Deep Shoe & Leather Spa",
-    "price": 250,
-    "expressPrice": 350,
-    "turnaroundHours": 48,
-    "isActive": true
-  },
-  {
-    "id": "pr-shoes-sneaker-dc",
-    "clothTypeId": "cloth-shoes-sneaker",
-    "clothName": "Sneakers / Sports Shoes",
-    "clothIcon": "👟",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-dry-clean",
-    "serviceName": "Dry Cleaning",
-    "price": 220,
-    "expressPrice": 320,
-    "turnaroundHours": 48,
-    "isActive": true
-  },
-  {
-    "id": "pr-shoes-formal-spa",
-    "clothTypeId": "cloth-shoes-formal",
-    "clothName": "Formal Leather Shoes",
-    "clothIcon": "👞",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-spa",
-    "serviceName": "Deep Shoe & Leather Spa",
-    "price": 290,
-    "expressPrice": 400,
-    "turnaroundHours": 48,
-    "isActive": true
-  },
-  {
-    "id": "pr-shoes-formal-dc",
-    "clothTypeId": "cloth-shoes-formal",
-    "clothName": "Formal Leather Shoes",
-    "clothIcon": "👞",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-dry-clean",
-    "serviceName": "Dry Cleaning",
-    "price": 250,
-    "expressPrice": 350,
-    "turnaroundHours": 48,
-    "isActive": true
-  },
-  {
-    "id": "pr-shoes-suede-spa",
-    "clothTypeId": "cloth-shoes-suede",
-    "clothName": "Suede / Nubuck Shoes",
-    "clothIcon": "🥾",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-spa",
-    "serviceName": "Deep Shoe & Leather Spa",
-    "price": 350,
-    "expressPrice": 490,
-    "turnaroundHours": 48,
-    "isActive": true
-  },
-  {
-    "id": "pr-shoes-suede-dc",
-    "clothTypeId": "cloth-shoes-suede",
-    "clothName": "Suede / Nubuck Shoes",
-    "clothIcon": "🥾",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-dry-clean",
-    "serviceName": "Dry Cleaning",
-    "price": 300,
-    "expressPrice": 420,
-    "turnaroundHours": 48,
-    "isActive": true
-  },
-  {
-    "id": "pr-bag-backpack-spa",
-    "clothTypeId": "cloth-bag-backpack",
-    "clothName": "Backpack / Laptop Bag",
-    "clothIcon": "🎒",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-spa",
-    "serviceName": "Deep Shoe & Leather Spa",
-    "price": 220,
-    "expressPrice": 320,
-    "turnaroundHours": 48,
-    "isActive": true
-  },
-  {
-    "id": "pr-bag-backpack-dc",
-    "clothTypeId": "cloth-bag-backpack",
-    "clothName": "Backpack / Laptop Bag",
-    "clothIcon": "🎒",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-dry-clean",
-    "serviceName": "Dry Cleaning",
-    "price": 180,
-    "expressPrice": 260,
-    "turnaroundHours": 48,
-    "isActive": true
-  },
-  {
-    "id": "pr-bag-leather-spa",
-    "clothTypeId": "cloth-bag-leather",
-    "clothName": "Luxury Leather Handbag",
-    "clothIcon": "👜",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-spa",
-    "serviceName": "Deep Shoe & Leather Spa",
-    "price": 450,
-    "expressPrice": 650,
-    "turnaroundHours": 48,
-    "isActive": true
-  },
-  {
-    "id": "pr-bag-leather-dc",
-    "clothTypeId": "cloth-bag-leather",
-    "clothName": "Luxury Leather Handbag",
-    "clothIcon": "👜",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-dry-clean",
-    "serviceName": "Dry Cleaning",
-    "price": 380,
-    "expressPrice": 550,
-    "turnaroundHours": 48,
-    "isActive": true
-  },
-  {
-    "id": "pr-luggage-trolley-spa",
-    "clothTypeId": "cloth-luggage-trolley",
-    "clothName": "Trolley Suitcase",
-    "clothIcon": "🧳",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-spa",
-    "serviceName": "Deep Shoe & Leather Spa",
-    "price": 490,
-    "expressPrice": 700,
-    "turnaroundHours": 48,
-    "isActive": true
-  },
-  {
-    "id": "pr-luggage-trolley-dc",
-    "clothTypeId": "cloth-luggage-trolley",
-    "clothName": "Trolley Suitcase",
-    "clothIcon": "🧳",
-    "categoryTag": "FOOTWEAR",
-    "serviceId": "srv-m-dry-clean",
-    "serviceName": "Dry Cleaning",
-    "price": 420,
-    "expressPrice": 600,
-    "turnaroundHours": 48,
-    "isActive": true
-  }
-];
 
 export const INITIAL_SERVICE_PRICE_MATRIX: ServicePriceItem[] = [
   ...MENS_PRICES,
   ...WOMENS_PRICES,
   ...KIDS_PRICES,
   ...HOME_PRICES,
-  ...FOOTWEAR_PRICES,
 ];
 
 export const INITIAL_PRICING_SETTINGS: PricingSettings = {
