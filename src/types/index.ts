@@ -38,6 +38,7 @@ export interface ServiceCategory {
   description: string;
   isPopular?: boolean;
   color?: string;
+  imageUrl?: string;
   image?: string;
   imageUrl?: string;
 }
