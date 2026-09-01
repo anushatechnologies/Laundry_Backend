@@ -174,6 +174,28 @@ async function createTables() {
     )
   `);
   await database.query(`
+    CREATE TABLE IF NOT EXISTS customer_subscriptions (
+      id VARCHAR(255) PRIMARY KEY,
+      customer_id VARCHAR(255) NOT NULL,
+      subscription_id VARCHAR(255) NOT NULL,
+      status VARCHAR(50) DEFAULT 'ACTIVE',
+      payment_id VARCHAR(255),
+      payment_status VARCHAR(50) DEFAULT 'PENDING',
+      amount DECIMAL(10, 2) NOT NULL,
+      start_date VARCHAR(100) NOT NULL,
+      end_date VARCHAR(100) NOT NULL,
+      auto_renew TINYINT(1) DEFAULT 0,
+      used_kg DECIMAL(10, 2) DEFAULT 0,
+      remaining_kg DECIMAL(10, 2),
+      orders_count INT DEFAULT 0,
+      created_at VARCHAR(100),
+      updated_at VARCHAR(100),
+      INDEX customer_subs_customer_idx (customer_id),
+      INDEX customer_subs_subscription_idx (subscription_id),
+      INDEX customer_subs_status_idx (status)
+    )
+  `);
+  await database.query(`
     CREATE TABLE IF NOT EXISTS customers (
       id VARCHAR(255) PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
