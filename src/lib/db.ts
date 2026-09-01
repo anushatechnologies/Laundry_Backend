@@ -124,31 +124,31 @@ const MENS_CLOTHES: ClothType[] = [
     "description": "Crisp collar & cuff pressing on hanger",
     "isActive": true,
     "sortOrder": 1,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shirt.jpg"
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/1788242435253-formal-shirt-blue.jpg"
   },
   {
     "id": "cloth-mens-casual-shirt",
     "name": "Casual Shirt",
-    "icon": "👔",
+    "icon": "👕",
     "categoryTag": "MENS",
     "categoryLabel": "Men's Clothing",
     "subCategory": "Shirts",
     "description": "Soft wash & wrinkle-free steam press",
     "isActive": true,
     "sortOrder": 2,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shirt.jpg"
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/1788242437906-casual-linen-shirt-green.jpg"
   },
   {
     "id": "cloth-mens-linen-shirt",
     "name": "Linen Shirt",
-    "icon": "👔",
+    "icon": "👕",
     "categoryTag": "MENS",
     "categoryLabel": "Men's Clothing",
     "subCategory": "Shirts",
     "description": "Gentle temperature linen steam finish",
     "isActive": true,
     "sortOrder": 3,
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shirt.jpg"
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/1788242437906-casual-linen-shirt-green.jpg"
   },
   {
     "id": "cloth-mens-cotton-shirt",
