@@ -283,6 +283,7 @@ export interface ClothType {
   icon: string;
   categoryTag: ClothCategoryTag;
   categoryLabel: string;
+  subCategory?: string;
   description?: string;
   isActive: boolean;
   sortOrder: number;
