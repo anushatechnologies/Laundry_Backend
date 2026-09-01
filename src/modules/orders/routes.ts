@@ -298,11 +298,23 @@ router.post('/', requireCustomerIdentity, (req: Request, res: Response) => {
     const taxAmount = Number((taxableAmount * (settings.taxPercentage / 100)).toFixed(2));
     const totalAmount = Number((taxableAmount + taxAmount).toFixed(2));
 
+    // Email fallback: if customer didn't provide email at sign-up,
+    // try to load it from their saved customer profile
+    let resolvedCustomerEmail = input.customerEmail || '';
+    if (!resolvedCustomerEmail && input.customerId) {
+      const customerProfile = db.getCustomers?.()?.find?.(
+        (c: any) => c.id === input.customerId || c.phone?.slice(-10) === input.customerPhone?.slice(-10)
+      );
+      if (customerProfile?.email) {
+        resolvedCustomerEmail = customerProfile.email;
+      }
+    }
+
     const order = db.createOrder({
       customerId: input.customerId,
       customerName: input.customerName,
       customerPhone: input.customerPhone,
-      customerEmail: input.customerEmail,
+      customerEmail: resolvedCustomerEmail || undefined,
       address: input.address,
       items,
       pricingModelSummary: items.some((item) => item.pricingModel === 'PER_KG') ? 'PER_KG' : 'PER_ITEM',
