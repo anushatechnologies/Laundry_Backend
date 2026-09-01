@@ -18,8 +18,8 @@ const legacyServiceSchema = z.object({
   turnaroundHours: z.coerce.number().int().min(1).max(720),
   popular: z.boolean().optional(),
   expressAvailable: z.boolean().optional(),
-  image: z.string().trim().max(1000).optional(),
-  imageUrl: z.string().trim().max(1000).optional(),
+  image: z.string().trim().optional(),
+  imageUrl: z.string().trim().optional(),
 });
 
 // Full dynamic catalog for customer website & admin
@@ -45,12 +45,18 @@ router.post('/', requireAdmin, (req: Request, res: Response) => {
   return res.status(201).json({ success: true, data: created });
 });
 
-router.put('/:id', requireAdmin, (req: Request, res: Response) => {
+router.put('/:id', requireAdmin, async (req: Request, res: Response) => {
   const parsed = legacyServiceSchema.partial().safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ success: false, message: parsed.error.issues[0]?.message || 'Invalid service details.' });
 
   const { imageUrl, ...serviceData } = parsed.data;
-  const updated = db.updateService(req.params.id, { ...serviceData, ...(imageUrl ? { image: imageUrl } : {}) });
+  let finalImage = serviceData.image || imageUrl;
+  if (finalImage && finalImage.startsWith('data:image')) {
+    try {
+      finalImage = await uploadBase64ToS3(finalImage, `service-${req.params.id}.jpg`);
+    } catch {}
+  }
+  const updated = db.updateService(req.params.id, { ...serviceData, ...(finalImage ? { image: finalImage } : {}) });
   if (!updated) return res.status(404).json({ success: false, message: 'Service not found.' });
   return res.json({ success: true, data: updated });
 });
