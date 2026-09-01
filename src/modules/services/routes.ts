@@ -22,10 +22,45 @@ const legacyServiceSchema = z.object({
   imageUrl: z.string().trim().optional(),
 });
 
-// Full dynamic catalog for customer website & admin
+// Full dynamic catalog with filtering by category, subcategory & search
 router.get('/catalog', (req: Request, res: Response) => {
+  const category = (req.query.category as string || '').toUpperCase();
+  const subcategory = (req.query.subcategory as string || '').toLowerCase();
+  const search = (req.query.search as string || '').toLowerCase();
+  const serviceId = (req.query.serviceId as string || '').trim();
+
   const catalog = db.getFullCatalog();
-  res.json({ success: true, data: catalog });
+  let filteredCloths = catalog.clothTypes || [];
+
+  if (category && category !== 'ALL') {
+    filteredCloths = filteredCloths.filter((c) => (c.categoryTag || '').toUpperCase() === category);
+  }
+  if (subcategory && subcategory !== 'all') {
+    filteredCloths = filteredCloths.filter((c) => (((c as any).subcategory || (c as any).subCategory) || '').toLowerCase() === subcategory);
+  }
+  if (search) {
+    filteredCloths = filteredCloths.filter((c) =>
+      c.name.toLowerCase().includes(search) ||
+      (c.description || '').toLowerCase().includes(search) ||
+      (((c as any).subcategory || (c as any).subCategory) || '').toLowerCase().includes(search)
+    );
+  }
+
+  res.json({
+    success: true,
+    data: {
+      ...catalog,
+      clothTypes: filteredCloths,
+      totalCount: filteredCloths.length,
+    },
+  });
+});
+
+// Cloth Types list
+router.get('/cloth-types', (req: Request, res: Response) => {
+  const categoryTag = req.query.categoryTag as string;
+  const clothTypes = db.getClothTypes(categoryTag);
+  res.json({ success: true, data: clothTypes });
 });
 
 // Categories & legacy service list
