@@ -56,8 +56,22 @@ router.put('/:id', requireAdmin, async (req: Request, res: Response) => {
       finalImage = await uploadBase64ToS3(finalImage, `service-${req.params.id}.jpg`);
     } catch {}
   }
-  const updated = db.updateService(req.params.id, { ...serviceData, ...(finalImage ? { image: finalImage } : {}) });
-  if (!updated) return res.status(404).json({ success: false, message: 'Service not found.' });
+  let updated = db.updateService(req.params.id, { ...serviceData, ...(finalImage ? { image: finalImage } : {}) });
+  if (!updated) {
+    // If not found in memory, create it with requested ID
+    updated = db.addService({
+      id: req.params.id,
+      categoryId: serviceData.categoryId || 'cat-1',
+      name: serviceData.name || req.params.id,
+      slug: serviceData.slug || req.params.id,
+      description: serviceData.description || '',
+      pricingModel: serviceData.pricingModel || 'PER_KG',
+      basePrice: serviceData.basePrice ?? 60,
+      unit: serviceData.unit || 'KG',
+      turnaroundHours: serviceData.turnaroundHours ?? 24,
+      image: finalImage,
+    } as any);
+  }
   return res.json({ success: true, data: updated });
 });
 
