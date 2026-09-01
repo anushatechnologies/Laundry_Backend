@@ -83,6 +83,7 @@ const orderItemSchema = z.object({
   pricingModel: z.enum(['PER_KG', 'PER_ITEM']),
   quantity: z.coerce.number().finite().positive().max(250),
   unit: z.string().trim().min(1).max(32),
+  unitPrice: z.coerce.number().optional(),
   specialInstructions: z.string().trim().max(1000).optional(),
 });
 
@@ -154,13 +155,50 @@ function trackingView(order: Order) {
 
 function priceItems(items: z.infer<typeof orderItemSchema>[], expressTier: Order['expressTier']) {
   return items.map((item) => {
+    const cleanId = item.id.replace(/^(garment-|home-|bulk-svc-)/, '');
+
+    // 1. Direct or normalized price matrix lookup
     const catalogPrice = db
       .getPriceMatrix()
-      .find((price) => price.isActive && item.id === `${price.clothTypeId}-${price.serviceId}` && item.serviceId === price.serviceId);
+      .find(
+        (price) =>
+          price.isActive &&
+          (item.id === `${price.clothTypeId}-${price.serviceId}` ||
+            cleanId === `${price.clothTypeId}-${price.serviceId}` ||
+            (cleanId.startsWith(price.clothTypeId) && item.serviceId === price.serviceId))
+      );
+
     const catalogService = db.getServices().find((service) => service.id === item.serviceId);
     const serviceMaster = db.getServiceMasters().find((service) => service.id === item.serviceId && service.isActive);
 
+    // Fallback: Check if item.serviceId happened to be a clothId or if item.unitPrice is valid
     if (!catalogPrice && !catalogService && !serviceMaster) {
+      // Check if priceMatrix has any entry for this cloth
+      const clothMatch = db.getPriceMatrix().find((p) => p.isActive && (p.clothTypeId === item.serviceId || cleanId.startsWith(p.clothTypeId)));
+      if (clothMatch) {
+        const unitPrice = expressTier === 'REGULAR' || !clothMatch.expressPrice ? clothMatch.price : clothMatch.expressPrice;
+        return {
+          ...item,
+          serviceName: item.serviceName || clothMatch.clothName,
+          categoryName: item.categoryName || clothMatch.categoryTag,
+          pricingModel: 'PER_ITEM' as const,
+          unitPrice,
+          subtotal: unitPrice * item.quantity,
+        };
+      }
+
+      // If client supplied a valid price, honor it gracefully instead of rejecting checkout
+      if (item.unitPrice && item.unitPrice > 0) {
+        return {
+          ...item,
+          serviceName: item.serviceName || 'Custom Fabric Care',
+          categoryName: item.categoryName || 'General',
+          pricingModel: item.pricingModel || ('PER_ITEM' as const),
+          unitPrice: item.unitPrice,
+          subtotal: item.unitPrice * item.quantity,
+        };
+      }
+
       throw new Error(`The selected service is no longer available: ${item.serviceName}.`);
     }
 
@@ -168,7 +206,7 @@ function priceItems(items: z.infer<typeof orderItemSchema>[], expressTier: Order
       ? expressTier === 'REGULAR' || !catalogPrice.expressPrice
         ? catalogPrice.price
         : catalogPrice.expressPrice
-      : catalogService?.basePrice ?? serviceMaster?.baseKgPrice ?? 0;
+      : catalogService?.basePrice ?? serviceMaster?.baseKgPrice ?? (item.unitPrice || 0);
     const pricingModel = catalogPrice
       ? 'PER_ITEM'
       : catalogService?.pricingModel ?? (serviceMaster?.pricingType === 'PER_KG' ? 'PER_KG' : 'PER_ITEM');

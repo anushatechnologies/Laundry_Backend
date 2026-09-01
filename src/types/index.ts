@@ -40,7 +40,6 @@ export interface ServiceCategory {
   color?: string;
   imageUrl?: string;
   image?: string;
-  imageUrl?: string;
 }
 
 
