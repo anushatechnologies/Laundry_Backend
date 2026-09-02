@@ -1,20 +1,22 @@
 import path from 'path';
 import fs from 'fs';
-import { initializeApp, getApps, getApp, cert, type App } from 'firebase-admin/app';
-import { getAuth, type Auth } from 'firebase-admin/auth';
+import admin from 'firebase-admin';
 
-let _app: App | null = null;
+let _app: admin.app.App | null = null;
 
-export function getFirebaseAdmin(): App {
+export function getFirebaseAdmin(): admin.app.App {
   if (_app) return _app;
-  if (getApps().length) { _app = getApp(); return _app; }
+  if (admin.apps.length) {
+    _app = admin.app();
+    return _app;
+  }
 
   // Check for raw JSON string in environment variable
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     try {
       const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      _app = initializeApp({
-        credential: cert(serviceAccount),
+      _app = admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
       });
       return _app;
     } catch (e) {
@@ -26,8 +28,8 @@ export function getFirebaseAdmin(): App {
   if (fs.existsSync(serviceKeyPath)) {
     try {
       const serviceAccount = JSON.parse(fs.readFileSync(serviceKeyPath, 'utf8'));
-      _app = initializeApp({
-        credential: cert(serviceAccount),
+      _app = admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
       });
       return _app;
     } catch (e) {
@@ -37,9 +39,9 @@ export function getFirebaseAdmin(): App {
 
   const privateKey = (process.env.FIREBASE_PRIVATE_KEY ?? '').replace(/\\n/g, '\n');
 
-  _app = initializeApp({
-    credential: cert({
-      projectId:   process.env.FIREBASE_PROJECT_ID,
+  _app = admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       privateKey,
     }),
@@ -50,7 +52,13 @@ export function getFirebaseAdmin(): App {
 }
 
 /** Pre-built auth instance */
-export function getFirebaseAuth(): Auth {
-  getFirebaseAdmin(); // ensure app is initialised
-  return getAuth();
+export function getFirebaseAuth(): admin.auth.Auth {
+  getFirebaseAdmin();
+  return admin.auth();
+}
+
+/** Pre-built messaging instance for FCM push notifications */
+export function getFirebaseMessaging(): admin.messaging.Messaging {
+  getFirebaseAdmin();
+  return admin.messaging();
 }

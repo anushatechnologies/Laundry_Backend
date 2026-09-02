@@ -56,6 +56,7 @@ export interface Service {
   turnaroundHours: number; // e.g. 24, 48
   popular?: boolean;
   image?: string;
+  imageUrl?: string;
   includedItems?: string[];
   expressAvailable?: boolean;
 }
@@ -318,6 +319,7 @@ export interface ServicePriceItem {
   minQuantity?: number;
   turnaroundHours: number;
   isActive: boolean;
+  isAvailable?: boolean;
   specialNotes?: string;
 }
 
