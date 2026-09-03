@@ -92,7 +92,7 @@ async function createTables() {
   await database.query(`
     CREATE TABLE IF NOT EXISTS cloth_types (
       id VARCHAR(255) PRIMARY KEY, name VARCHAR(255) NOT NULL, icon VARCHAR(255),
-      category_tag VARCHAR(255), category_label VARCHAR(255), description TEXT,
+      category_tag VARCHAR(255), category_label VARCHAR(255), sub_category VARCHAR(255), description TEXT,
       image_url TEXT, is_active TINYINT(1) DEFAULT 1, sort_order INT DEFAULT 0
     )
   `);
@@ -310,6 +310,7 @@ async function createTables() {
   const alterMigrations: [string, string][] = [
     ['categories', 'ADD COLUMN color VARCHAR(50) NULL'],
     ['cloth_types', 'ADD COLUMN image_url TEXT NULL'],
+    ['cloth_types', 'ADD COLUMN sub_category VARCHAR(255) NULL'],
     ['orders', 'ADD COLUMN payment_transaction_id VARCHAR(255) NULL'],
     ['orders', 'ADD COLUMN payment_gateway_order_id VARCHAR(255) NULL'],
   ];
@@ -328,6 +329,34 @@ async function tableIsEmpty(tableName: string) {
   return Number(rows[0]?.count || 0) === 0;
 }
 
+/**
+ * Existing catalog databases predate `sub_category`. Fill only missing values
+ * for bundled garments so administrator-defined classifications are never
+ * overwritten during application start-up.
+ */
+async function backfillClothTypeSubCategories(clothTypes: any[]) {
+  const database = pool;
+  if (!database) return;
+
+  try {
+    for (const item of clothTypes) {
+      const subCategory = typeof item.subCategory === 'string' ? item.subCategory.trim() : '';
+      if (!subCategory) continue;
+
+      await database.query(
+        `UPDATE cloth_types
+         SET sub_category = ?
+         WHERE id = ? AND (sub_category IS NULL OR TRIM(sub_category) = '')`,
+        [subCategory, item.id]
+      );
+    }
+  } catch (error: any) {
+    // Do not take the API offline if a deployment database cannot run the
+    // automatic schema upgrade. The migration warning identifies the action.
+    console.warn('Cloth type subcategory backfill skipped:', error?.code || error?.message);
+  }
+}
+
 async function seedTablesIfEmpty(data: InitialData) {
   const database = pool;
   if (!database) return;
@@ -339,9 +368,10 @@ async function seedTablesIfEmpty(data: InitialData) {
   }
   if (await tableIsEmpty('cloth_types')) {
     for (const item of data.clothTypes) {
-      await database.query('INSERT INTO cloth_types (id, name, icon, category_tag, category_label, description, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [item.id, item.name, item.icon, item.categoryTag, item.categoryLabel, item.description, item.isActive ? 1 : 0, item.sortOrder || 0]);
+      await database.query('INSERT INTO cloth_types (id, name, icon, category_tag, category_label, sub_category, description, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [item.id, item.name, item.icon, item.categoryTag, item.categoryLabel, item.subCategory || null, item.description, item.isActive ? 1 : 0, item.sortOrder || 0]);
     }
   }
+  await backfillClothTypeSubCategories(data.clothTypes);
   if (await tableIsEmpty('service_masters')) {
     for (const item of data.serviceMasters) {
       await database.query('INSERT INTO service_masters (id, name, slug, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [item.id, item.name, item.slug, item.icon, item.pricingType, item.baseKgPrice || null, item.minOrderKg || null, item.turnaroundHours, item.description, item.isActive ? 1 : 0]);

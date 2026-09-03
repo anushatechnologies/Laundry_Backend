@@ -5694,6 +5694,7 @@ class BackendDatabase {
           icon: r.icon,
           categoryTag: r.category_tag,
           categoryLabel: r.category_label,
+          subCategory: r.sub_category || undefined,
           description: r.description,
           isActive: Boolean(r.is_active),
           sortOrder: r.sort_order,
@@ -5703,8 +5704,8 @@ class BackendDatabase {
         this.clothTypes = [...INITIAL_CLOTH_TYPES];
         for (const item of this.clothTypes) {
           await pool.query(
-            'INSERT INTO cloth_types (id, name, icon, category_tag, category_label, description, is_active, sort_order, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), icon=VALUES(icon), category_tag=VALUES(category_tag), category_label=VALUES(category_label), description=VALUES(description), is_active=VALUES(is_active), sort_order=VALUES(sort_order), image_url=VALUES(image_url)',
-            [item.id, item.name, item.icon, item.categoryTag, item.categoryLabel, item.description, item.isActive ? 1 : 0, item.sortOrder, item.imageUrl || null]
+            'INSERT INTO cloth_types (id, name, icon, category_tag, category_label, sub_category, description, is_active, sort_order, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), icon=VALUES(icon), category_tag=VALUES(category_tag), category_label=VALUES(category_label), sub_category=VALUES(sub_category), description=VALUES(description), is_active=VALUES(is_active), sort_order=VALUES(sort_order), image_url=VALUES(image_url)',
+            [item.id, item.name, item.icon, item.categoryTag, item.categoryLabel, item.subCategory || null, item.description, item.isActive ? 1 : 0, item.sortOrder, item.imageUrl || null]
           ).catch(() => {});
         }
       }
@@ -6118,6 +6119,7 @@ class BackendDatabase {
       icon: data.icon || '👕',
       categoryTag: data.categoryTag || 'MENS',
       categoryLabel: data.categoryLabel || "Men's Clothing",
+      subCategory: typeof data.subCategory === 'string' ? data.subCategory.trim() || undefined : undefined,
       description: data.description || '',
       isActive: data.isActive !== undefined ? data.isActive : true,
       sortOrder: this.clothTypes.length + 1,
@@ -6126,8 +6128,8 @@ class BackendDatabase {
 
     if (isDbConnected && pool) {
       pool.query(
-        'INSERT INTO cloth_types (id, name, icon, category_tag, category_label, description, is_active, sort_order, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [newCloth.id, newCloth.name, newCloth.icon, newCloth.categoryTag, newCloth.categoryLabel, newCloth.description, newCloth.isActive ? 1 : 0, newCloth.sortOrder, newCloth.imageUrl || null]
+        'INSERT INTO cloth_types (id, name, icon, category_tag, category_label, sub_category, description, is_active, sort_order, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [newCloth.id, newCloth.name, newCloth.icon, newCloth.categoryTag, newCloth.categoryLabel, newCloth.subCategory || null, newCloth.description, newCloth.isActive ? 1 : 0, newCloth.sortOrder, newCloth.imageUrl || null]
       ).catch((err) => console.error('Error creating cloth type in MySQL:', err));
     }
 
@@ -6141,8 +6143,8 @@ class BackendDatabase {
 
     if (isDbConnected && pool) {
       pool.query(
-        'UPDATE cloth_types SET name = ?, icon = ?, category_tag = ?, category_label = ?, description = ?, is_active = ?, image_url = ? WHERE id = ?',
-        [item.name, item.icon, item.categoryTag, item.categoryLabel, item.description, item.isActive ? 1 : 0, item.imageUrl || null, item.id]
+        'UPDATE cloth_types SET name = ?, icon = ?, category_tag = ?, category_label = ?, sub_category = ?, description = ?, is_active = ?, image_url = ? WHERE id = ?',
+        [item.name, item.icon, item.categoryTag, item.categoryLabel, item.subCategory || null, item.description, item.isActive ? 1 : 0, item.imageUrl || null, item.id]
       ).catch((err) => console.error('Error updating cloth type in MySQL:', err));
     }
 
