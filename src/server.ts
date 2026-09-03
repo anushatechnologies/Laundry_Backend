@@ -1,5 +1,7 @@
+import http from 'http';
 import app from './app';
 import { initDb } from './lib/mysql';
+import { initializeSocket } from './modules/chat/socket';
 import {
   db,
   INITIAL_CATEGORIES,
@@ -33,8 +35,15 @@ async function startServer() {
 
   await db.syncFromMysql();
 
-  app.listen(Number(PORT), '0.0.0.0', () => {
+  // Create HTTP server
+  const httpServer = http.createServer(app);
+
+  // Initialize WebSocket server
+  initializeSocket(httpServer);
+
+  httpServer.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`🧺 LaundryFresh Backend API running on http://0.0.0.0:${PORT}`);
+    console.log(`🔌 WebSocket server running on ws://0.0.0.0:${PORT}`);
   });
 }
 

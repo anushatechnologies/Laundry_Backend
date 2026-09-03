@@ -99,8 +99,10 @@ async function createTables() {
   await database.query(`
     CREATE TABLE IF NOT EXISTS service_masters (
       id VARCHAR(255) PRIMARY KEY, name VARCHAR(255) NOT NULL, slug VARCHAR(255) NOT NULL,
+      service_code VARCHAR(100),
       icon VARCHAR(255), pricing_type VARCHAR(255), base_kg_price DECIMAL(10, 2),
-      min_order_kg DECIMAL(10, 2), turnaround_hours INT, description TEXT, is_active TINYINT(1) DEFAULT 1
+      min_order_kg DECIMAL(10, 2), turnaround_hours INT, description TEXT, is_active TINYINT(1) DEFAULT 1,
+      INDEX idx_service_code (service_code)
     )
   `);
   await database.query(`
@@ -195,6 +197,44 @@ async function createTables() {
       INDEX customer_subs_status_idx (status)
     )
   `);
+  
+  // Chat Support Tables
+  await database.query(`
+    CREATE TABLE IF NOT EXISTS chat_rooms (
+      id VARCHAR(255) PRIMARY KEY,
+      customer_id VARCHAR(255) NOT NULL,
+      agent_id VARCHAR(255),
+      status VARCHAR(50) DEFAULT 'ACTIVE',
+      subject VARCHAR(255),
+      last_message TEXT,
+      last_message_at VARCHAR(100),
+      created_at VARCHAR(100) NOT NULL,
+      updated_at VARCHAR(100) NOT NULL,
+      INDEX chat_rooms_customer_idx (customer_id),
+      INDEX chat_rooms_agent_idx (agent_id),
+      INDEX chat_rooms_status_idx (status),
+      INDEX chat_rooms_updated_idx (updated_at)
+    )
+  `);
+  
+  await database.query(`
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id VARCHAR(255) PRIMARY KEY,
+      room_id VARCHAR(255) NOT NULL,
+      sender_id VARCHAR(255) NOT NULL,
+      sender_type VARCHAR(50) NOT NULL,
+      message TEXT NOT NULL,
+      message_type VARCHAR(50) DEFAULT 'TEXT',
+      attachment_url TEXT,
+      is_read TINYINT(1) DEFAULT 0,
+      created_at VARCHAR(100) NOT NULL,
+      INDEX chat_messages_room_idx (room_id),
+      INDEX chat_messages_sender_idx (sender_id),
+      INDEX chat_messages_created_idx (created_at),
+      FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE
+    )
+  `);
+  
   await database.query(`
     CREATE TABLE IF NOT EXISTS customers (
       id VARCHAR(255) PRIMARY KEY,

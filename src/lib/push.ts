@@ -3,7 +3,14 @@ import { pool, isDbConnected } from './mysql';
 import { getFirebaseMessaging } from './firebase-admin';
 import type { Order, OrderStatus } from '../types';
 
-export type PushProvider = 'FCM' | 'EXPO';
+export type PushProvider = 'FCM';
+export type PushChannel = 'orders' | 'promotions';
+
+export interface PushDeliveryResult {
+  targetedDeviceCount: number;
+  successCount: number;
+  failureCount: number;
+}
 
 interface MobileDevice {
   id: string;
@@ -19,12 +26,12 @@ function fallbackKey(customerId: string, pushToken: string) {
   return `${customerId}:${pushToken}`;
 }
 
-export async function registerMobileDevice(input: Omit<MobileDevice, 'id'>) {
+export async function registerMobileDevice(input: Omit<MobileDevice, 'id' | 'provider'>) {
   const now = new Date().toISOString();
   const existing = [...fallbackDevices.values()].find((device) => device.pushToken === input.pushToken);
-  const device: MobileDevice = existing || { ...input, id: `device_${randomUUID()}` };
+  const device: MobileDevice = existing || { ...input, provider: 'FCM', id: `device_${randomUUID()}` };
   device.customerId = input.customerId;
-  device.provider = input.provider;
+  device.provider = 'FCM';
   device.platform = input.platform;
   fallbackDevices.set(fallbackKey(input.customerId, input.pushToken), device);
 
@@ -33,7 +40,7 @@ export async function registerMobileDevice(input: Omit<MobileDevice, 'id'>) {
       `INSERT INTO mobile_devices (id, customer_id, push_token, provider, platform, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)
        ON DUPLICATE KEY UPDATE customer_id = VALUES(customer_id), provider = VALUES(provider), platform = VALUES(platform), updated_at = VALUES(updated_at)`,
-      [device.id, input.customerId, input.pushToken, input.provider, input.platform, now, now],
+      [device.id, input.customerId, input.pushToken, device.provider, input.platform, now, now],
     );
   }
 
@@ -50,7 +57,7 @@ export async function removeMobileDevice(customerId: string, pushToken: string) 
 export async function getDevicesForCustomer(customerId: string): Promise<MobileDevice[]> {
   if (isDbConnected && pool) {
     const [rows]: any = await pool.query(
-      'SELECT id, customer_id, push_token, provider, platform FROM mobile_devices WHERE customer_id = ?',
+      "SELECT id, customer_id, push_token, provider, platform FROM mobile_devices WHERE customer_id = ? AND provider = 'FCM'",
       [customerId],
     ).catch(() => [[]]);
     if (rows && rows.length > 0) {
@@ -58,7 +65,7 @@ export async function getDevicesForCustomer(customerId: string): Promise<MobileD
         id: r.id,
         customerId: r.customer_id,
         pushToken: r.push_token,
-        provider: (r.provider || 'FCM') as PushProvider,
+        provider: 'FCM' as const,
         platform: (r.platform || 'android') as 'android' | 'ios',
       }));
     }
@@ -125,88 +132,62 @@ function messageForStatus(status: OrderStatus) {
 
 export async function sendPushNotificationToCustomer(
   customerId: string,
-  payload: { title: string; body: string; data?: Record<string, string> }
-) {
+  payload: { title: string; body: string; data?: Record<string, string>; channel?: PushChannel }
+): Promise<PushDeliveryResult> {
   const devices = await getDevicesForCustomer(customerId);
-  if (!devices.length) return;
-
-  const fcmTokens: string[] = [];
-  const expoTokens: string[] = [];
-
-  for (const d of devices) {
-    if (d.provider === 'EXPO' && d.pushToken.startsWith('ExponentPushToken')) {
-      expoTokens.push(d.pushToken);
-    } else {
-      fcmTokens.push(d.pushToken);
-    }
+  const fcmTokens = devices.map((device) => device.pushToken);
+  if (!fcmTokens.length) {
+    return { targetedDeviceCount: 0, successCount: 0, failureCount: 0 };
   }
 
-  // 1. Send Firebase Cloud Messaging (FCM) natively
-  if (fcmTokens.length > 0) {
-    try {
-      const messaging = getFirebaseMessaging();
-      const response = await messaging.sendEachForMulticast({
-        tokens: fcmTokens,
+  try {
+    const messaging = getFirebaseMessaging();
+    const response = await messaging.sendEachForMulticast({
+      tokens: fcmTokens,
+      notification: {
+        title: payload.title,
+        body: payload.body,
+      },
+      data: payload.data || {},
+      android: {
+        priority: 'high',
         notification: {
-          title: payload.title,
-          body: payload.body,
+          channelId: payload.channel || 'orders',
+          sound: 'default',
+          color: '#FF7A00',
+          icon: 'ic_stat_notification',
+          priority: 'max',
+          defaultVibrateTimings: true,
         },
-        data: payload.data || {},
-        android: {
-          priority: 'high',
-          notification: {
-            channelId: 'orders',
-            sound: 'default',
-            color: '#FF7A00',
-            icon: 'ic_stat_notification',
-            priority: 'max',
-            defaultVibrateTimings: true,
-          },
-        },
-      });
+      },
+    });
 
-      console.log(
-        `[FCM Push] Sent to ${fcmTokens.length} devices. Success: ${response.successCount}, Failed: ${response.failureCount}`
-      );
+    console.log(
+      `[FCM Push] Sent to ${fcmTokens.length} devices. Success: ${response.successCount}, Failed: ${response.failureCount}`
+    );
 
-      // Clean up stale tokens
-      response.responses.forEach((resp, idx) => {
-        if (!resp.success && resp.error) {
-          const code = resp.error.code;
-          if (
-            code === 'messaging/registration-token-not-registered' ||
-            code === 'messaging/invalid-registration-token'
-          ) {
-            removeMobileDevice(customerId, fcmTokens[idx]).catch(() => {});
-          }
+    // Remove Firebase tokens that are permanently invalid. Legacy Expo rows are
+    // excluded at query time and are never sent through an Expo endpoint.
+    response.responses.forEach((resp, idx) => {
+      if (!resp.success && resp.error) {
+        const code = resp.error.code;
+        if (
+          code === 'messaging/registration-token-not-registered' ||
+          code === 'messaging/invalid-registration-token'
+        ) {
+          removeMobileDevice(customerId, fcmTokens[idx]).catch(() => {});
         }
-      });
-    } catch (fcmErr) {
-      console.error('[FCM Push] Multicast send error:', fcmErr);
-    }
-  }
+      }
+    });
 
-  // 2. Send Expo push notifications if any Expo tokens exist
-  if (expoTokens.length > 0) {
-    try {
-      await fetch('https://exp.host/--/api/v2/push/send', {
-        method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          expoTokens.map((to) => ({
-            to,
-            sound: 'default',
-            channelId: 'orders',
-            title: payload.title,
-            body: payload.body,
-            data: payload.data || {},
-          }))
-        ),
-        signal: AbortSignal.timeout(6000),
-      });
-    } catch (expoErr) {
-      console.warn('[Expo Push] Delivery error:', expoErr);
-    }
+    return {
+      targetedDeviceCount: fcmTokens.length,
+      successCount: response.successCount,
+      failureCount: response.failureCount,
+    };
+  } catch (error) {
+    console.error('[FCM Push] Multicast send error:', error);
+    throw error;
   }
 }
 

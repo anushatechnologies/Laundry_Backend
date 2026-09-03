@@ -988,14 +988,14 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
 
 
 export const INITIAL_SERVICE_MASTERS: ServiceMaster[] = [
-  { id: 'srv-m-steam-iron', name: 'Iron Only (Steam Press)', slug: 'steam-iron', icon: '🔥', pricingType: 'PER_ITEM', turnaroundHours: 18, description: 'High-pressure wrinkle removal, crease setting & crisp hanger finish.', isActive: true },
-  { id: 'srv-m-wash-fold', name: 'Wash & Fold', slug: 'wash-and-fold', icon: '🧺', pricingType: 'PER_KG', baseKgPrice: 60, minOrderKg: 3, turnaroundHours: 24, description: 'Hygienic wash, tumble dry, and neat compact fold.', isActive: true },
-  { id: 'srv-m-wash-iron', name: 'Wash & Steam Iron', slug: 'wash-and-iron', icon: '👔', pricingType: 'PER_KG', baseKgPrice: 85, minOrderKg: 3, turnaroundHours: 36, description: 'Eco-wash + industrial steam pressing on hangers.', isActive: true },
-  { id: 'srv-m-dry-clean', name: 'Dry Cleaning', slug: 'dry-cleaning', icon: '🧥', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Hydrocarbon solvent treatment with breathable garment cover.', isActive: true },
-  { id: 'srv-m-charak', name: 'Saree Polishing & Charak', slug: 'saree-charak', icon: '✨', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Traditional starching, roll pressing & zari shine revival.', isActive: true },
-  { id: 'srv-m-starch', name: 'Starch & Crisp Finish', slug: 'starch-finish', icon: '👔', pricingType: 'PER_ITEM', turnaroundHours: 24, description: 'Stiff starching for crisp cotton shirts, dhotis & uniforms.', isActive: true },
-  { id: 'srv-m-spa', name: 'Deep Shoe & Leather Spa', slug: 'shoe-spa', icon: '👞', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Ultrasonic stain treatment and antibacterial ozone sanitization.', isActive: true },
-  { id: 'srv-m-express', name: 'Express Emergency Laundry', slug: 'express-emergency', icon: '⚡', pricingType: 'PER_KG', baseKgPrice: 120, minOrderKg: 3, turnaroundHours: 12, description: 'Dedicated machine slot with same-day return.', isActive: true },
+  { id: 'srv-m-steam-iron', name: 'Iron Only (Steam Press)', slug: 'steam-iron', serviceCode: 'PRESS', icon: '🔥', pricingType: 'PER_ITEM', turnaroundHours: 18, description: 'High-pressure wrinkle removal, crease setting & crisp hanger finish.', isActive: true },
+  { id: 'srv-m-wash-fold', name: 'Wash & Fold', slug: 'wash-and-fold', serviceCode: 'WASH_IRON', icon: '🧺', pricingType: 'PER_KG', baseKgPrice: 60, minOrderKg: 3, turnaroundHours: 24, description: 'Hygienic wash, tumble dry, and neat compact fold.', isActive: true },
+  { id: 'srv-m-wash-iron', name: 'Wash & Steam Iron', slug: 'wash-and-iron', serviceCode: 'WASH_IRON', icon: '👔', pricingType: 'PER_KG', baseKgPrice: 85, minOrderKg: 3, turnaroundHours: 36, description: 'Eco-wash + industrial steam pressing on hangers.', isActive: true },
+  { id: 'srv-m-dry-clean', name: 'Dry Cleaning', slug: 'dry-cleaning', serviceCode: 'DRY_CLEAN', icon: '🧥', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Hydrocarbon solvent treatment with breathable garment cover.', isActive: true },
+  { id: 'srv-m-charak', name: 'Saree Polishing & Charak', slug: 'saree-charak', serviceCode: 'SAREE_POLISH', icon: '✨', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Traditional starching, roll pressing & zari shine revival.', isActive: true },
+  { id: 'srv-m-starch', name: 'Starch & Crisp Finish', slug: 'starch-finish', serviceCode: 'STARCH', icon: '👔', pricingType: 'PER_ITEM', turnaroundHours: 24, description: 'Stiff starching for crisp cotton shirts, dhotis & uniforms.', isActive: true },
+  { id: 'srv-m-spa', name: 'Deep Shoe & Leather Spa', slug: 'shoe-spa', serviceCode: 'SHOE_SPA', icon: '👞', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Ultrasonic stain treatment and antibacterial ozone sanitization.', isActive: true },
+  { id: 'srv-m-express', name: 'Express Emergency Laundry', slug: 'express-emergency', serviceCode: 'EXPRESS', icon: '⚡', pricingType: 'PER_KG', baseKgPrice: 120, minOrderKg: 3, turnaroundHours: 12, description: 'Dedicated machine slot with same-day return.', isActive: true },
 ];
 
 export const INITIAL_SERVICE_PRICE_MATRIX: ServicePriceItem[] = [
@@ -5716,6 +5716,7 @@ class BackendDatabase {
           id: r.id,
           name: r.name,
           slug: r.slug,
+          serviceCode: r.service_code,
           icon: r.icon,
           pricingType: r.pricing_type,
           baseKgPrice: r.base_kg_price ? Number(r.base_kg_price) : undefined,
@@ -5729,8 +5730,8 @@ class BackendDatabase {
         this.serviceMasters = [...INITIAL_SERVICE_MASTERS];
         for (const sm of this.serviceMasters) {
           await pool.query(
-            'INSERT INTO service_masters (id, name, slug, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), slug=VALUES(slug), icon=VALUES(icon), pricing_type=VALUES(pricing_type), base_kg_price=VALUES(base_kg_price), min_order_kg=VALUES(min_order_kg), turnaround_hours=VALUES(turnaround_hours), description=VALUES(description), is_active=VALUES(is_active)',
-            [sm.id, sm.name, sm.slug, sm.icon, sm.pricingType, sm.baseKgPrice || null, sm.minOrderKg || null, sm.turnaroundHours, sm.description, sm.isActive ? 1 : 0, sm.imageUrl || null]
+            'INSERT INTO service_masters (id, name, slug, service_code, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), slug=VALUES(slug), service_code=VALUES(service_code), icon=VALUES(icon), pricing_type=VALUES(pricing_type), base_kg_price=VALUES(base_kg_price), min_order_kg=VALUES(min_order_kg), turnaround_hours=VALUES(turnaround_hours), description=VALUES(description), is_active=VALUES(is_active)',
+            [sm.id, sm.name, sm.slug, sm.serviceCode || null, sm.icon, sm.pricingType, sm.baseKgPrice || null, sm.minOrderKg || null, sm.turnaroundHours, sm.description, sm.isActive ? 1 : 0, sm.imageUrl || null]
           ).catch(() => {});
         }
       }

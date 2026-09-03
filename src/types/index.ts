@@ -295,6 +295,7 @@ export interface ServiceMaster {
   id: string;
   name: string;
   slug: string;
+  serviceCode?: 'PRESS' | 'WASH_IRON' | 'DRY_CLEAN' | 'SAREE_POLISH' | 'STARCH' | 'SHOE_SPA' | 'EXPRESS' | string;
   icon?: string;
   imageUrl?: string;
   pricingType: 'PER_KG' | 'PER_ITEM' | 'FIXED_PACKAGE';

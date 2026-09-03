@@ -38,3 +38,28 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
 
   return res.status(401).json({ success: false, error: 'Administrator authorization is required.' });
 }
+
+/**
+ * Used for high-impact operations such as customer push delivery. Unlike the
+ * legacy admin guard, this endpoint is unavailable until a real shared secret
+ * is configured on both the backend and the admin server.
+ */
+export function requireConfiguredAdmin(req: Request, res: Response, next: NextFunction) {
+  const configuredToken = process.env.ADMIN_API_TOKEN?.trim();
+  if (!configuredToken) {
+    return res.status(503).json({
+      success: false,
+      message: 'Push delivery is not enabled. Configure ADMIN_API_TOKEN on the backend and admin server.',
+    });
+  }
+
+  const authorization = req.get('authorization');
+  const bearerToken = authorization?.startsWith('Bearer ') ? authorization.slice(7) : undefined;
+  const suppliedToken = req.get('x-admin-token') || bearerToken;
+
+  if (hasMatchingToken(suppliedToken, configuredToken)) {
+    return next();
+  }
+
+  return res.status(401).json({ success: false, error: 'Administrator authorization is required.' });
+}

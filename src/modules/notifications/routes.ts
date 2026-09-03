@@ -1,4 +1,7 @@
 import { Router, Request, Response } from 'express';
+import { z } from 'zod';
+import { requireConfiguredAdmin } from '../../middleware/admin';
+import { sendPushNotificationToCustomer, type PushChannel } from '../../lib/push';
 import {
   sendEmail,
   verifySmtpConnection,
@@ -29,6 +32,14 @@ import {
 } from '../../lib/emailTemplates';
 
 const router = Router();
+
+const firebasePushSchema = z.object({
+  customerId: z.string().trim().min(1).max(255),
+  title: z.string().trim().min(1).max(120),
+  body: z.string().trim().min(1).max(500),
+  channel: z.enum(['orders', 'promotions']).default('orders'),
+  orderId: z.string().trim().min(1).max(255).optional(),
+});
 
 const sampleData: OrderEmailData = {
   orderId: 'LAU-8829',
@@ -91,6 +102,54 @@ router.get('/smtp-status', async (req: Request, res: Response) => {
       ...result,
     },
   });
+});
+
+/**
+ * Sends one customer notification through Firebase Cloud Messaging only.
+ * Firebase service-account credentials remain on the backend; the Admin UI
+ * talks solely to this protected endpoint.
+ */
+router.post('/push', requireConfiguredAdmin, async (req: Request, res: Response) => {
+  const parsed = firebasePushSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      message: parsed.error.issues[0]?.message || 'Invalid Firebase push notification.',
+    });
+  }
+
+  const input = parsed.data;
+  const data: Record<string, string> = input.orderId
+    ? { orderId: input.orderId, screen: 'ORDER_DETAIL' }
+    : { screen: 'HOME' };
+
+  try {
+    const delivery = await sendPushNotificationToCustomer(input.customerId, {
+      title: input.title,
+      body: input.body,
+      data,
+      channel: input.channel as PushChannel,
+    });
+
+    if (!delivery.targetedDeviceCount) {
+      return res.status(409).json({
+        success: false,
+        message: 'This customer has not registered a Firebase FCM device yet.',
+      });
+    }
+
+    return res.json({
+      success: delivery.failureCount === 0,
+      message: `Firebase Cloud Messaging sent to ${delivery.successCount} device(s).`,
+      data: delivery,
+    });
+  } catch (error) {
+    console.error('Admin Firebase push error:', error);
+    return res.status(502).json({
+      success: false,
+      message: 'Firebase Cloud Messaging could not deliver this push notification.',
+    });
+  }
 });
 
 // 2. Get All Readymade Email Templates (with live preview HTML and full editable settings)

@@ -11,7 +11,6 @@ const router = Router();
 
 const registerSchema = z.object({
   pushToken: z.string().trim().min(10).max(512),
-  provider: z.enum(['EXPO', 'FCM']).default('FCM'),
   platform: z.enum(['android', 'ios']).default('android'),
 });
 
@@ -53,7 +52,6 @@ router.post('/register', async (req: Request, res: Response) => {
     const device = await registerMobileDevice({
       customerId: customer.customerId!,
       pushToken: parsed.data.pushToken,
-      provider: parsed.data.provider,
       platform: parsed.data.platform,
     });
     return res.status(201).json({ success: true, data: { registered: true, deviceId: device.id } });
@@ -84,16 +82,32 @@ router.post('/test-push', async (req: Request, res: Response) => {
   const title = req.body?.title || '🧺 LaundryFresh Notification';
   const body = req.body?.body || 'Your garments are freshly packed and ready for doorstep delivery!';
 
-  await sendPushNotificationToCustomer(customer.customerId!, {
-    title,
-    body,
-    data: { test: 'true', screen: 'HOME' },
-  });
+  try {
+    const delivery = await sendPushNotificationToCustomer(customer.customerId!, {
+      title,
+      body,
+      data: { test: 'true', screen: 'HOME' },
+    });
 
-  return res.json({
-    success: true,
-    message: 'Test push notification dispatched via Firebase Cloud Messaging.',
-  });
+    if (!delivery.targetedDeviceCount) {
+      return res.status(409).json({
+        success: false,
+        message: 'No Firebase FCM device is registered for this customer yet.',
+      });
+    }
+
+    return res.json({
+      success: delivery.failureCount === 0,
+      message: `Firebase Cloud Messaging sent to ${delivery.successCount} device(s).`,
+      data: delivery,
+    });
+  } catch (error) {
+    console.error('Firebase test push error:', error);
+    return res.status(502).json({
+      success: false,
+      message: 'Firebase Cloud Messaging could not send the test push.',
+    });
+  }
 });
 
 export default router;

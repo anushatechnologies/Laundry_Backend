@@ -116,27 +116,27 @@ function tokenResponse(
   status = 200
 ) {
   const payload: CustomerTokenPayload = {
-    uid:   firebaseUid,
+    uid: firebaseUid,
     customerId: user.id,
     phone: user.phone,
-    name:  user.name,
+    name: user.name,
     email: user.email ?? '',
-    role:  'CUSTOMER',
+    role: 'CUSTOMER',
   };
-  const accessToken  = signAccessToken(payload);
+  const accessToken = signAccessToken(payload);
   const refreshToken = signRefreshToken(firebaseUid, user.id);
 
   return res.status(status).json({
-    success:      true,
+    success: true,
     accessToken,              // expires in 15 minutes
     refreshToken,             // expires in 30 days
-    expiresIn:    15 * 60,    // seconds
+    expiresIn: 15 * 60,    // seconds
     user: {
-      id:    user.id,
-      name:  user.name,
+      id: user.id,
+      name: user.name,
       phone: user.phone,
       email: user.email ?? '',
-      role:  'CUSTOMER',
+      role: 'CUSTOMER',
     },
   });
 }
@@ -454,9 +454,9 @@ customersRouter.post('/refresh-token', (req: Request, res: Response) => {
       uid,
       customerId,
       phone: '',
-      name:  '',
+      name: '',
       email: '',
-      role:  'CUSTOMER',
+      role: 'CUSTOMER',
     };
     const accessToken = signAccessToken(payload);
 
@@ -737,8 +737,8 @@ customersRouter.get('/info/policies', (_req: Request, res: Response) => {
     success: true,
     data: {
       support: {
-        phone: '+91 91219 99999',
-        whatsapp: '+91 91219 99999',
+        phone: '+91 8522918866',
+        whatsapp: '+91 8522918866',
         email: 'support@laundryfresh.com',
         timings: 'Everyday 7:00 AM – 10:00 PM',
         address: 'Anusha Laundry Hub, Road No. 5, Kukatpally, Hyderabad, Telangana 500072',
