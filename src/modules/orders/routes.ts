@@ -83,29 +83,29 @@ const orderItemSchema = z.object({
   pricingModel: z.enum(['PER_KG', 'PER_ITEM']),
   quantity: z.coerce.number().finite().positive().max(250),
   unit: z.string().trim().min(1).max(32),
-  unitPrice: z.coerce.number().optional(),
-  specialInstructions: z.string().trim().max(1000).optional(),
+  unitPrice: z.coerce.number().optional().nullable(),
+  specialInstructions: z.string().trim().max(1000).optional().nullable(),
 });
 
 const createOrderSchema = z.object({
   customerId: z.string().trim().min(1).max(100),
-  customerName: z.string().trim().min(2).max(120),
+  customerName: z.string().trim().min(1).max(120),
   customerPhone: z.string().trim().min(6).max(30),
   customerEmail: z.string().trim().email().max(254).optional().or(z.literal('')).nullable(),
   address: z.object({
-    id: z.string().trim().min(1).max(100),
+    id: z.string().trim().max(100).optional().nullable(),
     type: z.enum(['Home', 'Office', 'Other']),
-    street: z.string().trim().min(5).max(300),
-    landmark: z.string().trim().max(200).optional(),
-    city: z.string().trim().min(2).max(120),
+    street: z.string().trim().min(1).max(300),
+    landmark: z.string().trim().max(200).optional().nullable(),
+    city: z.string().trim().min(1).max(120),
     pincode: z.string().trim().regex(/^\d{6}$/),
   }),
   items: z.array(orderItemSchema).min(1).max(50),
   expressTier: z.enum(['REGULAR', 'EXPRESS_24H', 'SAME_DAY']).default('REGULAR'),
   pickupSlot: z.object({ date: z.string().trim().min(8).max(20), slot: z.string().trim().min(3).max(100) }),
-  deliverySlot: z.object({ date: z.string().trim().max(20), slot: z.string().trim().min(3).max(100) }).optional(),
-  couponCode: z.string().trim().min(2).max(40).optional(),
-  notes: z.string().trim().max(1500).optional(),
+  deliverySlot: z.object({ date: z.string().trim().max(20), slot: z.string().trim().min(3).max(100) }).optional().nullable(),
+  couponCode: z.string().trim().max(40).optional().nullable(),
+  notes: z.string().trim().max(1500).optional().nullable(),
   paymentMethod: z.enum(paymentMethods),
 });
 
@@ -290,7 +290,7 @@ router.post('/', requireCustomerIdentity, (req: Request, res: Response) => {
 
     const items = priceItems(input.items, input.expressTier);
     const itemTotal = Number(items.reduce((total, item) => total + item.subtotal, 0).toFixed(2));
-    const { couponCode, discountAmount } = calculateCouponDiscount(input.couponCode, itemTotal, input.customerId);
+    const { couponCode, discountAmount } = calculateCouponDiscount(input.couponCode || undefined, itemTotal, input.customerId);
     const settings = db.getPricingSettings();
     const pickupDeliveryFee = itemTotal >= zone.minFreeOrderValue ? 0 : zone.standardFee;
     const expressFee = input.expressTier === 'REGULAR' ? 0 : input.expressTier === 'SAME_DAY' ? settings.expressDeliveryFee * 2 : settings.expressDeliveryFee;
@@ -315,22 +315,29 @@ router.post('/', requireCustomerIdentity, (req: Request, res: Response) => {
       customerName: input.customerName,
       customerPhone: input.customerPhone,
       customerEmail: resolvedCustomerEmail || undefined,
-      address: input.address,
+      address: {
+        id: input.address.id || `addr_${Date.now()}`,
+        type: input.address.type,
+        street: input.address.street,
+        landmark: input.address.landmark || undefined,
+        city: input.address.city,
+        pincode: input.address.pincode,
+      },
       items,
       pricingModelSummary: items.some((item) => item.pricingModel === 'PER_KG') ? 'PER_KG' : 'PER_ITEM',
       expressTier: input.expressTier,
       pickupSlot: input.pickupSlot,
-      deliverySlot: input.deliverySlot,
+      deliverySlot: input.deliverySlot || undefined,
       itemTotal,
       discountAmount,
-      couponCode,
+      couponCode: couponCode || undefined,
       pickupDeliveryFee,
       expressFee,
       taxAmount,
       totalAmount,
       paymentMethod: input.paymentMethod as PaymentMethod,
       paymentStatus: 'PENDING',
-      notes: input.notes,
+      notes: input.notes || undefined,
       estimatedWeightKg: items.filter((item) => item.pricingModel === 'PER_KG').reduce((total, item) => total + item.quantity, 0) || undefined,
     });
 

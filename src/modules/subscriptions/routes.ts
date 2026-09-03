@@ -156,6 +156,8 @@ router.post('/purchase', async (req: Request, res: Response) => {
     res.json({
       success: true,
       orderId: razorpayOrder.id,
+      keyId: process.env.RAZORPAY_KEY_ID || 'rzp_live_TO6q7NUVnPM6bA',
+      key: process.env.RAZORPAY_KEY_ID || 'rzp_live_TO6q7NUVnPM6bA',
       amount: plan.price,
       currency: 'INR',
       planName: plan.name,
