@@ -6090,11 +6090,12 @@ class BackendDatabase {
     if (!order || order.paymentStatus === 'PAID') return null;
 
     order.paymentStatus = 'FAILED';
+    order.currentStatus = 'CANCELLED';
     order.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
 
     if (isDbConnected && pool) {
       pool
-        .query('UPDATE orders SET payment_status = ?, updated_at = ? WHERE id = ?', [order.paymentStatus, order.updatedAt, order.id])
+        .query('UPDATE orders SET payment_status = ?, current_status = ?, updated_at = ? WHERE id = ?', [order.paymentStatus, order.currentStatus, order.updatedAt, order.id])
         .catch((err) => console.error('Error marking payment as failed in MySQL:', err));
     }
 

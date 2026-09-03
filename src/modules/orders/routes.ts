@@ -250,7 +250,16 @@ router.get('/', requireCustomerScope, (req: Request, res: Response) => {
   const customerId = String(req.query.customerId || '').trim();
   if (!customerId) return res.status(400).json({ success: false, message: 'customerId is required.' });
 
-  const orders = db.getOrders().filter((order) => order.customerId === customerId).map(customerOrderView);
+  const orders = db.getOrders()
+    .filter((order) => {
+      if (order.customerId !== customerId) return false;
+      // Filter out abortive checkout orders that never completed online payment
+      if (order.paymentMethod === 'ONLINE_RAZORPAY' && order.paymentStatus === 'FAILED' && order.currentStatus === 'CANCELLED') {
+        return false;
+      }
+      return true;
+    })
+    .map(customerOrderView);
   return res.json({ success: true, data: orders });
 });
 
