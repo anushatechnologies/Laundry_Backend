@@ -44,7 +44,31 @@ export async function sendSmsOtp(phone: string, otpCode: string): Promise<SmsRes
         return { success: true, gateway: 'Fast2SMS', messageId: data.request_id || data.message?.[0] };
       }
 
-      console.warn('[SMS] Fast2SMS POST response not OK, trying GET query fallback:', data);
+      console.warn('[SMS] Fast2SMS OTP route response:', data);
+
+      // Try Quick SMS route ('q') which requires no template approval
+      const quickPayload = JSON.stringify({
+        route: 'q',
+        message: `Your LaundryFresh verification code is: ${otpCode}`,
+        language: 'english',
+        flash: 0,
+        numbers: cleanPhone,
+      });
+      const qRes = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+        method: 'POST',
+        headers: {
+          authorization: FAST2SMS_KEY.trim(),
+          'Content-Type': 'application/json',
+        },
+        body: quickPayload,
+      });
+      const qData: any = await qRes.json().catch(() => ({}));
+      if (qData && (qData.return === true || qData.status_code === 200)) {
+        console.log(`[SMS] Fast2SMS Quick SMS dispatched successfully to +91${cleanPhone}:`, qData.message);
+        return { success: true, gateway: 'Fast2SMS', messageId: qData.request_id || qData.message?.[0] };
+      }
+
+      console.warn('[SMS] Fast2SMS Quick SMS response:', qData);
       const getUrl = `https://www.fast2sms.com/dev/bulkV2?authorization=${encodeURIComponent(FAST2SMS_KEY.trim())}&route=otp&variables_values=${otpCode}&flash=0&numbers=${cleanPhone}`;
       const getRes = await fetch(getUrl);
       const getData: any = await getRes.json().catch(() => ({}));

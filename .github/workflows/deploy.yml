@@ -65,8 +65,9 @@ jobs:
           fi
           echo "Connecting and deploying as: $SSH_USER@$HOST"
 
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa "$SSH_USER@$HOST" << 'EOF'
+          ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=15 -o ServerAliveCountMax=30 -i ~/.ssh/id_rsa "$SSH_USER@$HOST" << 'EOF'
             export PATH=$PATH:/usr/local/bin:/usr/bin:~/.nvm/versions/node/$(node -v 2>/dev/null)/bin
+            export NODE_OPTIONS="--max-old-space-size=1024"
 
             echo "Connected to $(hostname) as $(whoami)"
             APP_DIR="/var/www/laundry-backend"
@@ -93,16 +94,19 @@ jobs:
           ADMIN_API_TOKEN=${{ secrets.ADMIN_API_TOKEN || 'laundry-admin-secret-token-2026' }}
 
           # AWS RDS MySQL Database
-          DB_HOST=${{ secrets.DB_HOST }}
+          DB_HOST=laundry.cls6amm8u5az.ap-south-2.rds.amazonaws.com
           DB_PORT=${{ secrets.DB_PORT || '3306' }}
-          DB_USER=${{ secrets.DB_USER }}
+          DB_USER=${{ secrets.DB_USER || 'admin' }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           DB_NAME=${{ secrets.DB_NAME || 'laundry' }}
+
+          # Fast2SMS OTP Gateway
+          FAST2SMS_API_KEY=${{ secrets.FAST2SMS_API_KEY || 'EKZvrkz7dCxo5jJU6i4Bl1bIgD9QLAMYhPTHtueGFysNpVfRc2lKOrV9Z1Lf7BCwESsJaTzUYPF0ubc8' }}
 
           # AWS S3 Cloud Storage
           AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION=${{ secrets.AWS_REGION || 'ap-south-1' }}
+          AWS_REGION=${{ secrets.AWS_REGION || 'ap-south-2' }}
           AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME || 'laundry-storage-2026' }}
 
           # Google Maps Geocoding
@@ -138,7 +142,7 @@ jobs:
 
             # 5. Install dependencies and compile TypeScript
             echo "Installing dependencies..."
-            npm install --production=false
+            npm install --no-audit --no-fund
 
             echo "Building application..."
             npm run build
