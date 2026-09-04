@@ -23,6 +23,7 @@ export async function sendSmsOtp(phone: string, otpCode: string): Promise<SmsRes
   const FAST2SMS_KEY = process.env.FAST2SMS_API_KEY;
   if (FAST2SMS_KEY) {
     try {
+      console.log(`[SMS] Attempting Fast2SMS dispatch for +91${cleanPhone}...`);
       const payload = JSON.stringify({
         variables_values: otpCode,
         route: 'otp',
@@ -32,18 +33,28 @@ export async function sendSmsOtp(phone: string, otpCode: string): Promise<SmsRes
       const res = await fetch('https://www.fast2sms.com/dev/bulkV2', {
         method: 'POST',
         headers: {
-          authorization: FAST2SMS_KEY,
+          authorization: FAST2SMS_KEY.trim(),
           'Content-Type': 'application/json',
         },
         body: payload,
       });
       const data: any = await res.json().catch(() => ({}));
       if (data && (data.return === true || data.status_code === 200)) {
-        console.log(`[SMS] Fast2SMS dispatched successfully to +91${cleanPhone}`);
-        return { success: true, gateway: 'Fast2SMS', messageId: data.request_id };
+        console.log(`[SMS] Fast2SMS dispatched successfully to +91${cleanPhone}:`, data.message || data.request_id);
+        return { success: true, gateway: 'Fast2SMS', messageId: data.request_id || data.message?.[0] };
       }
+
+      console.warn('[SMS] Fast2SMS POST response not OK, trying GET query fallback:', data);
+      const getUrl = `https://www.fast2sms.com/dev/bulkV2?authorization=${encodeURIComponent(FAST2SMS_KEY.trim())}&route=otp&variables_values=${otpCode}&flash=0&numbers=${cleanPhone}`;
+      const getRes = await fetch(getUrl);
+      const getData: any = await getRes.json().catch(() => ({}));
+      if (getData && (getData.return === true || getData.status_code === 200)) {
+        console.log(`[SMS] Fast2SMS GET dispatched successfully to +91${cleanPhone}:`, getData.message || getData.request_id);
+        return { success: true, gateway: 'Fast2SMS', messageId: getData.request_id || getData.message?.[0] };
+      }
+      console.error('[SMS] Fast2SMS dispatch failed completely:', getData);
     } catch (err: any) {
-      console.warn('[SMS] Fast2SMS dispatch warning:', err?.message);
+      console.error('[SMS] Fast2SMS dispatch exception:', err?.message);
     }
   }
 
