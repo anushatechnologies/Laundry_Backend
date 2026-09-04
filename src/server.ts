@@ -14,6 +14,7 @@ import {
   INITIAL_COUPONS,
   INITIAL_PINCODES,
   INITIAL_STAFF,
+  INITIAL_BANNERS,
 } from './lib/db';
 
 const PORT = process.env.PORT || 5000;
@@ -31,6 +32,7 @@ async function startServer() {
     coupons: INITIAL_COUPONS,
     pincodes: INITIAL_PINCODES,
     staff: INITIAL_STAFF,
+    banners: INITIAL_BANNERS,
   });
 
   await db.syncFromMysql();

@@ -5677,6 +5677,69 @@ export const INITIAL_MAINTENANCE_LOGS: any[] = [
   },
 ];
 
+export const INITIAL_BANNERS: Banner[] = [
+  {
+    id: 'banner-1',
+    title: '50% Flat Discount on First Order',
+    subtitle: 'Pure Ozone Sanitization & Doorstep Pickup across Hyderabad',
+    badgeText: 'FIRST ORDER SPECIAL',
+    couponCode: 'FIRST50',
+    discountPercent: 50,
+    imageUrl: 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=1200&q=80',
+    actionType: 'BOOK',
+    actionTarget: '',
+    displayOrder: 1,
+    isActive: true,
+    createdAt: '2026-01-01 10:00',
+    updatedAt: '2026-01-01 10:00',
+  },
+  {
+    id: 'banner-2',
+    title: 'Royal Bridal & Silk Saree Spa',
+    subtitle: 'Zero-bleed Charak Polish & Hand Steam Pressing',
+    badgeText: 'PREMIUM DRY CLEAN',
+    couponCode: 'SILKSPA',
+    discountPercent: 25,
+    imageUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=1200&q=80',
+    actionType: 'CATEGORY',
+    actionTarget: 'bridal-wear',
+    displayOrder: 2,
+    isActive: true,
+    createdAt: '2026-01-01 10:00',
+    updatedAt: '2026-01-01 10:00',
+  },
+  {
+    id: 'banner-3',
+    title: 'Bulk Everyday Laundry @ ₹49/KG',
+    subtitle: 'Wash, Tumble Dry & Crisp Fold with Eco-friendly Softeners',
+    badgeText: 'FAMILY SAVER',
+    couponCode: 'BULKSAVE',
+    discountPercent: 20,
+    imageUrl: 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?auto=format&fit=crop&w=1200&q=80',
+    actionType: 'CATEGORY',
+    actionTarget: 'bulk-laundry',
+    displayOrder: 3,
+    isActive: true,
+    createdAt: '2026-01-01 10:00',
+    updatedAt: '2026-01-01 10:00',
+  },
+  {
+    id: 'banner-4',
+    title: 'Express 24-Hour Doorstep Delivery',
+    subtitle: 'Urgent suits, shirts & dresses delivered within 24 hours',
+    badgeText: 'SUPER EXPRESS',
+    couponCode: 'EXPRESS24',
+    discountPercent: 15,
+    imageUrl: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
+    actionType: 'BOOK',
+    actionTarget: '',
+    displayOrder: 4,
+    isActive: true,
+    createdAt: '2026-01-01 10:00',
+    updatedAt: '2026-01-01 10:00',
+  },
+];
+
 class BackendDatabase {
   private orders: Order[] = [...INITIAL_ORDERS];
   private services: Service[] = [...INITIAL_SERVICES];
@@ -5984,6 +6047,35 @@ class BackendDatabase {
           createdAt: r.created_at,
           updatedAt: r.updated_at,
         }));
+      }
+
+      // Sync Banners
+      const [bRows]: any = await pool.query('SELECT * FROM banners ORDER BY display_order ASC').catch(() => [[]]);
+      if (bRows && bRows.length > 0) {
+        this.banners = bRows.map((r: any) => ({
+          id: r.id,
+          title: r.title,
+          subtitle: r.subtitle || undefined,
+          badgeText: r.badge_text || undefined,
+          couponCode: r.coupon_code || undefined,
+          discountPercent: r.discount_percent ? Number(r.discount_percent) : 0,
+          imageUrl: r.image_url,
+          actionType: r.action_type || 'BOOK',
+          actionTarget: r.action_target || '',
+          displayOrder: Number(r.display_order) || 1,
+          isActive: Boolean(r.is_active),
+          startDate: r.start_date || undefined,
+          endDate: r.end_date || undefined,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        }));
+      } else if (this.banners && this.banners.length > 0) {
+        for (const b of this.banners) {
+          await pool.query(
+            'INSERT INTO banners (id, title, subtitle, badge_text, coupon_code, discount_percent, image_url, action_type, action_target, display_order, is_active, start_date, end_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=VALUES(title), subtitle=VALUES(subtitle), badge_text=VALUES(badge_text), coupon_code=VALUES(coupon_code), discount_percent=VALUES(discount_percent), image_url=VALUES(image_url), action_type=VALUES(action_type), action_target=VALUES(action_target), display_order=VALUES(display_order), is_active=VALUES(is_active), updated_at=VALUES(updated_at)',
+            [b.id, b.title, b.subtitle || null, b.badgeText || null, b.couponCode || null, b.discountPercent || 0, b.imageUrl, b.actionType || 'BOOK', b.actionTarget || '', b.displayOrder || 1, b.isActive ? 1 : 0, b.startDate || null, b.endDate || null, b.createdAt || null, b.updatedAt || null]
+          ).catch((err) => console.error('Error seeding banner to MySQL:', err));
+        }
       }
     } catch (err) {
       console.error('Error syncing data from MySQL:', err);
@@ -6902,68 +6994,7 @@ class BackendDatabase {
   }
 
   // --- BANNERS SYSTEM ---
-  banners: Banner[] = [
-    {
-      id: 'banner-1',
-    title: '50% Flat Discount on First Order',
-    subtitle: 'Pure Ozone Sanitization & Doorstep Pickup across Hyderabad',
-    badgeText: 'FIRST ORDER SPECIAL',
-    couponCode: 'FIRST50',
-    discountPercent: 50,
-    imageUrl: 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=1200&q=80',
-      actionType: 'BOOK',
-      actionTarget: '',
-      displayOrder: 1,
-      isActive: true,
-      createdAt: '2026-01-01 10:00',
-      updatedAt: '2026-01-01 10:00',
-    },
-    {
-      id: 'banner-2',
-    title: 'Royal Bridal & Silk Saree Spa',
-    subtitle: 'Zero-bleed Charak Polish & Hand Steam Pressing',
-    badgeText: 'PREMIUM DRY CLEAN',
-    couponCode: 'SILKSPA',
-    discountPercent: 25,
-    imageUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=1200&q=80',
-      actionType: 'CATEGORY',
-      actionTarget: 'bridal-wear',
-      displayOrder: 2,
-      isActive: true,
-      createdAt: '2026-01-01 10:00',
-      updatedAt: '2026-01-01 10:00',
-    },
-    {
-      id: 'banner-3',
-    title: 'Bulk Everyday Laundry @ ₹49/KG',
-    subtitle: 'Wash, Tumble Dry & Crisp Fold with Eco-friendly Softeners',
-    badgeText: 'FAMILY SAVER',
-    couponCode: 'BULKSAVE',
-    discountPercent: 20,
-    imageUrl: 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?auto=format&fit=crop&w=1200&q=80',
-      actionType: 'CATEGORY',
-      actionTarget: 'bulk-laundry',
-      displayOrder: 3,
-      isActive: true,
-      createdAt: '2026-01-01 10:00',
-      updatedAt: '2026-01-01 10:00',
-    },
-    {
-      id: 'banner-4',
-    title: 'Express 24-Hour Doorstep Delivery',
-    subtitle: 'Urgent suits, shirts & dresses delivered within 24 hours',
-    badgeText: 'SUPER EXPRESS',
-    couponCode: 'EXPRESS24',
-    discountPercent: 15,
-    imageUrl: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
-      actionType: 'BOOK',
-      actionTarget: '',
-      displayOrder: 4,
-      isActive: true,
-      createdAt: '2026-01-01 10:00',
-      updatedAt: '2026-01-01 10:00',
-    },
-  ];
+  banners: Banner[] = [...INITIAL_BANNERS];
 
   getBanners(onlyActive = false): Banner[] {
     const list = onlyActive ? this.banners.filter((b) => b.isActive) : this.banners;
@@ -6994,6 +7025,14 @@ class BackendDatabase {
       updatedAt: now,
     };
     this.banners.push(newBanner);
+
+    if (isDbConnected && pool) {
+      pool.query(
+        'INSERT INTO banners (id, title, subtitle, badge_text, coupon_code, discount_percent, image_url, action_type, action_target, display_order, is_active, start_date, end_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=VALUES(title), subtitle=VALUES(subtitle), badge_text=VALUES(badge_text), coupon_code=VALUES(coupon_code), discount_percent=VALUES(discount_percent), image_url=VALUES(image_url), action_type=VALUES(action_type), action_target=VALUES(action_target), display_order=VALUES(display_order), is_active=VALUES(is_active), updated_at=VALUES(updated_at)',
+        [newBanner.id, newBanner.title, newBanner.subtitle || null, newBanner.badgeText || null, newBanner.couponCode || null, newBanner.discountPercent || 0, newBanner.imageUrl, newBanner.actionType || 'BOOK', newBanner.actionTarget || '', newBanner.displayOrder || 1, newBanner.isActive ? 1 : 0, newBanner.startDate || null, newBanner.endDate || null, newBanner.createdAt, newBanner.updatedAt]
+      ).catch((err) => console.error('Error inserting banner to MySQL:', err));
+    }
+
     return newBanner;
   }
 
@@ -7006,6 +7045,15 @@ class BackendDatabase {
       ...data,
       updatedAt: now,
     };
+
+    if (isDbConnected && pool) {
+      const b = this.banners[idx];
+      pool.query(
+        'UPDATE banners SET title = ?, subtitle = ?, badge_text = ?, coupon_code = ?, discount_percent = ?, image_url = ?, action_type = ?, action_target = ?, display_order = ?, is_active = ?, start_date = ?, end_date = ?, updated_at = ? WHERE id = ?',
+        [b.title, b.subtitle || null, b.badgeText || null, b.couponCode || null, b.discountPercent || 0, b.imageUrl, b.actionType || 'BOOK', b.actionTarget || '', b.displayOrder || 1, b.isActive ? 1 : 0, b.startDate || null, b.endDate || null, b.updatedAt, id]
+      ).catch((err) => console.error('Error updating banner in MySQL:', err));
+    }
+
     return this.banners[idx];
   }
 
@@ -7013,6 +7061,11 @@ class BackendDatabase {
     const idx = this.banners.findIndex((b) => b.id === id);
     if (idx === -1) return false;
     this.banners.splice(idx, 1);
+
+    if (isDbConnected && pool) {
+      pool.query('DELETE FROM banners WHERE id = ?', [id]).catch((err) => console.error('Error deleting banner from MySQL:', err));
+    }
+
     return true;
   }
 

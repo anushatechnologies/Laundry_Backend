@@ -24,6 +24,7 @@ type InitialData = {
   pincodes: any[];
   staff: any[];
   subcategories?: any[];
+  banners?: any[];
 };
 
 function connectionOptions(includeDatabase = false) {
@@ -255,6 +256,26 @@ async function createTables() {
       FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE
     )
   `);
+
+  await database.query(`
+    CREATE TABLE IF NOT EXISTS banners (
+      id VARCHAR(255) PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      subtitle TEXT,
+      badge_text VARCHAR(100),
+      coupon_code VARCHAR(100),
+      discount_percent DECIMAL(5, 2) DEFAULT 0,
+      image_url TEXT NOT NULL,
+      action_type VARCHAR(50) DEFAULT 'BOOK',
+      action_target VARCHAR(255) DEFAULT '',
+      display_order INT DEFAULT 1,
+      is_active TINYINT(1) DEFAULT 1,
+      start_date VARCHAR(100),
+      end_date VARCHAR(100),
+      created_at VARCHAR(100),
+      updated_at VARCHAR(100)
+    )
+  `);
   
   await database.query(`
     CREATE TABLE IF NOT EXISTS customers (
@@ -445,6 +466,14 @@ async function seedTablesIfEmpty(data: InitialData) {
       await database.query(
         'INSERT INTO orders (id, customer_id, customer_name, customer_phone, address, items, pricing_model_summary, express_tier, pickup_slot, delivery_slot, pickup_otp, delivery_otp, bag_tag_code, current_status, status_history, is_weighed, actual_weight_kg, item_total, discount_amount, coupon_code, pickup_delivery_fee, express_fee, tax_amount, total_amount, payment_method, payment_status, payment_transaction_id, payment_gateway_order_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [item.id, item.customerId, item.customerName, item.customerPhone, JSON.stringify(item.address), JSON.stringify(item.items), item.pricingModelSummary, item.expressTier, JSON.stringify(item.pickupSlot), JSON.stringify(item.deliverySlot), item.pickupOtp, item.deliveryOtp, item.bagTagCode, item.currentStatus, JSON.stringify(item.statusHistory), item.isWeighed ? 1 : 0, item.actualWeightKg || null, item.itemTotal, item.discountAmount, item.couponCode || null, item.pickupDeliveryFee, item.expressFee, item.taxAmount, item.totalAmount, item.paymentMethod, item.paymentStatus, item.paymentTransactionId || null, item.paymentGatewayOrderId || null, item.createdAt, item.updatedAt]
+      );
+    }
+  }
+  if (data.banners && await tableIsEmpty('banners')) {
+    for (const item of data.banners) {
+      await database.query(
+        'INSERT INTO banners (id, title, subtitle, badge_text, coupon_code, discount_percent, image_url, action_type, action_target, display_order, is_active, start_date, end_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [item.id, item.title, item.subtitle || null, item.badgeText || null, item.couponCode || null, item.discountPercent || 0, item.imageUrl, item.actionType || 'BOOK', item.actionTarget || '', item.displayOrder || 1, item.isActive ? 1 : 0, item.startDate || null, item.endDate || null, item.createdAt || null, item.updatedAt || null]
       );
     }
   }
