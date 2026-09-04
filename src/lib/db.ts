@@ -29,7 +29,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Shirts, T-Shirts, Trousers, Suits, Blazers, Kurtas & Jackets.',
     isPopular: true,
     color: 'blue',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/mens-wear.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/mens-wear.jpg',
   },
   {
     id: 'cat-2',
@@ -39,7 +39,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Sarees, Kurtis, Salwar Suits, Dresses, Gowns, Dupattas & Tops.',
     isPopular: true,
     color: 'pink',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/womens-wear.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/womens-wear.jpg',
   },
   {
     id: 'cat-3',
@@ -49,7 +49,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Bridal Lehengas, Heavy Sarees, Gowns, Sherwanis & Designer Wear.',
     isPopular: true,
     color: 'purple',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/wedding-silk.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/wedding-silk.jpg',
   },
   {
     id: 'cat-4',
@@ -59,7 +59,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Shirts, Frocks, Uniforms, Baby Rompers & Baby Blankets.',
     isPopular: false,
     color: 'amber',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/kids-baby.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/kids-baby.jpg',
   },
   {
     id: 'cat-5',
@@ -69,7 +69,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Bedsheets, Blankets, Comforters, Curtains, Towels & Cushion Covers.',
     isPopular: true,
     color: 'teal',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/home-textiles.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/home-textiles.jpg',
   },
   {
     id: 'cat-6',
@@ -79,7 +79,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Mattress, Carpet, Rug, Curtain & Sofa Cover Deep Treatment.',
     isPopular: false,
     color: 'indigo',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/winter-wear.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/winter-wear.jpg',
   },
   {
     id: 'cat-7',
@@ -89,7 +89,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Everyday clothes, towels, bedsheets weighed per KG.',
     isPopular: true,
     color: 'emerald',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/banners/banner-bulk.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/banners/banner-bulk.jpg',
   },
   {
     id: 'cat-8',
@@ -99,7 +99,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Gentle sanitizing wash with extra rinse for sensitive baby skin.',
     isPopular: false,
     color: 'cyan',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/kids-baby.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/kids-baby.jpg',
   },
   {
     id: 'cat-9',
@@ -109,7 +109,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Special handling, hand finish, stain treatment & bridal packaging.',
     isPopular: false,
     color: 'rose',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/wedding-silk.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/wedding-silk.jpg',
   },
   {
     id: 'cat-10',
@@ -119,7 +119,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Hotel linen, PG laundry, gym towels, uniforms & monthly contracts.',
     isPopular: false,
     color: 'slate',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/home-textiles.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/home-textiles.jpg',
   },
 ];
 
@@ -180,7 +180,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "Shirts",
     "description": "Formal, casual & linen shirts, crisp hanger finish.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shirt.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-shirt.jpg",
     "isActive": true,
     "sortOrder": 1
   },
@@ -192,7 +192,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "T-Shirts",
     "description": "Round neck, polo & sports tees, gentle anti-fade care.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-tshirt.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-tshirt.jpg",
     "isActive": true,
     "sortOrder": 2
   },
@@ -204,7 +204,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "Jeans & Trousers",
     "description": "Heavy denim and cotton jeans, deep color preservation.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-jeans.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-jeans.jpg",
     "isActive": true,
     "sortOrder": 3
   },
@@ -216,7 +216,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "Suits & Blazers",
     "description": "Structured corporate blazers, tweed & casual sport coats.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-blazer.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-blazer.jpg",
     "isActive": true,
     "sortOrder": 4
   },
@@ -228,7 +228,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "Jackets",
     "description": "Bomber, windcheater, leatherette & winter fleece jackets.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-jacket.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-jacket.jpg",
     "isActive": true,
     "sortOrder": 5
   },
@@ -240,7 +240,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "Jeans & Trousers",
     "description": "Formal pleated trousers, chinos & cotton khakis.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-trouser.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-trouser.jpg",
     "isActive": true,
     "sortOrder": 6
   },
@@ -252,7 +252,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "Ethnic Wear",
     "description": "Traditional cotton, silk & designer festive kurtas.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-kurta-m.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kurta-m.jpg",
     "isActive": true,
     "sortOrder": 7
   },
@@ -264,7 +264,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "Shorts",
     "description": "Cotton bermudas, lounge shorts & gym activewear.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shorts-m.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-shorts-m.jpg",
     "isActive": true,
     "sortOrder": 8
   },
@@ -276,7 +276,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "Suits & Blazers",
     "description": "Matching blazer jacket + trouser executive suit set.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-suit-2p.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-suit-2p.jpg",
     "isActive": true,
     "sortOrder": 9
   },
@@ -288,7 +288,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "Suits & Blazers",
     "description": "Blazer jacket + waistcoat vest + formal trouser tuxedo set.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-suit-3p.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-suit-3p.jpg",
     "isActive": true,
     "sortOrder": 10
   },
@@ -300,7 +300,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "Ethnic Wear",
     "description": "Wedding sherwanis, heavy embroidery & royal brocade attire.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-sherwani.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-sherwani.jpg",
     "isActive": true,
     "sortOrder": 11
   },
@@ -312,7 +312,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Men's Clothing",
     "subCategory": "Ethnic Wear",
     "description": "Traditional zari border cotton and silk dhotis.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-dhoti.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-dhoti.jpg",
     "isActive": true,
     "sortOrder": 12
   },
@@ -324,7 +324,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Women's Clothing",
     "subCategory": "Sarees",
     "description": "Chiffon, georgette & synthetic daily sarees, soft steam pleating.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-saree-reg.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-saree-cotton.jpg",
     "isActive": true,
     "sortOrder": 1
   },
@@ -336,7 +336,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Women's Clothing",
     "subCategory": "Sarees",
     "description": "Kanjeevaram, Banarasi, pure Mysore silk with zari borders.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-saree-silk.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-saree-silk.jpg",
     "isActive": true,
     "sortOrder": 2
   },
@@ -348,7 +348,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Women's Clothing",
     "subCategory": "Sarees",
     "description": "Chanderi, Tant, Mulmul & Kota doria handloom cotton.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-saree-cotton.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-saree-cotton.jpg",
     "isActive": true,
     "sortOrder": 3
   },
@@ -360,7 +360,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Women's Clothing",
     "subCategory": "Suits & Kurtis",
     "description": "Kurta, bottom & dupatta complete matching suit ensemble.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-salwar.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-salwar.jpg",
     "isActive": true,
     "sortOrder": 4
   },
@@ -372,7 +372,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Women's Clothing",
     "subCategory": "Tops & Shirts",
     "description": "Chiffon, georgette & satin designer tops and formal shirts.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-w-top.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-blouse.jpg",
     "isActive": true,
     "sortOrder": 5
   },
@@ -384,7 +384,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Women's Clothing",
     "subCategory": "Bottoms",
     "description": "Skinny, flared, boyfriend jeans & stretch jeggings.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-w-jeans.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-w-jeans.jpg",
     "isActive": true,
     "sortOrder": 6
   },
@@ -396,7 +396,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Women's Clothing",
     "subCategory": "Suits & Kurtis",
     "description": "Straight, A-line & Anarkali cotton/crepe daily tunics.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-kurti.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kurti.jpg",
     "isActive": true,
     "sortOrder": 7
   },
@@ -408,7 +408,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Women's Clothing",
     "subCategory": "Occasion Wear",
     "description": "Heavy zari, mirror-work, bridal flare skirt & choli set.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-lehenga.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-lehenga.jpg",
     "isActive": true,
     "sortOrder": 8
   },
@@ -420,7 +420,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Women's Clothing",
     "subCategory": "Occasion Wear",
     "description": "Floor length evening gowns, cocktail dresses & pleated maxis.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-gown.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-gown.jpg",
     "isActive": true,
     "sortOrder": 9
   },
@@ -432,7 +432,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Women's Clothing",
     "subCategory": "Jackets",
     "description": "Puffer jackets, long trench coats, woolen shrugs & capes.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-w-jacket.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-jacket.jpg",
     "isActive": true,
     "sortOrder": 10
   },
@@ -444,7 +444,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "School Uniforms",
     "description": "Crisp collar, starch & crease pressing for daily school wear.",
-    "imageUrl": "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-uniform-shirt.jpg",
     "isActive": true,
     "sortOrder": 1
   },
@@ -456,7 +456,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "School Uniforms",
     "description": "Stain release & sharp pleat steam finish on school pants.",
-    "imageUrl": "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-uniform-pant.jpg",
     "isActive": true,
     "sortOrder": 2
   },
@@ -468,7 +468,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "School Uniforms",
     "description": "Permanent knife & box pleat press for girls school pinafore.",
-    "imageUrl": "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-uniform-skirt.jpg",
     "isActive": true,
     "sortOrder": 3
   },
@@ -480,7 +480,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "School Uniforms",
     "description": "Gentle dry cleaning & form shaping for winter school blazers.",
-    "imageUrl": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-uniform-blazer.jpg",
     "isActive": true,
     "sortOrder": 4
   },
@@ -492,7 +492,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "School Uniforms",
     "description": "Gentle stain removal and delicate finish on ties & fabric belts.",
-    "imageUrl": "https://images.unsplash.com/photo-1589756823695-278bc923f962?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-uniform-tie-belt.jpg",
     "isActive": true,
     "sortOrder": 5
   },
@@ -504,7 +504,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Tops & Shirts",
     "description": "Button-down printed and formal party shirts for boys.",
-    "imageUrl": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-shirt.jpg",
     "isActive": true,
     "sortOrder": 6
   },
@@ -516,7 +516,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Tops & Shirts",
     "description": "Graphic, round neck & cartoon print everyday tees.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-kids-tshirt.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kids-tshirt.jpg",
     "isActive": true,
     "sortOrder": 7
   },
@@ -528,7 +528,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Tops & Shirts",
     "description": "Sporty collared tees, pique cotton fabric protection.",
-    "imageUrl": "https://images.unsplash.com/photo-1581655353564-df123a1eb820?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-polo.jpg",
     "isActive": true,
     "sortOrder": 8
   },
@@ -540,7 +540,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Winter Wear",
     "description": "Fleece lined pullover hoodies and zip-up sweatshirts.",
-    "imageUrl": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-hoodie.jpg",
     "isActive": true,
     "sortOrder": 9
   },
@@ -552,7 +552,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Winter Wear",
     "description": "Anti-shrink wool wash & debobbling for knitwear.",
-    "imageUrl": "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-sweater.jpg",
     "isActive": true,
     "sortOrder": 10
   },
@@ -564,7 +564,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Bottoms",
     "description": "Durable denim care with gentle enzymatic stain scrub.",
-    "imageUrl": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-trousers.jpg",
     "isActive": true,
     "sortOrder": 11
   },
@@ -576,7 +576,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Bottoms",
     "description": "Comfort cotton trousers and party chinos.",
-    "imageUrl": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-trousers.jpg",
     "isActive": true,
     "sortOrder": 12
   },
@@ -588,7 +588,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Bottoms",
     "description": "Cotton bermudas, denim shorts and playwear half pants.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-kids-shorts.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kids-shorts.jpg",
     "isActive": true,
     "sortOrder": 13
   },
@@ -600,7 +600,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Bottoms",
     "description": "Activewear joggers, sweatpants & elastic waist trackpants.",
-    "imageUrl": "https://images.unsplash.com/photo-1552902865-b72c031ac5ea?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-trackpant.jpg",
     "isActive": true,
     "sortOrder": 14
   },
@@ -612,7 +612,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Ethnic & Dresses",
     "description": "Princess net frocks, birthday dresses with bows and ruffles.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-kids-frock.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kids-frock.jpg",
     "isActive": true,
     "sortOrder": 15
   },
@@ -624,7 +624,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Ethnic & Dresses",
     "description": "Festive boys kurta pajama, dhoti sets & cotton ethnic wear.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-kids-ethnic.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kids-ethnic.jpg",
     "isActive": true,
     "sortOrder": 16
   },
@@ -636,7 +636,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Ethnic & Dresses",
     "description": "Festive silk flare lehengas and choli with delicate tassels.",
-    "imageUrl": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-lehenga.jpg",
     "isActive": true,
     "sortOrder": 17
   },
@@ -648,7 +648,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Ethnic & Dresses",
     "description": "Boys wedding sherwanis, bandhgala suits with brocade work.",
-    "imageUrl": "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-sherwani.jpg",
     "isActive": true,
     "sortOrder": 18
   },
@@ -660,7 +660,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Baby Care",
     "description": "Hypoallergenic, pediatrician-safe organic baby wash.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-baby-set.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-baby-set.jpg",
     "isActive": true,
     "sortOrder": 19
   },
@@ -672,7 +672,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Kids & Baby",
     "subCategory": "Baby Care",
     "description": "Soft breathable 2-piece cotton nightwear set.",
-    "imageUrl": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-nightsuit.jpg",
     "isActive": true,
     "sortOrder": 20
   },
@@ -684,7 +684,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bed Linen",
     "description": "Pure cotton single bedsheet with anti-bacterial rinse.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-bedsheet-s.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bedsheet-single.jpg",
     "isActive": true,
     "sortOrder": 1
   },
@@ -696,7 +696,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bed Linen",
     "description": "Standard queen/double flat bedsheet, roller steam press.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-bedsheet-d.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bedsheet-double.jpg",
     "isActive": true,
     "sortOrder": 2
   },
@@ -708,7 +708,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bed Linen",
     "description": "Heavy 400+ TC Egyptian and luxury satin striped king sheets.",
-    "imageUrl": "https://images.unsplash.com/photo-1616046229478-9901c5536a45?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bedsheet-king.jpg",
     "isActive": true,
     "sortOrder": 3
   },
@@ -720,7 +720,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bed Linen",
     "description": "Deep pocket elastic corner sheets, smooth stretch press.",
-    "imageUrl": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bedsheet-fitted.jpg",
     "isActive": true,
     "sortOrder": 4
   },
@@ -732,7 +732,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bed Linen",
     "description": "Delicate low-temp solvent dry clean for Mulberry silk bed sets.",
-    "imageUrl": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bedsheet-silk.jpg",
     "isActive": true,
     "sortOrder": 5
   },
@@ -744,7 +744,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bed Linen",
     "description": "Flanged, oxford & zippered pillow slipcovers (2 pieces).",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-pillow.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-pillow.jpg",
     "isActive": true,
     "sortOrder": 6
   },
@@ -756,7 +756,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bed Linen",
     "description": "Velvet, jacquard & embroidered living room cushions.",
-    "imageUrl": "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-cushion-cover.jpg",
     "isActive": true,
     "sortOrder": 7
   },
@@ -768,7 +768,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bed Linen",
     "description": "Traditional cylindrical diwan covers with drawstring ends.",
-    "imageUrl": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bolster-cover.jpg",
     "isActive": true,
     "sortOrder": 8
   },
@@ -780,7 +780,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Blankets & Quilts",
     "description": "Polar fleece, AC dharwad & light single microplush blankets.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-blanket.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-blanket-single.jpg",
     "isActive": true,
     "sortOrder": 9
   },
@@ -792,7 +792,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Blankets & Quilts",
     "description": "Heavy 2-ply Korean mink & embossed thick winter blankets.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-blanket-d.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-blanket-double.jpg",
     "isActive": true,
     "sortOrder": 10
   },
@@ -804,7 +804,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Blankets & Quilts",
     "description": "Fine block print cotton stuffed lightweight Indian razai.",
-    "imageUrl": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-quilt-single.jpg",
     "isActive": true,
     "sortOrder": 11
   },
@@ -816,7 +816,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Blankets & Quilts",
     "description": "Thick cotton carded winter razai, gentle dust mite sanitization.",
-    "imageUrl": "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-quilt-double.jpg",
     "isActive": true,
     "sortOrder": 12
   },
@@ -828,7 +828,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Blankets & Quilts",
     "description": "Fluffy single duvet comforter with baffle box thermal washing.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-comforter.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-comforter-single.jpg",
     "isActive": true,
     "sortOrder": 13
   },
@@ -840,7 +840,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Blankets & Quilts",
     "description": "Heavy king/queen hypoallergenic luxury microfiber duvet.",
-    "imageUrl": "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-comforter-double.jpg",
     "isActive": true,
     "sortOrder": 14
   },
@@ -852,7 +852,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Blankets & Quilts",
     "description": "Buttoned or zipped removable cotton duvet protective encasement.",
-    "imageUrl": "https://images.unsplash.com/photo-1582582621959-48d27397dc69?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-duvet-cover.jpg",
     "isActive": true,
     "sortOrder": 15
   },
@@ -864,7 +864,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Blankets & Quilts",
     "description": "Terry cotton waterproof fitted mattress pad deep clean.",
-    "imageUrl": "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-mattress-protector.jpg",
     "isActive": true,
     "sortOrder": 16
   },
@@ -876,7 +876,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Curtains & Drapes",
     "description": "Eyelet or ring-top small cotton/polyester window drapes.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-curtain.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-curtain-window.jpg",
     "isActive": true,
     "sortOrder": 17
   },
@@ -888,7 +888,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Curtains & Drapes",
     "description": "Standard height door drapes with dust extraction & pleat steam.",
-    "imageUrl": "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-curtain-door.jpg",
     "isActive": true,
     "sortOrder": 18
   },
@@ -900,7 +900,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Curtains & Drapes",
     "description": "Thermal lined velvet, jacquard & blackout drapes per panel.",
-    "imageUrl": "https://images.unsplash.com/photo-1534349762230-e0cadf78f5da?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-curtain-long.jpg",
     "isActive": true,
     "sortOrder": 19
   },
@@ -912,7 +912,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Curtains & Drapes",
     "description": "Ultra delicate organza, voile & lace net drape care.",
-    "imageUrl": "https://images.unsplash.com/photo-1528740561666-dc2479dc08ab?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-curtain-sheer.jpg",
     "isActive": true,
     "sortOrder": 20
   },
@@ -924,7 +924,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bath Linen",
     "description": "Heavy 600+ GSM plush terry towel, fabric softener sanitize.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-bath-towel.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bath-towel-large.jpg",
     "isActive": true,
     "sortOrder": 21
   },
@@ -936,7 +936,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bath Linen",
     "description": "Soft absorbent bathroom hand towels and gym napkins.",
-    "imageUrl": "https://images.unsplash.com/photo-1616627547584-bf28cee262db?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-hand-towel.jpg",
     "isActive": true,
     "sortOrder": 22
   },
@@ -948,7 +948,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bath Linen",
     "description": "Hotel grade plush wrap bathrobe with belt.",
-    "imageUrl": "https://images.unsplash.com/photo-1584208124888-3a20b9c799e2?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bathrobe.jpg",
     "isActive": true,
     "sortOrder": 23
   },
@@ -960,7 +960,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Bath Linen",
     "description": "Thick memory foam or woven cotton bathroom floor mat.",
-    "imageUrl": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bath-mat.jpg",
     "isActive": true,
     "sortOrder": 24
   },
@@ -972,7 +972,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Living & Kitchen",
     "description": "Elastic stretch slipcover for single seater couch or recliner.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-sofa-cover.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-sofa-cover-1s.jpg",
     "isActive": true,
     "sortOrder": 25
   },
@@ -984,7 +984,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Living & Kitchen",
     "description": "Large full coverage fabric slipcover for 3-seater sofa.",
-    "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-sofa-cover-3s.jpg",
     "isActive": true,
     "sortOrder": 26
   },
@@ -996,7 +996,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Living & Kitchen",
     "description": "Stain release wash & crisp flat roller iron for dining covers.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-tablecloth.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-tablecloth-dining.jpg",
     "isActive": true,
     "sortOrder": 27
   },
@@ -1008,7 +1008,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Living & Kitchen",
     "description": "Center table runner with matching 6-piece placemats.",
-    "imageUrl": "https://images.unsplash.com/photo-1615873968403-89e068629265?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-table-runner.jpg",
     "isActive": true,
     "sortOrder": 28
   },
@@ -1020,7 +1020,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Living & Kitchen",
     "description": "Heavy degreasing wash for cooking aprons and padded oven gloves.",
-    "imageUrl": "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=800&q=80",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kitchen-apron.jpg",
     "isActive": true,
     "sortOrder": 29
   },
@@ -1032,7 +1032,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Home Textiles",
     "subCategory": "Living & Kitchen",
     "description": "Deep pressure dirt & mud extraction for entrance mats.",
-    "imageUrl": "https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-doormat.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-doormat-heavy.jpg",
     "isActive": true,
     "sortOrder": 30
   }
@@ -5108,8 +5108,8 @@ export const INITIAL_SERVICES: Service[] = [
     turnaroundHours: 48,
     popular: true,
     expressAvailable: true,
-    image: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shirt.jpg',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shirt.jpg',
+    image: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-shirt.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-shirt.jpg',
   },
   {
     id: 'srv-dc-tshirt',
@@ -5123,8 +5123,8 @@ export const INITIAL_SERVICES: Service[] = [
     turnaroundHours: 48,
     popular: true,
     expressAvailable: true,
-    image: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-tshirt.jpg',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-tshirt.jpg',
+    image: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-tshirt.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-tshirt.jpg',
   },
   {
     id: 'srv-dc-jeans',
@@ -5138,8 +5138,8 @@ export const INITIAL_SERVICES: Service[] = [
     turnaroundHours: 48,
     popular: true,
     expressAvailable: true,
-    image: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-jeans.jpg',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-jeans.jpg',
+    image: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-jeans.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-jeans.jpg',
   },
   {
     id: 'srv-dc-blazer',
@@ -5153,8 +5153,8 @@ export const INITIAL_SERVICES: Service[] = [
     turnaroundHours: 48,
     popular: true,
     expressAvailable: true,
-    image: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-blazer.jpg',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-blazer.jpg',
+    image: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-blazer.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-blazer.jpg',
   },
   {
     id: 'srv-dc-jacket',
@@ -5168,8 +5168,8 @@ export const INITIAL_SERVICES: Service[] = [
     turnaroundHours: 48,
     popular: true,
     expressAvailable: true,
-    image: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-jacket.jpg',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-jacket.jpg',
+    image: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-jacket.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-jacket.jpg',
   },
   {
     id: 'srv-dc-trouser',
@@ -5183,8 +5183,8 @@ export const INITIAL_SERVICES: Service[] = [
     turnaroundHours: 48,
     popular: true,
     expressAvailable: true,
-    image: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-trouser.jpg',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-trouser.jpg',
+    image: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-trouser.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-trouser.jpg',
   },
   {
     id: 'srv-dc-kurta',
@@ -5198,8 +5198,8 @@ export const INITIAL_SERVICES: Service[] = [
     turnaroundHours: 48,
     popular: true,
     expressAvailable: true,
-    image: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-kurta-m.jpg',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-kurta-m.jpg',
+    image: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kurta-m.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kurta-m.jpg',
   },
   {
     id: 'srv-dc-shorts',
@@ -5213,8 +5213,8 @@ export const INITIAL_SERVICES: Service[] = [
     turnaroundHours: 48,
     popular: false,
     expressAvailable: true,
-    image: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shorts-m.jpg',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-shorts-m.jpg',
+    image: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-shorts-m.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-shorts-m.jpg',
   },
   {
     id: 'srv-dc-suit2p',
@@ -5228,8 +5228,8 @@ export const INITIAL_SERVICES: Service[] = [
     turnaroundHours: 48,
     popular: true,
     expressAvailable: true,
-    image: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-suit-2p.jpg',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-suit-2p.jpg',
+    image: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-suit-2p.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-suit-2p.jpg',
   },
   {
     id: 'srv-dc-suit3p',
@@ -5243,8 +5243,8 @@ export const INITIAL_SERVICES: Service[] = [
     turnaroundHours: 48,
     popular: true,
     expressAvailable: true,
-    image: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-suit-3p.jpg',
-    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/garments/cloth-suit-3p.jpg',
+    image: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-suit-3p.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-suit-3p.jpg',
   },
   // Standard laundry
   {
