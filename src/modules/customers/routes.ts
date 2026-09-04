@@ -97,9 +97,11 @@ function customerSummaries() {
     }
   }
 
-  return [...map.values()].sort((a, b) =>
-    (b.lastOrderAt ?? '').localeCompare(a.lastOrderAt ?? '')
-  );
+  return [...map.values()].sort((a, b) => {
+    const timeA = a.lastOrderAt ? new Date(a.lastOrderAt).getTime() : 0;
+    const timeB = b.lastOrderAt ? new Date(b.lastOrderAt).getTime() : 0;
+    return timeB - timeA;
+  });
 }
 
 /** Find customer by normalised phone (last 10 digits) */
