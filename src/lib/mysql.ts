@@ -23,6 +23,7 @@ type InitialData = {
   coupons: any[];
   pincodes: any[];
   staff: any[];
+  subcategories?: any[];
 };
 
 function connectionOptions(includeDatabase = false) {
@@ -86,7 +87,8 @@ async function createTables() {
   await database.query(`
     CREATE TABLE IF NOT EXISTS categories (
       id VARCHAR(255) PRIMARY KEY, name VARCHAR(255) NOT NULL, slug VARCHAR(255) NOT NULL,
-      icon VARCHAR(255), description TEXT, is_popular TINYINT(1) DEFAULT 0, color VARCHAR(50)
+      icon VARCHAR(255), description TEXT, is_popular TINYINT(1) DEFAULT 0, color VARCHAR(50),
+      image_url TEXT
     )
   `);
   await database.query(`
@@ -102,9 +104,28 @@ async function createTables() {
       service_code VARCHAR(100),
       icon VARCHAR(255), pricing_type VARCHAR(255), base_kg_price DECIMAL(10, 2),
       min_order_kg DECIMAL(10, 2), turnaround_hours INT, description TEXT, is_active TINYINT(1) DEFAULT 1,
+      image_url TEXT,
       INDEX idx_service_code (service_code)
     )
   `);
+  await database.query(`
+    CREATE TABLE IF NOT EXISTS subcategories (
+      id VARCHAR(255) PRIMARY KEY, category_tag VARCHAR(100) NOT NULL, name VARCHAR(255) NOT NULL,
+      image_url TEXT, is_active TINYINT(1) DEFAULT 1, sort_order INT DEFAULT 0,
+      INDEX idx_subcat_tag (category_tag)
+    )
+  `);
+
+  // Safe non-destructive column migrations for existing deployments
+  try {
+    await database.query(`ALTER TABLE categories ADD COLUMN image_url TEXT`);
+  } catch {}
+  try {
+    await database.query(`ALTER TABLE service_masters ADD COLUMN image_url TEXT`);
+  } catch {}
+  try {
+    await database.query(`ALTER TABLE cloth_types ADD COLUMN image_url TEXT`);
+  } catch {}
   await database.query(`
     CREATE TABLE IF NOT EXISTS service_price_matrix (
       id VARCHAR(255) PRIMARY KEY, cloth_type_id VARCHAR(255), cloth_name VARCHAR(255),
@@ -363,18 +384,23 @@ async function seedTablesIfEmpty(data: InitialData) {
 
   if (await tableIsEmpty('categories')) {
     for (const item of data.categories) {
-      await database.query('INSERT INTO categories (id, name, slug, icon, description, is_popular) VALUES (?, ?, ?, ?, ?, ?)', [item.id, item.name, item.slug, item.icon, item.description, item.isPopular ? 1 : 0]);
+      await database.query('INSERT INTO categories (id, name, slug, icon, description, is_popular, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)', [item.id, item.name, item.slug, item.icon, item.description, item.isPopular ? 1 : 0, item.imageUrl || item.image || null]);
     }
   }
   if (await tableIsEmpty('cloth_types')) {
     for (const item of data.clothTypes) {
-      await database.query('INSERT INTO cloth_types (id, name, icon, category_tag, category_label, sub_category, description, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [item.id, item.name, item.icon, item.categoryTag, item.categoryLabel, item.subCategory || null, item.description, item.isActive ? 1 : 0, item.sortOrder || 0]);
+      await database.query('INSERT INTO cloth_types (id, name, icon, category_tag, category_label, sub_category, description, image_url, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [item.id, item.name, item.icon, item.categoryTag, item.categoryLabel, item.subCategory || null, item.description, item.imageUrl || null, item.isActive ? 1 : 0, item.sortOrder || 0]);
     }
   }
   await backfillClothTypeSubCategories(data.clothTypes);
   if (await tableIsEmpty('service_masters')) {
     for (const item of data.serviceMasters) {
-      await database.query('INSERT INTO service_masters (id, name, slug, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [item.id, item.name, item.slug, item.icon, item.pricingType, item.baseKgPrice || null, item.minOrderKg || null, item.turnaroundHours, item.description, item.isActive ? 1 : 0]);
+      await database.query('INSERT INTO service_masters (id, name, slug, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [item.id, item.name, item.slug, item.icon, item.pricingType, item.baseKgPrice || null, item.minOrderKg || null, item.turnaroundHours, item.description, item.isActive ? 1 : 0, item.imageUrl || null]);
+    }
+  }
+  if (data.subcategories && await tableIsEmpty('subcategories')) {
+    for (const item of data.subcategories) {
+      await database.query('INSERT INTO subcategories (id, category_tag, name, image_url, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?)', [item.id, item.categoryTag, item.name, item.imageUrl || null, item.isActive ? 1 : 0, item.sortOrder || 0]);
     }
   }
   if (await tableIsEmpty('service_price_matrix')) {

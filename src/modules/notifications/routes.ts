@@ -11,7 +11,6 @@ import {
   sendWashCompleteNotification,
   sendOutForDeliveryNotification,
   sendOrderDeliveredNotification,
-  sendOtpNotification,
 } from '../../lib/email';
 import {
   OrderEmailData,
@@ -284,8 +283,11 @@ router.post('/send-email', async (req: Request, res: Response) => {
         break;
       case 'OTP':
       case 'OTP_VERIFICATION':
-        result = await sendOtpNotification(to, orderData?.customerName || 'Customer', orderData?.otp || '123456');
-        break;
+        return res.status(410).json({
+          success: false,
+          code: 'FIREBASE_PHONE_AUTH_REQUIRED',
+          message: 'Email OTP notifications are disabled. Firebase Phone Authentication sends verification codes.',
+        });
       case 'CUSTOM':
       default:
         if (!customSubject || !customHtml) {

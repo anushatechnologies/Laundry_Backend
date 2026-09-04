@@ -16,6 +16,7 @@ import {
   BulkPricingItem,
   BulkLaundryType,
   Banner,
+  Subcategory,
 } from '../types';
 import { pool, isDbConnected } from './mysql';
 
@@ -88,6 +89,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Everyday clothes, towels, bedsheets weighed per KG.',
     isPopular: true,
     color: 'emerald',
+    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/banners/banner-bulk.jpg',
   },
   {
     id: 'cat-8',
@@ -97,6 +99,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Gentle sanitizing wash with extra rinse for sensitive baby skin.',
     isPopular: false,
     color: 'cyan',
+    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/kids-baby.jpg',
   },
   {
     id: 'cat-9',
@@ -106,6 +109,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Special handling, hand finish, stain treatment & bridal packaging.',
     isPopular: false,
     color: 'rose',
+    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/wedding-silk.jpg',
   },
   {
     id: 'cat-10',
@@ -115,7 +119,55 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Hotel linen, PG laundry, gym towels, uniforms & monthly contracts.',
     isPopular: false,
     color: 'slate',
+    imageUrl: 'https://laundry-storage-2026.s3.ap-south-1.amazonaws.com/categories/home-textiles.jpg',
   },
+];
+
+export const INITIAL_SUBCATEGORIES: Subcategory[] = [
+  // Men's
+  { id: 'sub-m-1', categoryTag: 'MENS', name: 'Shirts', imageUrl: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
+  { id: 'sub-m-2', categoryTag: 'MENS', name: 'T-Shirts & Polos', imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
+  { id: 'sub-m-3', categoryTag: 'MENS', name: 'Trousers & Chinos', imageUrl: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
+  { id: 'sub-m-4', categoryTag: 'MENS', name: 'Jeans & Denim', imageUrl: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 4 },
+  { id: 'sub-m-5', categoryTag: 'MENS', name: 'Ethnic Wear', imageUrl: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 5 },
+  { id: 'sub-m-6', categoryTag: 'MENS', name: 'Suits & Blazers', imageUrl: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 6 },
+  { id: 'sub-m-7', categoryTag: 'MENS', name: 'Winter Wear', imageUrl: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 7 },
+  { id: 'sub-m-8', categoryTag: 'MENS', name: 'Sports & Gym', imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 8 },
+
+  // Women's
+  { id: 'sub-w-1', categoryTag: 'WOMENS', name: 'Sarees', imageUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
+  { id: 'sub-w-2', categoryTag: 'WOMENS', name: 'Blouses', imageUrl: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
+  { id: 'sub-w-3', categoryTag: 'WOMENS', name: 'Kurtis & Kurtas', imageUrl: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
+  { id: 'sub-w-4', categoryTag: 'WOMENS', name: 'Salwar & Suits', imageUrl: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 4 },
+  { id: 'sub-w-5', categoryTag: 'WOMENS', name: 'Western Dresses', imageUrl: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 5 },
+  { id: 'sub-w-6', categoryTag: 'WOMENS', name: 'Tops & Shirts', imageUrl: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 6 },
+  { id: 'sub-w-7', categoryTag: 'WOMENS', name: 'Lehengas', imageUrl: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 7 },
+  { id: 'sub-w-8', categoryTag: 'WOMENS', name: 'Gowns', imageUrl: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 8 },
+  { id: 'sub-w-9', categoryTag: 'WOMENS', name: 'Dupattas & Stoles', imageUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 9 },
+
+  // Kids
+  { id: 'sub-k-1', categoryTag: 'KIDS', name: 'Baby Clothing', imageUrl: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
+  { id: 'sub-k-2', categoryTag: 'KIDS', name: 'Boys Clothing', imageUrl: 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
+  { id: 'sub-k-3', categoryTag: 'KIDS', name: 'Girls Clothing', imageUrl: 'https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
+  { id: 'sub-k-4', categoryTag: 'KIDS', name: 'School Uniforms', imageUrl: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 4 },
+  { id: 'sub-k-5', categoryTag: 'KIDS', name: 'Party Wear', imageUrl: 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 5 },
+
+  // Home Textiles
+  { id: 'sub-h-1', categoryTag: 'HOME_TEXTILES', name: 'Bedsheets', imageUrl: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
+  { id: 'sub-h-2', categoryTag: 'HOME_TEXTILES', name: 'Bed Covers', imageUrl: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
+  { id: 'sub-h-3', categoryTag: 'HOME_TEXTILES', name: 'Blankets', imageUrl: 'https://images.unsplash.com/photo-1580301762395-21ce84d00bc6?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
+  { id: 'sub-h-4', categoryTag: 'HOME_TEXTILES', name: 'Comforters & Quilts', imageUrl: 'https://images.unsplash.com/photo-1580301762395-21ce84d00bc6?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 4 },
+  { id: 'sub-h-5', categoryTag: 'HOME_TEXTILES', name: 'Curtains', imageUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 5 },
+  { id: 'sub-h-6', categoryTag: 'HOME_TEXTILES', name: 'Sofa & Cushion Covers', imageUrl: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 6 },
+  { id: 'sub-h-7', categoryTag: 'HOME_TEXTILES', name: 'Towels', imageUrl: 'https://images.unsplash.com/photo-1616627547584-bf28cee262db?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 7 },
+
+  // Footwear & Accessories
+  { id: 'sub-f-1', categoryTag: 'FOOTWEAR', name: 'Sneakers', imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
+  { id: 'sub-f-2', categoryTag: 'FOOTWEAR', name: 'Formal Shoes', imageUrl: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
+  { id: 'sub-f-3', categoryTag: 'FOOTWEAR', name: 'Sports Shoes', imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
+  { id: 'sub-a-1', categoryTag: 'ACCESSORIES', name: 'Backpacks', imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
+  { id: 'sub-a-2', categoryTag: 'ACCESSORIES', name: 'Handbags', imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
+  { id: 'sub-a-3', categoryTag: 'ACCESSORIES', name: 'Belts & Wallets', imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
 ];
 
 
@@ -5629,6 +5681,7 @@ class BackendDatabase {
   private orders: Order[] = [...INITIAL_ORDERS];
   private services: Service[] = [...INITIAL_SERVICES];
   private categories: ServiceCategory[] = [...INITIAL_CATEGORIES];
+  private subcategories: Subcategory[] = [...INITIAL_SUBCATEGORIES];
   private coupons: Coupon[] = [...INITIAL_COUPONS];
   private pincodes: PincodeZone[] = [...INITIAL_PINCODES];
   private staff: StaffMember[] = [...INITIAL_STAFF];
@@ -5812,6 +5865,19 @@ class BackendDatabase {
           isPopular: Boolean(r.is_popular),
           image: r.image_url || undefined,
           imageUrl: r.image_url || undefined,
+        }));
+      }
+
+      // Sync Subcategories
+      const [subcatRows]: any = await pool.query('SELECT * FROM subcategories ORDER BY sort_order ASC').catch(() => [[]]);
+      if (subcatRows && subcatRows.length > 0) {
+        this.subcategories = subcatRows.map((r: any) => ({
+          id: r.id,
+          categoryTag: r.category_tag,
+          name: r.name,
+          imageUrl: r.image_url || undefined,
+          isActive: Boolean(r.is_active),
+          sortOrder: r.sort_order || 0,
         }));
       }
 
@@ -6184,17 +6250,125 @@ class BackendDatabase {
       turnaroundHours: data.turnaroundHours || 24,
       description: data.description || '',
       isActive: true,
+      imageUrl: data.imageUrl,
     };
     this.serviceMasters.push(service);
 
     if (isDbConnected && pool) {
       pool.query(
-        'INSERT INTO service_masters (id, name, slug, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [service.id, service.name, service.slug, service.icon, service.pricingType, service.baseKgPrice || null, service.minOrderKg || null, service.turnaroundHours, service.description, 1]
+        'INSERT INTO service_masters (id, name, slug, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [service.id, service.name, service.slug, service.icon, service.pricingType, service.baseKgPrice || null, service.minOrderKg || null, service.turnaroundHours, service.description, 1, service.imageUrl || null]
       ).catch((err) => console.error('Error creating service master in MySQL:', err));
     }
 
     return service;
+  }
+
+  updateServiceMaster(id: string, data: Partial<ServiceMaster>): ServiceMaster | null {
+    const service = this.serviceMasters.find((s) => s.id === id);
+    if (!service) return null;
+    Object.assign(service, data);
+    if (data.imageUrl !== undefined) {
+      service.imageUrl = data.imageUrl;
+    }
+
+    if (isDbConnected && pool) {
+      pool.query(
+        'UPDATE service_masters SET name = ?, slug = ?, service_code = ?, icon = ?, pricing_type = ?, base_kg_price = ?, min_order_kg = ?, turnaround_hours = ?, description = ?, is_active = ?, image_url = ? WHERE id = ?',
+        [
+          service.name,
+          service.slug,
+          service.serviceCode || null,
+          service.icon || null,
+          service.pricingType,
+          service.baseKgPrice || null,
+          service.minOrderKg || null,
+          service.turnaroundHours,
+          service.description,
+          service.isActive ? 1 : 0,
+          service.imageUrl || null,
+          service.id,
+        ]
+      ).catch((err) => console.error('Error updating service master in MySQL:', err));
+    }
+
+    return service;
+  }
+
+  deleteServiceMaster(id: string): boolean {
+    const idx = this.serviceMasters.findIndex((s) => s.id === id);
+    if (idx === -1) return false;
+    this.serviceMasters.splice(idx, 1);
+
+    if (isDbConnected && pool) {
+      pool.query('DELETE FROM service_masters WHERE id = ?', [id]).catch((err) => console.error('Error deleting service master from MySQL:', err));
+    }
+
+    return true;
+  }
+
+  // Subcategories
+  getSubcategories(categoryTag?: string): Subcategory[] {
+    if (!categoryTag || categoryTag.toUpperCase() === 'ALL') {
+      return this.subcategories;
+    }
+    const clean = categoryTag.toUpperCase().replace(/_/g, '-');
+    return this.subcategories.filter((s) => {
+      const sTag = (s.categoryTag || '').toUpperCase().replace(/_/g, '-');
+      return sTag === clean;
+    });
+  }
+
+  createSubcategory(data: Partial<Subcategory>): Subcategory {
+    const id = data.id || `sub-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const subcat: Subcategory = {
+      id,
+      categoryTag: (data.categoryTag || 'MENS').toUpperCase(),
+      name: data.name || 'New Subcategory',
+      imageUrl: data.imageUrl,
+      isActive: data.isActive !== undefined ? data.isActive : true,
+      sortOrder: data.sortOrder || this.subcategories.length + 1,
+    };
+    this.subcategories.push(subcat);
+
+    if (isDbConnected && pool) {
+      pool.query(
+        'INSERT INTO subcategories (id, category_tag, name, image_url, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
+        [subcat.id, subcat.categoryTag, subcat.name, subcat.imageUrl || null, subcat.isActive ? 1 : 0, subcat.sortOrder]
+      ).catch((err) => console.error('Error inserting subcategory in MySQL:', err));
+    }
+
+    return subcat;
+  }
+
+  updateSubcategory(id: string, data: Partial<Subcategory>): Subcategory | null {
+    const item = this.subcategories.find((s) => s.id === id);
+    if (!item) return null;
+    Object.assign(item, data);
+    if (data.imageUrl !== undefined) {
+      item.imageUrl = data.imageUrl;
+    }
+
+    if (isDbConnected && pool) {
+      pool.query(
+        'UPDATE subcategories SET category_tag = ?, name = ?, image_url = ?, is_active = ?, sort_order = ? WHERE id = ?',
+        [item.categoryTag, item.name, item.imageUrl || null, item.isActive ? 1 : 0, item.sortOrder, item.id]
+      ).catch((err) => console.error('Error updating subcategory in MySQL:', err));
+    }
+
+    return item;
+  }
+
+  deleteSubcategory(id: string): boolean {
+    const idx = this.subcategories.findIndex((s) => s.id === id);
+    if (idx === -1) return false;
+    this.subcategories.splice(idx, 1);
+
+    if (isDbConnected && pool) {
+      pool.query('DELETE FROM subcategories WHERE id = ?', [id]).catch((err) => console.error('Error deleting subcategory from MySQL:', err));
+    }
+
+    return true;
   }
 
   // Price Matrix
@@ -6320,6 +6494,7 @@ class BackendDatabase {
   getFullCatalog() {
     return {
       categories: this.categories,
+      subcategories: this.subcategories,
       clothTypes: this.clothTypes,
       serviceMasters: this.serviceMasters,
       priceMatrix: this.priceMatrix,
@@ -6385,21 +6560,34 @@ class BackendDatabase {
     this.categories.push(category);
     if (isDbConnected && pool) {
       pool.query(
-        'INSERT INTO categories (id, name, slug, icon, description, is_popular, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [category.id, category.name, category.slug, category.icon, category.description, category.isPopular ? 1 : 0, category.image || (category as any).imageUrl || null]
+        'INSERT INTO categories (id, name, slug, icon, description, is_popular, color, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [category.id, category.name, category.slug, category.icon, category.description, category.isPopular ? 1 : 0, category.color || null, category.imageUrl || category.image || null]
       ).catch((err) => console.error('Error adding category to MySQL:', err));
     }
     return category;
   }
 
   updateCategory(id: string, updates: Partial<ServiceCategory>): ServiceCategory | null {
-    const cat = this.categories.find((c) => c.id === id);
+    const target = String(id || '').trim();
+    const cat = this.categories.find((c) => 
+      c.id === target || 
+      c.slug === target || 
+      c.slug.toLowerCase() === target.toLowerCase() ||
+      c.slug === target.toLowerCase().replace(/_/g, '-') ||
+      (target === 'MENS' && c.slug === 'mens-wear') ||
+      (target === 'WOMENS' && c.slug === 'womens-wear') ||
+      (target === 'KIDS' && c.slug === 'kids-wear') ||
+      (target === 'HOME_TEXTILES' && c.slug === 'home-textiles') ||
+      (target === 'BRIDAL' && c.slug === 'bridal-wear') ||
+      (target === 'SPECIAL' && c.slug === 'special-cleaning')
+    );
     if (!cat) return null;
     Object.assign(cat, updates);
+    if (updates.imageUrl) cat.imageUrl = updates.imageUrl;
     if (isDbConnected && pool) {
       pool.query(
-        'UPDATE categories SET name = ?, slug = ?, icon = ?, description = ?, is_popular = ?, image_url = ? WHERE id = ?',
-        [cat.name, cat.slug, cat.icon, cat.description, cat.isPopular ? 1 : 0, cat.image || (cat as any).imageUrl || null, cat.id]
+        'UPDATE categories SET name = ?, slug = ?, icon = ?, description = ?, is_popular = ?, color = ?, image_url = ? WHERE id = ?',
+        [cat.name, cat.slug, cat.icon, cat.description, cat.isPopular ? 1 : 0, cat.color || null, cat.imageUrl || cat.image || null, cat.id]
       ).catch((err) => console.error('Error updating category in MySQL:', err));
     }
     return cat;

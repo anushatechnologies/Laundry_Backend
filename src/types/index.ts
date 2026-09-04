@@ -42,6 +42,15 @@ export interface ServiceCategory {
   image?: string;
 }
 
+export interface Subcategory {
+  id: string;
+  categoryTag: string;
+  name: string;
+  imageUrl?: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
 
 export interface Service {
   id: string;

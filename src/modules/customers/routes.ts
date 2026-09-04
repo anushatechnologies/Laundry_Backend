@@ -1,7 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { db } from '../../lib/db';
 import { requireAdmin } from '../../middleware/admin';
-import { verifyFirebaseToken } from '../../middleware/verifyFirebaseToken';
 import {
   signAccessToken,
   signRefreshToken,
@@ -9,18 +8,11 @@ import {
   verifyRefreshToken,
   type CustomerTokenPayload,
 } from '../../lib/customer-tokens';
-import { sendOtpNotification, sendWelcomeCustomerNotification } from '../../lib/email';
-import { sendSmsOtp } from '../../lib/sms';
+import { sendWelcomeCustomerNotification } from '../../lib/email';
 import { getFirebaseAuth } from '../../lib/firebase-admin';
 import { pool, isDbConnected } from '../../lib/mysql';
 
 export const customersRouter = Router();
-
-type RegisteredCustomer = { id: string; name: string; phone: string; email: string };
-const registeredCustomers = new Map<string, RegisteredCustomer>();
-
-// In-memory OTP storage for direct SMS/backend authentication
-const customerOtpStore = new Map<string, { code: string; expiresAt: number; name?: string; email?: string }>();
 
 /* ─────────────────────────────────────────────────────────────────────────
    Internal helpers
@@ -164,104 +156,26 @@ customersRouter.all('/check-phone', (req: Request, res: Response) => {
 
 /**
  * POST /api/customers/send-otp
- * Body: { phone: string, email?: string, name?: string }
- * Generates and dispatches a 6-digit OTP code directly without third-party Firebase key blockers.
+ * Disabled: Firebase Phone Authentication is the only OTP provider.
  */
-customersRouter.post('/send-otp', async (req: Request, res: Response) => {
-  const { phone: rawPhone, email, name } = req.body ?? {};
-  const phone = String(rawPhone ?? '').replace(/\D/g, '').slice(-10);
-
-  if (!phone || phone.length < 10) {
-    return res.status(400).json({ success: false, message: 'Please provide a valid 10-digit mobile number' });
-  }
-
-  // Generate 6-digit secure code
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-  customerOtpStore.set(phone, { code, expiresAt, name, email });
-
-  // Dispatch Real SMS to mobile phone
-  sendSmsOtp(phone, code).catch((err) => {
-    console.warn('[SMS] Background SMS dispatch alert:', err);
-  });
-
-  const existingCustomer = findByPhone(phone);
-  const targetEmail = email || existingCustomer?.email;
-  const targetName = name || existingCustomer?.name || 'Valued Customer';
-
-  // If email is configured, also deliver OTP via SMTP email
-  if (targetEmail) {
-    sendOtpNotification(targetEmail, targetName, code).catch((err) => {
-      console.warn('Failed to dispatch OTP email:', err);
-    });
-  }
-
-  return res.json({
-    success: true,
-    message: `OTP sent successfully to +91 ${phone}`,
-    exists: Boolean(existingCustomer),
+customersRouter.post('/send-otp', (_req: Request, res: Response) => {
+  return res.status(410).json({
+    success: false,
+    code: 'FIREBASE_PHONE_AUTH_REQUIRED',
+    message: 'Firebase phone verification is required. Request a new code from the app or website.',
   });
 });
 
 /**
  * POST /api/customers/verify-otp
- * Body: { phone: string, otp: string, name?: string, email?: string }
- * Validates OTP code, signs access tokens and establishes session.
+ * Disabled: Firebase Phone Authentication is the only OTP provider.
  */
-customersRouter.post('/verify-otp', (req: Request, res: Response) => {
-  const { phone: rawPhone, otp: rawOtp, name, email = '' } = req.body ?? {};
-  const phone = String(rawPhone ?? '').replace(/\D/g, '').slice(-10);
-  const otp = String(rawOtp ?? '').trim();
-
-  if (!phone || phone.length < 10) {
-    return res.status(400).json({ success: false, message: 'Invalid phone number' });
-  }
-  if (!otp || otp.length !== 6) {
-    return res.status(400).json({ success: false, message: 'Please enter the 6-digit OTP' });
-  }
-
-  const record = customerOtpStore.get(phone);
-  // A test code is permitted only when an explicit development flag is set.
-  // It must never silently work in a production customer app.
-  const isValidOtp = otp === '123456' || (record && record.code === otp && Date.now() <= record.expiresAt);
-
-  if (!isValidOtp) {
-    return res.status(401).json({ success: false, message: 'Invalid or expired OTP code. Please try again.' });
-  }
-
-  // Clear OTP once verified
-  customerOtpStore.delete(phone);
-
-  let customer = findByPhone(phone);
-  if (!customer) {
-    const customerName = (name || record?.name || 'LaundryFresh Customer').trim();
-    const customerEmail = (email || record?.email || '').trim();
-
-    // Persist permanently in BackendDatabase & MySQL
-    const savedCustomer = db.addCustomer({
-      name: customerName,
-      phone,
-      email: customerEmail,
-    });
-
-    customer = {
-      id: savedCustomer.id,
-      name: savedCustomer.name,
-      phone: savedCustomer.phone,
-      email: savedCustomer.email,
-      totalOrders: 0,
-      totalSpent: 0,
-    };
-
-    if (customerEmail) {
-      sendWelcomeCustomerNotification(customerEmail, customerName, customerEmail, phone).catch((err) =>
-        console.error('Welcome email error:', err)
-      );
-    }
-  }
-
-  return tokenResponse(res, customer, `cust_${phone}`);
+customersRouter.post('/verify-otp', (_req: Request, res: Response) => {
+  return res.status(410).json({
+    success: false,
+    code: 'FIREBASE_PHONE_AUTH_REQUIRED',
+    message: 'Firebase phone verification is required. Request a new code from the app or website.',
+  });
 });
 
 /**
@@ -326,116 +240,26 @@ customersRouter.post('/firebase-login', async (req: Request, res: Response) => {
 
 /**
  * POST /api/customers/login
- * Headers: Authorization: Bearer <Firebase ID token> (Optional)
- * Body: { phone }
+ * Disabled in favour of /firebase-login, which requires a verified Firebase ID token.
  */
-customersRouter.post('/login', async (req: Request, res: Response) => {
-  const header = req.headers.authorization ?? '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-  let phone = String(req.body?.phone ?? '').replace(/\D/g, '').slice(-10);
-  let uid = `cust_${Date.now()}`;
-
-  if (token) {
-    try {
-      const decoded = await getFirebaseAuth().verifyIdToken(token);
-      if (decoded.phone_number) {
-        phone = decoded.phone_number.replace(/^\+91/, '').slice(-10);
-      }
-      uid = decoded.uid;
-    } catch {
-      // Fallback to body phone if available
-    }
-  }
-
-  if (!phone || phone.length < 10) {
-    return res.status(400).json({ success: false, message: 'Valid phone number is required' });
-  }
-
-  const { name = '', email = '' } = req.body ?? {};
-
-  let customer = findByPhone(phone);
-  if (!customer) {
-    const saved = db.addCustomer({
-      id: uid || `cust_${phone}`,
-      name: (name || 'LaundryFresh Customer').trim(),
-      phone,
-      email: (email || '').trim(),
-    });
-    customer = {
-      id: saved.id,
-      name: saved.name,
-      phone: saved.phone,
-      email: saved.email,
-      totalOrders: 0,
-      totalSpent: 0,
-    };
-  } else if (name || email) {
-    const updated = db.addCustomer({
-      id: customer.id,
-      name: name || customer.name,
-      phone,
-      email: email !== undefined ? email : customer.email,
-    });
-    customer.name = updated.name;
-    customer.email = updated.email;
-  }
-
-  return tokenResponse(res, customer, uid);
+customersRouter.post('/login', (_req: Request, res: Response) => {
+  return res.status(410).json({
+    success: false,
+    code: 'FIREBASE_PHONE_AUTH_REQUIRED',
+    message: 'Use /customers/firebase-login with a verified Firebase ID token.',
+  });
 });
 
 /**
  * POST /api/customers/register
- * Headers: Authorization: Bearer <Firebase ID token> (Optional)
- * Body:    { name, email, phone }
+ * Disabled in favour of /firebase-login, which creates a customer after Firebase verification.
  */
-customersRouter.post('/register', async (req: Request, res: Response) => {
-  const header = req.headers.authorization ?? '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-  let phone = String(req.body?.phone ?? '').replace(/\D/g, '').slice(-10);
-  let uid = `cust_${Date.now()}`;
-
-  if (token) {
-    try {
-      const decoded = await getFirebaseAuth().verifyIdToken(token);
-      if (decoded.phone_number) {
-        phone = decoded.phone_number.replace(/^\+91/, '').slice(-10);
-      }
-      uid = decoded.uid;
-    } catch {
-      // Fallback
-    }
-  }
-
-  const { name = 'LaundryFresh Customer', email = '' } = req.body ?? {};
-
-  if (!phone || phone.length < 10) {
-    return res.status(400).json({ success: false, message: 'Valid phone number is required' });
-  }
-
-  // Create or update customer in database & MySQL
-  const saved = db.addCustomer({
-    id: uid || `cust_${phone}`,
-    name: (name || 'LaundryFresh Customer').trim(),
-    phone,
-    email: (email || '').trim(),
+customersRouter.post('/register', (_req: Request, res: Response) => {
+  return res.status(410).json({
+    success: false,
+    code: 'FIREBASE_PHONE_AUTH_REQUIRED',
+    message: 'Use /customers/firebase-login with a verified Firebase ID token.',
   });
-
-  const customer = {
-    id: saved.id,
-    name: saved.name,
-    phone: saved.phone,
-    email: saved.email,
-    totalOrders: 0,
-    totalSpent: 0,
-  };
-
-  if (saved.email) {
-    sendWelcomeCustomerNotification(saved.email, saved.name, saved.email, phone).catch((err) =>
-      console.error('Welcome email error:', err)
-    );
-  }
-
-  return tokenResponse(res, customer, uid, 201);
 });
 
 /**

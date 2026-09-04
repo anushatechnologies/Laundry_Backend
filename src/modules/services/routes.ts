@@ -178,6 +178,89 @@ router.post('/masters', requireAdmin, (req: Request, res: Response) => {
   res.status(201).json({ success: true, data: newService });
 });
 
+router.put('/masters/:id', requireAdmin, (req: Request, res: Response) => {
+  const updated = db.updateServiceMaster(req.params.id, req.body);
+  if (!updated) {
+    return res.status(404).json({ success: false, message: 'Service master not found' });
+  }
+  res.json({ success: true, data: updated });
+});
+
+router.delete('/masters/:id', requireAdmin, (req: Request, res: Response) => {
+  const deleted = db.deleteServiceMaster(req.params.id);
+  if (!deleted) {
+    return res.status(404).json({ success: false, message: 'Service master not found' });
+  }
+  res.json({ success: true, message: 'Service master deleted successfully' });
+});
+
+// Categories CRUD
+router.get('/categories', (req: Request, res: Response) => {
+  const categories = db.getCategories();
+  res.json({ success: true, data: categories });
+});
+
+router.post('/categories', requireAdmin, (req: Request, res: Response) => {
+  const { name, slug, icon, description, isPopular, color, imageUrl } = req.body;
+  if (!name) return res.status(400).json({ success: false, message: 'Category name is required' });
+  const id = req.body.id || `cat-${Date.now()}`;
+  const created = db.addCategory({
+    id,
+    name: String(name).trim(),
+    slug: slug || String(name).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    icon: icon || '🧺',
+    description: description || '',
+    isPopular: Boolean(isPopular),
+    color: color || 'blue',
+    imageUrl: imageUrl || undefined,
+  });
+  res.status(201).json({ success: true, data: created });
+});
+
+router.put('/categories/:id', requireAdmin, (req: Request, res: Response) => {
+  const updated = db.updateCategory(req.params.id, req.body);
+  if (!updated) {
+    return res.status(404).json({ success: false, message: 'Category not found' });
+  }
+  res.json({ success: true, data: updated });
+});
+
+router.delete('/categories/:id', requireAdmin, (req: Request, res: Response) => {
+  const deleted = db.deleteCategory(req.params.id);
+  if (!deleted) {
+    return res.status(404).json({ success: false, message: 'Category not found' });
+  }
+  res.json({ success: true, message: 'Category deleted successfully' });
+});
+
+// Subcategories CRUD
+router.get('/subcategories', (req: Request, res: Response) => {
+  const categoryTag = req.query.categoryTag as string;
+  const subcategories = db.getSubcategories(categoryTag);
+  res.json({ success: true, data: subcategories });
+});
+
+router.post('/subcategories', requireAdmin, (req: Request, res: Response) => {
+  const created = db.createSubcategory(req.body);
+  res.status(201).json({ success: true, data: created });
+});
+
+router.put('/subcategories/:id', requireAdmin, (req: Request, res: Response) => {
+  const updated = db.updateSubcategory(req.params.id, req.body);
+  if (!updated) {
+    return res.status(404).json({ success: false, message: 'Subcategory not found' });
+  }
+  res.json({ success: true, data: updated });
+});
+
+router.delete('/subcategories/:id', requireAdmin, (req: Request, res: Response) => {
+  const deleted = db.deleteSubcategory(req.params.id);
+  if (!deleted) {
+    return res.status(404).json({ success: false, message: 'Subcategory not found' });
+  }
+  res.json({ success: true, message: 'Subcategory deleted successfully' });
+});
+
 // Price Matrix
 router.get('/pricing-matrix', (req: Request, res: Response) => {
   const clothId = req.query.clothId as string;
