@@ -304,7 +304,8 @@ router.post('/', requireCustomerIdentity, (req: Request, res: Response) => {
     const pickupDeliveryFee = itemTotal >= zone.minFreeOrderValue ? 0 : zone.standardFee;
     const expressFee = input.expressTier === 'REGULAR' ? 0 : input.expressTier === 'SAME_DAY' ? settings.expressDeliveryFee * 2 : settings.expressDeliveryFee;
     const taxableAmount = Math.max(0, itemTotal - discountAmount + pickupDeliveryFee + expressFee);
-    const taxAmount = Number((taxableAmount * (settings.taxPercentage / 100)).toFixed(2));
+    const effectiveTaxPercentage = (settings.isGstEnabled !== false) ? settings.taxPercentage : 0;
+    const taxAmount = Number((taxableAmount * (effectiveTaxPercentage / 100)).toFixed(2));
     const totalAmount = Number((taxableAmount + taxAmount).toFixed(2));
 
     // Email fallback: if customer didn't provide email at sign-up,

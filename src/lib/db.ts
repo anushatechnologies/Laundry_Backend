@@ -5092,6 +5092,7 @@ export const INITIAL_PRICING_SETTINGS: PricingSettings = {
   standardDeliveryFee: 30,
   expressDeliveryFee: 80,
   extraKgPrice: 40,
+  isGstEnabled: true,
 };
 
 export const INITIAL_SERVICES: Service[] = [
@@ -5326,8 +5327,11 @@ export const INITIAL_SERVICES: Service[] = [
 export const INITIAL_ORDERS: Order[] = [];
 
 export const INITIAL_COUPONS: Coupon[] = [
-  { id: 'cp-1', code: 'WELCOME100', title: 'Flat ₹100 Off First Order', description: 'Flat ₹100 discount above ₹299', discountType: 'FLAT', discountValue: 100, minOrderValue: 299, firstOrderOnly: true, expiryDate: '2026-12-31', usageCount: 1420, isActive: true },
-  { id: 'cp-2', code: 'WEEKEND20', title: '20% Weekend Savings', description: 'Save 20% up to ₹150', discountType: 'PERCENTAGE', discountValue: 20, minOrderValue: 350, maxDiscountCap: 150, firstOrderOnly: false, expiryDate: '2026-12-31', usageCount: 654, isActive: true }
+  { id: 'cp-first50', code: 'FIRST50', title: '50% OFF (First Order)', description: '50% discount up to ₹250 on your first laundry order', discountType: 'PERCENTAGE', discountValue: 50, minOrderValue: 199, maxDiscountCap: 250, firstOrderOnly: true, expiryDate: '2027-12-31', usageCount: 2310, isActive: true },
+  { id: 'cp-silkspa', code: 'SILKSPA', title: '₹150 OFF Silk & Luxury Care', description: 'Flat ₹150 off on orders above ₹499', discountType: 'FLAT', discountValue: 150, minOrderValue: 499, firstOrderOnly: false, expiryDate: '2027-12-31', usageCount: 890, isActive: true },
+  { id: 'cp-bulksave', code: 'BULKSAVE', title: '₹100 OFF Bulk Laundry', description: 'Flat ₹100 off on 5KG+ laundry orders above ₹399', discountType: 'FLAT', discountValue: 100, minOrderValue: 399, firstOrderOnly: false, expiryDate: '2027-12-31', usageCount: 1140, isActive: true },
+  { id: 'cp-1', code: 'WELCOME100', title: 'Flat ₹100 Off First Order', description: 'Flat ₹100 discount above ₹299', discountType: 'FLAT', discountValue: 100, minOrderValue: 299, firstOrderOnly: true, expiryDate: '2027-12-31', usageCount: 1420, isActive: true },
+  { id: 'cp-2', code: 'WEEKEND20', title: '20% Weekend Savings', description: 'Save 20% up to ₹150', discountType: 'PERCENTAGE', discountValue: 20, minOrderValue: 350, maxDiscountCap: 150, firstOrderOnly: false, expiryDate: '2027-12-31', usageCount: 654, isActive: true }
 ];
 
 export const INITIAL_PINCODES: PincodeZone[] = [
@@ -5881,6 +5885,7 @@ class BackendDatabase {
       }
 
       // Sync Pricing Settings
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN is_gst_enabled TINYINT(1) DEFAULT 1').catch(() => {});
       const [psRows]: any = await pool.query('SELECT * FROM pricing_settings WHERE id = 1').catch(() => [[]]);
       if (psRows && psRows.length > 0) {
         const s = psRows[0];
@@ -5891,6 +5896,7 @@ class BackendDatabase {
           standardDeliveryFee: Number(s.standard_delivery_fee),
           expressDeliveryFee: Number(s.express_delivery_fee),
           extraKgPrice: Number(s.extra_kg_price),
+          isGstEnabled: s.is_gst_enabled !== undefined && s.is_gst_enabled !== null ? Boolean(s.is_gst_enabled) : true,
         };
       }
 
@@ -5944,9 +5950,26 @@ class BackendDatabase {
         }));
       }
 
-      // Sync Coupons
+      // Sync Coupons — ensure all master coupons (FIRST50, SILKSPA, BULKSAVE, WELCOME100, WEEKEND20) exist
+      for (const c of INITIAL_COUPONS) {
+        await pool.query(
+          `INSERT INTO coupons (id, code, title, description, discount_type, discount_value, min_order_value, max_discount_cap, first_order_only, expiry_date, usage_count, is_active)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             title = VALUES(title),
+             description = VALUES(description),
+             discount_type = VALUES(discount_type),
+             discount_value = VALUES(discount_value),
+             min_order_value = VALUES(min_order_value),
+             max_discount_cap = VALUES(max_discount_cap),
+             first_order_only = VALUES(first_order_only),
+             expiry_date = VALUES(expiry_date),
+             is_active = VALUES(is_active)`,
+          [c.id, c.code, c.title, c.description, c.discountType, c.discountValue, c.minOrderValue, c.maxDiscountCap || null, c.firstOrderOnly ? 1 : 0, c.expiryDate, c.usageCount, c.isActive ? 1 : 0]
+        ).catch(() => {});
+      }
       const [cpnRows]: any = await pool.query('SELECT * FROM coupons');
-      if (cpnRows.length > 0) {
+      if (cpnRows && cpnRows.length > 0) {
         this.coupons = cpnRows.map((r: any) => ({
           id: r.id,
           code: r.code,
@@ -6188,7 +6211,8 @@ class BackendDatabase {
     });
     order.itemTotal = recalculated;
     const taxable = Math.max(0, order.itemTotal - order.discountAmount + order.pickupDeliveryFee + order.expressFee);
-    order.taxAmount = +(taxable * (this.pricingSettings.taxPercentage / 100)).toFixed(2);
+    const effectiveTax = (this.pricingSettings.isGstEnabled !== false) ? this.pricingSettings.taxPercentage : 0;
+    order.taxAmount = +(taxable * (effectiveTax / 100)).toFixed(2);
     order.totalAmount = +(taxable + order.taxAmount).toFixed(2);
     this.updateOrderStatus(id, 'WEIGHED_VERIFIED', `Facility verified exact load weight: ${weightKg} KG. Total: ₹${order.totalAmount}`);
 
@@ -6521,8 +6545,8 @@ class BackendDatabase {
     if (isDbConnected && pool) {
       const s = this.pricingSettings;
       pool.query(
-        'UPDATE pricing_settings SET tax_percentage = ?, min_order_value = ?, free_delivery_threshold = ?, standard_delivery_fee = ?, express_delivery_fee = ?, extra_kg_price = ? WHERE id = 1',
-        [s.taxPercentage, s.minOrderValue, s.freeDeliveryThreshold, s.standardDeliveryFee, s.expressDeliveryFee, s.extraKgPrice]
+        'UPDATE pricing_settings SET tax_percentage = ?, min_order_value = ?, free_delivery_threshold = ?, standard_delivery_fee = ?, express_delivery_fee = ?, extra_kg_price = ?, is_gst_enabled = ? WHERE id = 1',
+        [s.taxPercentage, s.minOrderValue, s.freeDeliveryThreshold, s.standardDeliveryFee, s.expressDeliveryFee, s.extraKgPrice, s.isGstEnabled !== false ? 1 : 0]
       ).catch((err) => console.error('Error updating pricing settings in MySQL:', err));
     }
 
