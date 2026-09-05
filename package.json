@@ -7,7 +7,8 @@
     "dev": "nodemon --watch src --exec ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "upload:s3": "node scripts/upload_all_to_s3.js"
+    "upload:s3": "node scripts/upload_all_to_s3.js",
+    "migrate:referrals": "node scripts/migrate-referrals.cjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1119.0",

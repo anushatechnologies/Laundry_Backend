@@ -12,6 +12,7 @@ import { sendWelcomeCustomerNotification } from '../../lib/email';
 import { getFirebaseAuth } from '../../lib/firebase-admin';
 import { pool, isDbConnected } from '../../lib/mysql';
 import { sendSmsOtp } from '../../lib/sms';
+import { logAuditEvent } from '../../lib/audit';
 
 export const customersRouter = Router();
 
@@ -260,6 +261,20 @@ customersRouter.post('/verify-otp', async (req: Request, res: Response) => {
       );
     }
   }
+
+  logAuditEvent({
+    actorId: customer.id,
+    actorName: customer.name,
+    actorEmail: customer.email,
+    actorRole: 'CUSTOMER',
+    action: 'CUSTOMER_SIGNIN_OTP',
+    resourceType: 'CUSTOMERS',
+    resourceId: customer.id,
+    details: `Customer ${customer.name} (+91 ${customer.phone}) authenticated via mobile OTP.`,
+    riskLevel: 'INFO',
+    payloadAfter: { phone: customer.phone, name: customer.name },
+    ipAddress: req.ip,
+  }).catch(() => {});
 
   return tokenResponse(res, customer, `cust_${phone}`);
 });
@@ -712,6 +727,16 @@ customersRouter.put('/:id/preferences', (req: Request, res: Response) => {
  * DELETE /api/customers/:id - Permanently delete customer account and data
  */
 customersRouter.delete('/:id', (req: Request, res: Response) => {
+  logAuditEvent({
+    actorId: req.params.id,
+    action: 'CUSTOMER_ACCOUNT_DELETED',
+    resourceType: 'CUSTOMERS',
+    resourceId: req.params.id,
+    details: `Customer account #${req.params.id} permanently removed.`,
+    riskLevel: 'CRITICAL',
+    ipAddress: req.ip,
+  }).catch(() => {});
+
   db.deleteCustomer(req.params.id);
   return res.json({ success: true, message: 'Account and personal data removed successfully' });
 });

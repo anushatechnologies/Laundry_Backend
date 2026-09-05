@@ -1,140 +1,130 @@
 import { Router, Request, Response } from 'express';
+import { getAuditLogs, logAuditEvent, StoredAuditLog, RiskLevel } from '../../lib/audit';
 import { pool, isDbConnected } from '../../lib/mysql';
 
 export const auditRouter = Router();
 
-// Master Audit Logs In-Memory Fallback
-const MASTER_AUDIT_LOGS = [
+// Baseline Master Seed Logs for first-time boot
+const DEFAULT_SEED_LOGS = [
   {
-    id: 'AUD-901',
-    timestamp: '2026-08-27 13:04:12',
-    userId: 'stf-super-01',
-    userName: 'Venkat (Super Admin)',
-    userEmail: 'venkat@anushatechnologies.com',
-    userRole: 'SUPER_ADMIN',
-    module: 'SUPER_ADMIN_RBAC',
-    action: 'SUPER_ADMIN_LOGIN',
-    details: 'Super Admin logged in from Rajahmundry Central Hub management console.',
+    actorId: 'stf-super-01',
+    actorName: 'Venkat (Master Admin)',
+    actorEmail: 'venkat@anushatechnologies.com',
+    actorRole: 'SUPER_ADMIN',
+    action: 'SUPER_ADMIN_AUTHENTICATED',
+    resourceType: 'SECURITY',
+    resourceId: 'SEC-ROOT-01',
+    details: 'Master administrator authenticated from Rajahmundry Central Operations console.',
+    riskLevel: 'INFO' as RiskLevel,
+    payloadAfter: { session: 'AUTHENTICATED', client: 'Web Admin Panel' },
     ipAddress: '182.74.12.9',
-    riskLevel: 'INFO',
-    payloadDiff: {
-      session: 'SUCCESS_AUTHENTICATED',
-      device: 'Chrome 128 (Windows 11)',
-      ip: '182.74.12.9',
-    },
   },
   {
-    id: 'AUD-902',
-    timestamp: '2026-08-27 12:45:00',
-    userId: 'stf-super-01',
-    userName: 'Venkat (Super Admin)',
-    userEmail: 'venkat@anushatechnologies.com',
-    userRole: 'SUPER_ADMIN',
-    module: 'STAFF_MANAGEMENT',
-    action: 'STAFF_PERMISSIONS_UPDATED',
-    details: 'Granted Orders & Reports full write permissions to Priya Sharma (Kakinada Store Manager).',
+    actorId: 'stf-super-01',
+    actorName: 'Venkat (Master Admin)',
+    actorEmail: 'venkat@anushatechnologies.com',
+    actorRole: 'SUPER_ADMIN',
+    action: 'PRICE_MATRIX_CONFIGURED',
+    resourceType: 'PRICING_ENGINE',
+    resourceId: 'SRV-STEAM-01',
+    details: 'Verified and aligned base rate matrix for 54 garment categories and 6 service tiers.',
+    riskLevel: 'HIGH_RISK' as RiskLevel,
+    payloadAfter: { categoriesCount: 54, servicesCount: 6, status: 'VERIFIED' },
     ipAddress: '182.74.12.9',
-    riskLevel: 'HIGH_RISK',
-    payloadDiff: {
-      previousRole: 'LAUNDRY_STAFF',
-      updatedRole: 'HUB_MANAGER',
-      newPermissions: ['ORDERS', 'INVENTORY', 'REPORTS'],
-    },
   },
   {
-    id: 'AUD-903',
-    timestamp: '2026-08-27 11:30:15',
-    userId: 'stf-2',
-    userName: 'Priya Sharma',
-    userEmail: 'priya.ops@laundryfresh.com',
-    userRole: 'HUB_MANAGER',
-    module: 'INVENTORY',
-    action: 'INVENTORY_RESTOCKED',
-    details: 'Restocked Eco Bio Enzyme Liquid Detergent by +100 LITERS. PO Batch #2026-AUG-27.',
-    ipAddress: '182.74.88.42',
-    riskLevel: 'INFO',
-    payloadDiff: {
-      itemId: 'inv-1',
-      previousStock: 80,
-      newStock: 180,
-      costPerLiter: 140,
-    },
+    actorId: 'stf-super-01',
+    actorName: 'Venkat (Master Admin)',
+    actorEmail: 'venkat@anushatechnologies.com',
+    actorRole: 'SUPER_ADMIN',
+    action: 'SMS_GATEWAY_INITIALIZED',
+    resourceType: 'COMMUNICATIONS',
+    resourceId: 'GW-FAST2SMS',
+    details: 'Fast2SMS Quick Route gateway connected with verified wallet balance.',
+    riskLevel: 'INFO' as RiskLevel,
+    payloadAfter: { route: 'q', status: 'ACTIVE', wallet: 125 },
+    ipAddress: '127.0.0.1',
   },
   {
-    id: 'AUD-904',
-    timestamp: '2026-08-27 10:15:30',
-    userId: 'stf-super-01',
-    userName: 'Venkat (Super Admin)',
-    userEmail: 'venkat@anushatechnologies.com',
-    userRole: 'SUPER_ADMIN',
-    module: 'PRICING_ENGINE',
-    action: 'PRICE_MATRIX_CHANGED',
-    details: 'Updated Silk Saree Dry Cleaning base rate from ₹220 to ₹250 INR per piece.',
-    ipAddress: '182.74.12.9',
-    riskLevel: 'HIGH_RISK',
-    payloadDiff: {
-      serviceId: 'srv-dry-saree',
-      oldPrice: 220,
-      newPrice: 250,
-    },
+    actorId: 'stf-super-01',
+    actorName: 'Venkat (Master Admin)',
+    actorEmail: 'venkat@anushatechnologies.com',
+    actorRole: 'SUPER_ADMIN',
+    action: 'FCM_PUSH_ENGINE_SYNCHRONIZED',
+    resourceType: 'NOTIFICATIONS',
+    resourceId: 'FCM-BROADCAST',
+    details: 'Firebase Cloud Messaging broadcast engine initialized with MySQL feed synchronization.',
+    riskLevel: 'INFO' as RiskLevel,
+    payloadAfter: { package: 'com.anusha.laundry', dualDelivery: true },
+    ipAddress: '127.0.0.1',
   },
 ];
 
-// GET /api/audit — Fetch audit log trail
-auditRouter.get('/', async (req: Request, res: Response) => {
+// Ensure initial baseline logs exist in MySQL
+async function ensureSeedLogs() {
+  if (!isDbConnected || !pool) return;
   try {
-    const { module, riskLevel, search } = req.query;
-
-    let logs = [...MASTER_AUDIT_LOGS];
-
-    if (isDbConnected && pool) {
-      try {
-        const [rows]: any = await pool.query('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100');
-        if (rows.length > 0) {
-          const dbLogs = rows.map((r: any) => ({
-            id: r.id,
-            timestamp: r.created_at ? new Date(r.created_at).toISOString().replace('T', ' ').slice(0, 19) : new Date().toISOString(),
-            userId: r.actor_id,
-            userName: r.actor_email?.split('@')[0] || 'Admin',
-            userEmail: r.actor_email,
-            userRole: r.actor_role,
-            module: r.resource_type || 'GENERAL',
-            action: r.action,
-            details: `${r.action} on ${r.resource_type || 'resource'} #${r.resource_id || ''}`,
-            ipAddress: r.ip_address || '127.0.0.1',
-            riskLevel: 'INFO',
-            payloadDiff: typeof r.payload_after === 'string' ? JSON.parse(r.payload_after) : (r.payload_after || {}),
-          }));
-          logs = [...dbLogs, ...MASTER_AUDIT_LOGS];
-        }
-      } catch (e) {
-        console.error('Error fetching audit logs from MySQL:', e);
+    const [rows]: any = await pool.query('SELECT COUNT(*) as cnt FROM audit_logs');
+    if (rows && rows[0]?.cnt === 0) {
+      for (const seed of DEFAULT_SEED_LOGS) {
+        await logAuditEvent(seed);
       }
     }
+  } catch (err: any) {
+    console.warn('[Audit Routes] Seed verification notice:', err.message);
+  }
+}
 
-    let filtered = logs;
+// GET /api/audit — Fetch audit log trail with search, risk, and module filtering
+auditRouter.get('/', async (req: Request, res: Response) => {
+  try {
+    await ensureSeedLogs();
 
-    if (module && module !== 'ALL') {
-      filtered = filtered.filter((log) => log.module === module);
-    }
-    if (riskLevel && riskLevel !== 'ALL') {
-      filtered = filtered.filter((log) => log.riskLevel === riskLevel);
-    }
-    if (search) {
-      const q = (search as string).toLowerCase();
-      filtered = filtered.filter(
-        (log) =>
-          log.details.toLowerCase().includes(q) ||
-          log.userName.toLowerCase().includes(q) ||
-          log.action.toLowerCase().includes(q) ||
-          log.id.toLowerCase().includes(q)
-      );
-    }
+    const module = typeof req.query.module === 'string' ? req.query.module : undefined;
+    const riskLevel = typeof req.query.riskLevel === 'string' ? req.query.riskLevel : undefined;
+    const search = typeof req.query.search === 'string' ? req.query.search : undefined;
+    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '100'), 10)));
+    const offset = Math.max(0, parseInt(String(req.query.offset || '0'), 10));
+
+    const result = await getAuditLogs({
+      module,
+      riskLevel,
+      search,
+      limit,
+      offset,
+    });
 
     res.json({
       success: true,
-      count: filtered.length,
-      data: filtered,
+      count: result.logs.length,
+      total: result.total,
+      data: result.logs,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// GET /api/audit/stats — Aggregate risk and module metrics for admin dashboard
+auditRouter.get('/stats', async (_req: Request, res: Response) => {
+  try {
+    const result = await getAuditLogs({ limit: 500 });
+    const logs = result.logs;
+
+    const criticalCount = logs.filter((l) => l.riskLevel === 'CRITICAL').length;
+    const highRiskCount = logs.filter((l) => l.riskLevel === 'HIGH_RISK').length;
+    const mediumRiskCount = logs.filter((l) => l.riskLevel === 'MEDIUM_RISK').length;
+    const infoCount = logs.filter((l) => l.riskLevel === 'INFO').length;
+
+    res.json({
+      success: true,
+      data: {
+        total: logs.length,
+        critical: criticalCount,
+        highRisk: highRiskCount,
+        mediumRisk: mediumRiskCount,
+        info: infoCount,
+      },
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -144,33 +134,39 @@ auditRouter.get('/', async (req: Request, res: Response) => {
 // POST /api/audit — Create audit log event
 auditRouter.post('/', async (req: Request, res: Response) => {
   try {
-    const { userName, userEmail, userRole, module, action, details, riskLevel, payloadDiff } = req.body;
+    const {
+      userName,
+      userEmail,
+      userRole,
+      module,
+      action,
+      details,
+      riskLevel,
+      resourceId,
+      payloadBefore,
+      payloadDiff,
+    } = req.body;
 
-    const newLog = {
-      id: `AUD-${Date.now().toString().slice(-6)}`,
-      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-      userId: req.body.userId || 'stf-super-01',
-      userName: userName || 'Venkat (Super Admin)',
-      userEmail: userEmail || 'venkat@anushatechnologies.com',
-      userRole: userRole || 'SUPER_ADMIN',
-      module: module || 'GENERAL',
-      action: action || 'ACTION_PERFORMED',
-      details: details || 'Administrative change executed.',
-      ipAddress: req.ip || '127.0.0.1',
-      riskLevel: riskLevel || 'INFO',
-      payloadDiff: payloadDiff || {},
-    };
-
-    MASTER_AUDIT_LOGS.unshift(newLog);
-
-    if (isDbConnected && pool) {
-      pool.query(
-        'INSERT INTO audit_logs (id, actor_id, actor_email, actor_role, action, resource_type, resource_id, payload_before, payload_after, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [newLog.id, newLog.userId, newLog.userEmail, newLog.userRole, newLog.action, newLog.module, req.body.resourceId || newLog.id, JSON.stringify(req.body.payloadBefore || {}), JSON.stringify(newLog.payloadDiff), newLog.ipAddress]
-      ).catch((err) => console.error('Error logging audit to MySQL:', err));
+    if (!action || !details) {
+      return res.status(400).json({ success: false, message: 'Action and details are required' });
     }
 
-    res.json({ success: true, message: 'Audit event logged', data: newLog });
+    const log = await logAuditEvent({
+      actorId: req.body.userId || 'stf-super-01',
+      actorName: userName,
+      actorEmail: userEmail,
+      actorRole: userRole,
+      action,
+      resourceType: module || 'OPERATIONS',
+      resourceId,
+      details,
+      riskLevel,
+      payloadBefore,
+      payloadAfter: payloadDiff,
+      ipAddress: req.ip || '127.0.0.1',
+    });
+
+    res.status(201).json({ success: true, message: 'Audit event logged', data: log });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

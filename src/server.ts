@@ -1,3 +1,4 @@
+import { reconcileReferrals } from './modules/referrals/service';
 import http from 'http';
 import app from './app';
 import { initDb } from './lib/mysql';
@@ -36,6 +37,18 @@ async function startServer() {
   });
 
   await db.syncFromMysql();
+
+  let reconcilingReferrals = false;
+  const reconcile = async () => {
+    if (reconcilingReferrals) return;
+    reconcilingReferrals = true;
+    try { await reconcileReferrals(); }
+    catch (error) { console.warn('Referral reconciliation pending:', error); }
+    finally { reconcilingReferrals = false; }
+  };
+  const referralTimer = setInterval(() => { void reconcile(); }, 60_000);
+  referralTimer.unref();
+  void reconcile();
 
   // Create HTTP server
   const httpServer = http.createServer(app);

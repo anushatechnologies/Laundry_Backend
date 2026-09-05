@@ -1,3 +1,4 @@
+import { referralRewardDiscount } from '../referrals/service';
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../lib/db';
@@ -14,6 +15,7 @@ import {
 } from '../../lib/email';
 import type { Order, OrderStatus, PaymentMethod } from '../../types';
 import { sendOrderStatusPushNotification } from '../../lib/push';
+import { logAuditEvent } from '../../lib/audit';
 
 const router = Router();
 
@@ -278,10 +280,10 @@ router.get('/:id', requireCustomerScope, (req: Request, res: Response) => {
   return res.json({ success: true, data: customerOrderView(order) });
 });
 
-router.post('/', requireCustomerIdentity, (req: Request, res: Response) => {
+router.post('/', requireCustomerIdentity, async (req: Request, res: Response) => {
   const parsed = createOrderSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ success: false, message: parsed.error.issues[0]?.message || 'Invalid order details.' });
+    return res.status(400).json({ success: false, message: parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('; ') });
   }
 
   try {
@@ -299,7 +301,15 @@ router.post('/', requireCustomerIdentity, (req: Request, res: Response) => {
 
     const items = priceItems(input.items, input.expressTier);
     const itemTotal = Number(items.reduce((total, item) => total + item.subtotal, 0).toFixed(2));
-    const { couponCode, discountAmount } = calculateCouponDiscount(input.couponCode || undefined, itemTotal, input.customerId);
+    const rewardCode = input.couponCode?.trim().toUpperCase();
+    if (rewardCode?.startsWith('RWD')) {
+      const token = req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : '';
+      const identity = verifyAccessToken(token);
+      if (identity.customerId !== input.customerId) throw new Error('You can only redeem rewards on your own orders.');
+    }
+    const { couponCode, discountAmount } = rewardCode?.startsWith('RWD')
+      ? await referralRewardDiscount(input.customerId, rewardCode, itemTotal)
+      : calculateCouponDiscount(input.couponCode || undefined, itemTotal, input.customerId);
     const settings = db.getPricingSettings();
     const pickupDeliveryFee = itemTotal >= zone.minFreeOrderValue ? 0 : zone.standardFee;
     const expressFee = input.expressTier === 'REGULAR' ? 0 : input.expressTier === 'SAME_DAY' ? settings.expressDeliveryFee * 2 : settings.expressDeliveryFee;
@@ -320,7 +330,7 @@ router.post('/', requireCustomerIdentity, (req: Request, res: Response) => {
       }
     }
 
-    const order = db.createOrder({
+    const order = await db.createOrder({
       customerId: input.customerId,
       customerName: input.customerName,
       customerPhone: input.customerPhone,
@@ -353,6 +363,27 @@ router.post('/', requireCustomerIdentity, (req: Request, res: Response) => {
 
     // Auto-trigger Pickup Scheduled email
     triggerOrderEmail(order, 'ORDER_PLACED');
+
+    // Audit Log Entry
+    logAuditEvent({
+      actorId: order.customerId,
+      actorName: order.customerName,
+      actorEmail: order.customerEmail,
+      actorRole: 'CUSTOMER',
+      action: 'ORDER_CREATED',
+      resourceType: 'ORDERS',
+      resourceId: order.id,
+      details: `Order #${order.id} placed by ${order.customerName} for ₹${order.totalAmount} (${order.items.length} items, ${order.expressTier} tier).`,
+      riskLevel: 'INFO',
+      payloadAfter: {
+        orderId: order.id,
+        totalAmount: order.totalAmount,
+        itemCount: order.items.length,
+        paymentMethod: order.paymentMethod,
+        pincode: order.address?.pincode,
+      },
+      ipAddress: req.ip,
+    }).catch(() => {});
 
     return res.status(201).json({ success: true, data: customerOrderView(order) });
   } catch (error) {
@@ -451,6 +482,21 @@ router.patch('/:id/status', requireAdmin, (req: Request, res: Response) => {
   
   if (updated) {
     triggerOrderEmail(updated, parsed.data.status);
+
+    // Audit Log Entry
+    logAuditEvent({
+      actorId: parsed.data.updatedBy || 'admin',
+      actorName: parsed.data.updatedBy || 'Staff Operations',
+      actorRole: 'HUB_MANAGER',
+      action: 'ORDER_STATUS_CHANGED',
+      resourceType: 'ORDERS',
+      resourceId: req.params.id,
+      details: `Order #${req.params.id} status updated from ${current.currentStatus} to ${parsed.data.status}.${parsed.data.notes ? ` Note: ${parsed.data.notes}` : ''}`,
+      riskLevel: parsed.data.status === 'CANCELLED' ? 'HIGH_RISK' : 'INFO',
+      payloadBefore: { status: current.currentStatus },
+      payloadAfter: { status: parsed.data.status, notes: parsed.data.notes },
+      ipAddress: req.ip,
+    }).catch(() => {});
   }
 
   return res.json({ success: true, data: updated });
@@ -467,6 +513,23 @@ router.patch('/:id/weight', requireAdmin, (req: Request, res: Response) => {
   }
 
   const updated = db.updateOrderWeight(req.params.id, parsed.data.actualWeightKg);
+
+  if (updated) {
+    logAuditEvent({
+      actorId: 'stf-quality-01',
+      actorName: 'Facility Inspector',
+      actorRole: 'QUALITY_INSPECTOR',
+      action: 'ORDER_WEIGHT_VERIFIED',
+      resourceType: 'ORDERS',
+      resourceId: req.params.id,
+      details: `Verified actual weight for Order #${req.params.id}: ${parsed.data.actualWeightKg} kg.`,
+      riskLevel: 'INFO',
+      payloadBefore: { weight: order.actualWeightKg },
+      payloadAfter: { weight: parsed.data.actualWeightKg },
+      ipAddress: req.ip,
+    }).catch(() => {});
+  }
+
   return res.json({ success: true, data: updated });
 });
 

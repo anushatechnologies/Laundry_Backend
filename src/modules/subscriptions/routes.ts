@@ -1,17 +1,34 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../../lib/db';
-import { requireAdmin } from '../../middleware/admin';
+import { requireAdmin, requireConfiguredAdmin } from '../../middleware/admin';
+import { subscriptionView } from './view';
 import { pool } from '../../lib/mysql';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
+import { verifyAccessToken } from '../../lib/customer-tokens';
 
 const router = Router();
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || '',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || '',
-});
+function getGateway() {
+  const key = process.env.RAZORPAY_KEY_ID?.trim();
+  const secret = process.env.RAZORPAY_KEY_SECRET?.trim();
+  if (!key || !secret || secret.includes('your_razorpay_secret')) throw new Error('Online payment is not configured.');
+  return { key, secret, client: new Razorpay({ key_id: key, key_secret: secret }) };
+}
+
+function requireSubscriptionCustomer(req: Request, res: Response, next: () => void) {
+  try {
+    const token = req.headers.authorization?.replace(/^Bearer /, '') || '';
+    const customer = verifyAccessToken(token);
+    const customerId = req.params.customerId || req.body.customerId;
+    if (!customer.customerId || customer.customerId !== customerId) {
+      return res.status(403).json({ success: false, message: 'You can only access your own memberships.' });
+    }
+    next();
+  } catch {
+    return res.status(401).json({ success: false, message: 'Please sign in to manage memberships.' });
+  }
+}
 
 // GET /api/subscriptions/plans - List all subscription plans
 router.get('/plans', (req: Request, res: Response) => {
@@ -72,7 +89,7 @@ router.delete('/plans/:id', requireAdmin, (req: Request, res: Response) => {
 // ============================================
 
 // GET /api/subscriptions/customer/:customerId - Get customer's active subscriptions
-router.get('/customer/:customerId', async (req: Request, res: Response) => {
+router.get('/customer/:customerId', requireSubscriptionCustomer, async (req: Request, res: Response) => {
   try {
     if (!pool) {
       return res.status(503).json({ success: false, message: 'Database connection not available' });
@@ -87,29 +104,7 @@ router.get('/customer/:customerId', async (req: Request, res: Response) => {
       [req.params.customerId]
     );
 
-    const subscriptions = rows.map((row: any) => ({
-      id: row.id,
-      customerId: row.customer_id,
-      subscriptionId: row.subscription_id,
-      planName: row.plan_name,
-      slug: row.slug,
-      status: row.status,
-      paymentId: row.payment_id,
-      paymentStatus: row.payment_status,
-      amount: parseFloat(row.amount),
-      startDate: row.start_date,
-      endDate: row.end_date,
-      autoRenew: Boolean(row.auto_renew),
-      usedKg: parseFloat(row.used_kg || 0),
-      remainingKg: parseFloat(row.remaining_kg || 0),
-      includedKg: parseFloat(row.included_kg || 0),
-      ordersCount: row.orders_count || 0,
-      features: row.features ? JSON.parse(row.features) : [],
-      freePickupDelivery: Boolean(row.free_pickup_delivery),
-      priorityService: Boolean(row.priority_service),
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    }));
+    const subscriptions = rows.map((row: any) => subscriptionView(row));
 
     res.json({ success: true, count: subscriptions.length, data: subscriptions });
   } catch (error: any) {
@@ -118,8 +113,31 @@ router.get('/customer/:customerId', async (req: Request, res: Response) => {
   }
 });
 
+// Admin purchase ledger uses the same status calculation as the customer screen.
+router.get('/purchases', requireConfiguredAdmin, async (req: Request, res: Response) => {
+  if (!pool) return res.status(503).json({ success: false, message: 'Membership storage is unavailable.' });
+  const customerId = typeof req.query.customerId === 'string' ? req.query.customerId.trim() : '';
+  try {
+    const [rows]: any = await pool.query(
+      `SELECT cs.*, s.name AS plan_name, s.slug, s.included_kg, s.features,
+              s.free_pickup_delivery, s.priority_service, c.name AS customer_name, c.phone AS customer_phone
+       FROM customer_subscriptions cs
+       LEFT JOIN subscriptions s ON s.id = cs.subscription_id
+       LEFT JOIN customers c ON c.id = cs.customer_id
+       ${customerId ? 'WHERE cs.customer_id = ?' : ''}
+       ORDER BY cs.created_at DESC`, customerId ? [customerId] : []);
+    const purchases = rows.map((row: any) => ({
+      ...subscriptionView(row), customerName: row.customer_name || 'Customer', customerPhone: row.customer_phone || '',
+    }));
+    return res.json({ success: true, count: purchases.length, data: purchases });
+  } catch (error) {
+    console.error('Error fetching subscription purchases:', error);
+    return res.status(500).json({ success: false, message: 'Unable to load purchased subscriptions.' });
+  }
+});
+
 // POST /api/subscriptions/purchase - Create Razorpay order for subscription purchase
-router.post('/purchase', async (req: Request, res: Response) => {
+router.post('/purchase', requireSubscriptionCustomer, async (req: Request, res: Response) => {
   try {
     const { customerId, subscriptionId } = req.body;
 
@@ -138,26 +156,31 @@ router.post('/purchase', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'This subscription plan is not available' });
     }
 
+    if (!pool) return res.status(503).json({ success: false, message: 'Membership storage is unavailable. Please try later.' });
+    const gateway = getGateway();
+
     // Create Razorpay order
     const options = {
       amount: Math.round(plan.price * 100), // Amount in paise
       currency: 'INR',
-      receipt: `sub_${customerId}_${Date.now()}`,
+      receipt: `sub_${crypto.randomUUID()}`.slice(0, 40),
       notes: {
         customerId,
         subscriptionId,
         planName: plan.name,
         type: 'SUBSCRIPTION',
+        validityDays: String(plan.validityDays),
+        includedKg: String(plan.includedKg),
       },
     };
 
-    const razorpayOrder = await razorpay.orders.create(options);
+    const razorpayOrder = await gateway.client.orders.create(options);
 
     res.json({
       success: true,
       orderId: razorpayOrder.id,
-      keyId: process.env.RAZORPAY_KEY_ID || 'rzp_live_TO6q7NUVnPM6bA',
-      key: process.env.RAZORPAY_KEY_ID || 'rzp_live_TO6q7NUVnPM6bA',
+      keyId: gateway.key,
+      key: gateway.key,
       amount: plan.price,
       currency: 'INR',
       planName: plan.name,
@@ -171,7 +194,7 @@ router.post('/purchase', async (req: Request, res: Response) => {
 });
 
 // POST /api/subscriptions/verify-payment - Verify Razorpay payment and activate subscription
-router.post('/verify-payment', async (req: Request, res: Response) => {
+router.post('/verify-payment', requireSubscriptionCustomer, async (req: Request, res: Response) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, customerId, subscriptionId } = req.body;
 
@@ -179,14 +202,16 @@ router.post('/verify-payment', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Missing required payment verification parameters' });
     }
 
+    const gateway = getGateway();
     // Verify signature
     const text = razorpay_order_id + '|' + razorpay_payment_id;
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '')
+      .createHmac('sha256', gateway.secret)
       .update(text)
       .digest('hex');
 
-    if (expectedSignature !== razorpay_signature) {
+    if (typeof razorpay_signature !== 'string' || !/^[a-f0-9]{64}$/i.test(razorpay_signature) ||
+        !crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(razorpay_signature))) {
       return res.status(400).json({ success: false, message: 'Invalid payment signature' });
     }
 
@@ -201,24 +226,36 @@ router.post('/verify-payment', async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Subscription plan not found' });
     }
 
-    // Calculate start and end dates
+    const gatewayOrder = await gateway.client.orders.fetch(razorpay_order_id);
+    const payment = await gateway.client.payments.fetch(razorpay_payment_id);
+    if (gatewayOrder.notes?.type !== 'SUBSCRIPTION' || gatewayOrder.notes?.customerId !== customerId ||
+        gatewayOrder.notes?.subscriptionId !== subscriptionId || payment.order_id !== gatewayOrder.id ||
+        payment.status !== 'captured' || payment.currency !== 'INR' ||
+        Number(payment.amount) !== Number(gatewayOrder.amount)) {
+      return res.status(409).json({ success: false, message: 'Payment is not captured for this membership. Please contact support before paying again.' });
+    }
+    const [existing]: any = await pool.query('SELECT * FROM customer_subscriptions WHERE payment_id = ?', [razorpay_payment_id]);
+    if (existing.length) return res.json({ success: true, data: existing[0] });
+
+    const validityDays = Number(gatewayOrder.notes?.validityDays || plan.validityDays);
+    const includedKg = Number(gatewayOrder.notes?.includedKg || plan.includedKg);
     const startDate = new Date().toISOString();
-    const endDate = new Date(Date.now() + plan.validityDays * 24 * 60 * 60 * 1000).toISOString();
+    const endDate = new Date(Date.now() + validityDays * 24 * 60 * 60 * 1000).toISOString();
 
     // Create customer subscription record
     const subscriptionRecord = {
-      id: `custsub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `custsub_${razorpay_payment_id}`,
       customer_id: customerId,
       subscription_id: subscriptionId,
       status: 'ACTIVE',
       payment_id: razorpay_payment_id,
       payment_status: 'PAID',
-      amount: plan.price,
+      amount: Number(gatewayOrder.amount) / 100,
       start_date: startDate,
       end_date: endDate,
       auto_renew: 0,
       used_kg: 0,
-      remaining_kg: plan.includedKg,
+      remaining_kg: includedKg,
       orders_count: 0,
       created_at: startDate,
       updated_at: startDate,
@@ -226,7 +263,7 @@ router.post('/verify-payment', async (req: Request, res: Response) => {
 
     await pool.query(
       `INSERT INTO customer_subscriptions (id, customer_id, subscription_id, status, payment_id, payment_status, amount, start_date, end_date, auto_renew, used_kg, remaining_kg, orders_count, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE id = id`,
       [
         subscriptionRecord.id,
         subscriptionRecord.customer_id,

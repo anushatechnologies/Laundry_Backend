@@ -12,7 +12,7 @@ const router = Router();
 function getRazorpayConfig() {
   const keyId = process.env.RAZORPAY_KEY_ID?.trim();
   const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
-  return keyId && keySecret ? { keyId, keySecret } : null;
+  return keyId && keySecret && !keySecret.includes('your_razorpay_secret') ? { keyId, keySecret } : null;
 }
 
 function getRazorpayClient() {
@@ -70,7 +70,8 @@ function requireCustomerOrderAccess(req: Request, res: Response, next: () => voi
 // to a browser. The signing secret remains server-only.
 router.get('/key', (_req: Request, res: Response) => {
   const config = getRazorpayConfig();
-  const keyId = config?.keyId || 'rzp_test_mock_sandbox';
+  if (!config) return res.status(503).json({ success: false, message: 'Online payment is not configured.' });
+  const keyId = config.keyId;
   return res.json({ success: true, data: { key: keyId } });
 });
 
@@ -151,27 +152,14 @@ router.post('/create-order', requireCustomerOrderAccess, async (req: Request, re
         },
       });
     } catch (err) {
-      console.warn('Razorpay client live create notice, using sandbox fallback:', err);
+      console.error('Razorpay order creation failed:', err);
     }
   }
 
-  // Sandbox / Demo Instant Mode for seamless development & test checkout
-  const mockGatewayOrderId = `order_sand_${order.id}_${Date.now()}`;
-  db.setPaymentGatewayOrder(order.id, mockGatewayOrderId);
-  return res.status(201).json({
-    success: true,
-    data: {
-      key: process.env.RAZORPAY_KEY_ID || 'rzp_test_mock_sandbox',
-      orderId: mockGatewayOrderId,
-      amount: Math.round(amount * 100),
-      currency: 'INR',
-      internalOrderId: order.id,
-      isMock: true,
-    },
-  });
+  return res.status(503).json({ success: false, message: 'Online payment is unavailable. Please try again later or choose pay on delivery.' });
 });
 
-router.post('/verify-signature', requireCustomerOrderAccess, (req: Request, res: Response) => {
+router.post('/verify-signature', requireCustomerOrderAccess, async (req: Request, res: Response) => {
   const parsed = verifyPaymentSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ success: false, message: 'Payment verification payload is invalid.' });
 
@@ -181,17 +169,7 @@ router.post('/verify-signature', requireCustomerOrderAccess, (req: Request, res:
   if (!order) return res.status(404).json({ success: false, message: 'Order not found.' });
   if (order.paymentStatus === 'PAID') return res.json({ success: true, data: paymentView(order) });
 
-  // Sandbox / Demo or Mock Signature verification
-  if (
-    order.paymentGatewayOrderId?.startsWith('order_sand_') ||
-    razorpay_order_id.startsWith('order_sand_') ||
-    razorpay_signature.startsWith('mock_') ||
-    !razorpay ||
-    razorpay.config.keySecret.includes('your_razorpay_secret')
-  ) {
-    const paidOrder = db.markOrderPaymentPaid(order.id, razorpay_payment_id || `pay_sand_${Date.now()}`);
-    return res.json({ success: true, data: paymentView(paidOrder) });
-  }
+  if (!razorpay) return res.status(503).json({ success: false, message: 'Online payment is not configured.' });
 
   if (!order.paymentGatewayOrderId || order.paymentGatewayOrderId !== razorpay_order_id) {
     return res.status(409).json({ success: false, message: 'Payment does not belong to this order.' });
@@ -208,6 +186,15 @@ router.post('/verify-signature', requireCustomerOrderAccess, (req: Request, res:
     return res.status(400).json({ success: false, message: 'Payment verification failed.' });
   }
 
+  try {
+    const payment = await razorpay.client.payments.fetch(razorpay_payment_id);
+    if (payment.order_id !== order.paymentGatewayOrderId || payment.status !== 'captured' ||
+        payment.currency !== 'INR' || Number(payment.amount) !== Math.round(order.totalAmount * 100)) {
+      return res.status(409).json({ success: false, message: 'Payment is awaiting confirmation. Please contact support before paying again.' });
+    }
+  } catch {
+    return res.status(503).json({ success: false, message: 'Unable to confirm payment. Please contact support before paying again.' });
+  }
   const paidOrder = db.markOrderPaymentPaid(order.id, razorpay_payment_id);
   notifyPaymentSuccess(paidOrder);
   return res.json({ success: true, data: paymentView(paidOrder) });
@@ -269,19 +256,14 @@ router.post('/webhook', (req: Request, res: Response) => {
 
   console.log(`[Razorpay Webhook] Received event: ${event}`);
 
-  // If secret configured, verify webhook signature
-  if (webhookSecret && webhookSignature) {
-    try {
-      const shasum = crypto.createHmac('sha256', webhookSecret);
-      shasum.update(JSON.stringify(req.body));
-      const digest = shasum.digest('hex');
-
-      if (digest !== webhookSignature) {
-        console.warn('[Razorpay Webhook] Signature verification mismatch');
-      }
-    } catch (err) {
-      console.warn('[Razorpay Webhook] Verification error:', err);
-    }
+  const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
+  if (!webhookSecret || !webhookSignature || !rawBody) {
+    return res.status(400).json({ success: false, message: 'Missing webhook signature.' });
+  }
+  const expected = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
+  if (!/^[a-f0-9]{64}$/i.test(webhookSignature) ||
+      !crypto.timingSafeEqual(Buffer.from(webhookSignature), Buffer.from(expected))) {
+    return res.status(400).json({ success: false, message: 'Invalid webhook signature.' });
   }
 
   // Handle Payment Captured or Order Paid events
@@ -292,7 +274,10 @@ router.post('/webhook', (req: Request, res: Response) => {
 
     if (internalOrderId) {
       const existingOrder = db.getOrderById(internalOrderId);
-      if (existingOrder && existingOrder.paymentStatus !== 'PAID') {
+      if (existingOrder && existingOrder.paymentStatus !== 'PAID' &&
+          existingOrder.paymentGatewayOrderId === payment?.order_id &&
+          payment?.status === 'captured' && payment?.currency === 'INR' &&
+          Number(payment?.amount) === Math.round(existingOrder.totalAmount * 100)) {
         const paid = db.markOrderPaymentPaid(internalOrderId, paymentId);
         notifyPaymentSuccess(paid);
         console.log(`[Razorpay Webhook] Marked order #${internalOrderId} as PAID (${paymentId})`);

@@ -1,3 +1,5 @@
+import { verifyAccessToken } from '../../lib/customer-tokens';
+import { referralRewardDiscount } from '../referrals/service';
 import { Router, Request, Response } from 'express';
 import { db } from '../../lib/db';
 import { requireAdmin } from '../../middleware/admin';
@@ -55,8 +57,22 @@ router.delete('/:id', requireAdmin, (req: Request, res: Response) => {
 });
 
 // POST /api/coupons/apply - Validate coupon in checkout
-router.post('/apply', (req: Request, res: Response) => {
+router.post('/apply', async (req: Request, res: Response) => {
   const { code, orderTotal, isFirstOrder } = req.body;
+  if (typeof code === 'string' && code.trim().toUpperCase().startsWith('RWD')) {
+    let customerId: string;
+    try {
+      const token = req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : '';
+      customerId = verifyAccessToken(token).customerId || '';
+      if (!customerId) throw new Error('Sign in required.');
+    } catch { return res.status(401).json({ success: false, message: 'Please sign in to redeem rewards.' }); }
+    try {
+      const reward = await referralRewardDiscount(customerId, code.trim().toUpperCase(), Number(orderTotal));
+      return res.json({ success: true, data: { isValid: true, discount: reward.discountAmount, message: 'Referral reward applied.' } });
+    } catch (error: any) {
+      return res.json({ success: true, data: { isValid: false, discount: 0, message: error.code ? 'Reward service is unavailable.' : error.message } });
+    }
+  }
   const coupon = db.getCoupons().find((c) => c.code.toUpperCase() === (code || '').toUpperCase() && c.isActive);
 
   if (!coupon) {
