@@ -322,6 +322,21 @@ async function createTables() {
     )
   `);
   await database.query(`
+    CREATE TABLE IF NOT EXISTS customer_notifications (
+      id VARCHAR(255) PRIMARY KEY,
+      customer_id VARCHAR(255) NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      body TEXT NOT NULL,
+      type VARCHAR(50) DEFAULT 'ORDER',
+      channel VARCHAR(50) DEFAULT 'orders',
+      data JSON,
+      is_read TINYINT(1) DEFAULT 0,
+      created_at VARCHAR(100) NOT NULL,
+      INDEX idx_cust_notif_customer (customer_id),
+      INDEX idx_cust_notif_created (created_at)
+    )
+  `);
+  await database.query(`
     CREATE TABLE IF NOT EXISTS hubs (
       id VARCHAR(255) PRIMARY KEY,
       name VARCHAR(255) NOT NULL,

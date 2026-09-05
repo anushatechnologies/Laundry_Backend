@@ -1,7 +1,17 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { requireConfiguredAdmin } from '../../middleware/admin';
-import { sendPushNotificationToCustomer, type PushChannel } from '../../lib/push';
+import { verifyAccessToken } from '../../lib/customer-tokens';
+import {
+  sendPushNotificationToCustomer,
+  broadcastPushNotification,
+  getCustomerNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteCustomerNotification,
+  getDeviceStats,
+  type PushChannel,
+} from '../../lib/push';
 import {
   sendEmail,
   verifySmtpConnection,
@@ -88,6 +98,59 @@ function renderPreviewForConfig(cfg: EmailTemplateConfig): { subject: string; ht
   }
 }
 
+function customerFromRequest(req: Request, res: Response) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!token) {
+    res.status(401).json({ success: false, message: 'Customer sign-in is required.' });
+    return null;
+  }
+  try {
+    const customer = verifyAccessToken(token);
+    if (!customer.customerId) {
+      res.status(401).json({ success: false, message: 'Customer session is incomplete.' });
+      return null;
+    }
+    return customer;
+  } catch {
+    res.status(401).json({
+      success: false,
+      message: 'Customer session expired. Please sign in again.',
+    });
+    return null;
+  }
+}
+
+/** Customer In-App Notification Feed */
+router.get('/', async (req: Request, res: Response) => {
+  const customer = customerFromRequest(req, res);
+  if (!customer) return;
+  const notifications = await getCustomerNotifications(customer.customerId!);
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  res.json({ success: true, data: notifications, unreadCount });
+});
+
+router.patch('/:id/read', async (req: Request, res: Response) => {
+  const customer = customerFromRequest(req, res);
+  if (!customer) return;
+  const ok = await markNotificationAsRead(customer.customerId!, req.params.id);
+  res.json({ success: ok });
+});
+
+router.post('/mark-all-read', async (req: Request, res: Response) => {
+  const customer = customerFromRequest(req, res);
+  if (!customer) return;
+  const ok = await markAllNotificationsAsRead(customer.customerId!);
+  res.json({ success: ok });
+});
+
+router.delete('/:id', async (req: Request, res: Response) => {
+  const customer = customerFromRequest(req, res);
+  if (!customer) return;
+  const ok = await deleteCustomerNotification(customer.customerId!, req.params.id);
+  res.json({ success: ok });
+});
+
 // 1. Get SMTP Configuration & Connection Status
 router.get('/smtp-status', async (req: Request, res: Response) => {
   const result = await verifySmtpConnection();
@@ -149,6 +212,60 @@ router.post('/push', requireConfiguredAdmin, async (req: Request, res: Response)
       message: 'Firebase Cloud Messaging could not deliver this push notification.',
     });
   }
+});
+
+const broadcastSchema = z.object({
+  title: z.string().trim().min(1).max(120),
+  body: z.string().trim().min(1).max(500),
+  channel: z.enum(['orders', 'promotions']).default('promotions'),
+  screen: z.string().trim().default('OFFERS'),
+  couponCode: z.string().trim().optional(),
+});
+
+/**
+ * Broadcast push notification to all active registered devices
+ */
+router.post('/broadcast', requireConfiguredAdmin, async (req: Request, res: Response) => {
+  const parsed = broadcastSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      message: parsed.error.issues[0]?.message || 'Invalid broadcast payload.',
+    });
+  }
+
+  const { title, body, channel, screen, couponCode } = parsed.data;
+  const data: Record<string, string> = { screen };
+  if (couponCode) data.couponCode = couponCode;
+
+  try {
+    const delivery = await broadcastPushNotification({
+      title,
+      body,
+      channel: channel as PushChannel,
+      data,
+    });
+
+    return res.json({
+      success: true,
+      message: `Broadcast push dispatched to ${delivery.targetedDeviceCount} device(s). Success: ${delivery.successCount}, Failed: ${delivery.failureCount}`,
+      data: delivery,
+    });
+  } catch (error) {
+    console.error('Admin Broadcast push error:', error);
+    return res.status(502).json({
+      success: false,
+      message: 'Firebase Cloud Messaging broadcast encountered an error.',
+    });
+  }
+});
+
+/**
+ * Get device registration stats for admin dashboard
+ */
+router.get('/device-stats', requireConfiguredAdmin, async (req: Request, res: Response) => {
+  const stats = await getDeviceStats();
+  res.json({ success: true, data: stats });
 });
 
 // 2. Get All Readymade Email Templates (with live preview HTML and full editable settings)
