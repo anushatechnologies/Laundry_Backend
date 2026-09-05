@@ -1041,7 +1041,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
 
 export const INITIAL_SERVICE_MASTERS: ServiceMaster[] = [
   { id: 'srv-m-steam-iron', name: 'Iron Only (Steam Press)', slug: 'steam-iron', serviceCode: 'PRESS', icon: '🔥', pricingType: 'PER_ITEM', turnaroundHours: 18, description: 'High-pressure wrinkle removal, crease setting & crisp hanger finish.', isActive: true },
-  { id: 'srv-m-wash-fold', name: 'Wash & Fold', slug: 'wash-and-fold', serviceCode: 'WASH_IRON', icon: '🧺', pricingType: 'PER_KG', baseKgPrice: 60, minOrderKg: 3, turnaroundHours: 24, description: 'Hygienic wash, tumble dry, and neat compact fold.', isActive: true },
+  { id: 'srv-m-wash-fold', name: 'Wash & Fold', slug: 'wash-and-fold', serviceCode: 'WASH_FOLD', icon: '🧺', pricingType: 'PER_KG', baseKgPrice: 60, minOrderKg: 3, turnaroundHours: 24, description: 'Hygienic wash, tumble dry, and neat compact fold.', isActive: true },
   { id: 'srv-m-wash-iron', name: 'Wash & Steam Iron', slug: 'wash-and-iron', serviceCode: 'WASH_IRON', icon: '👔', pricingType: 'PER_KG', baseKgPrice: 85, minOrderKg: 3, turnaroundHours: 36, description: 'Eco-wash + industrial steam pressing on hangers.', isActive: true },
   { id: 'srv-m-dry-clean', name: 'Dry Cleaning', slug: 'dry-cleaning', serviceCode: 'DRY_CLEAN', icon: '🧥', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Hydrocarbon solvent treatment with breathable garment cover.', isActive: true },
   { id: 'srv-m-charak', name: 'Saree Polishing & Charak', slug: 'saree-charak', serviceCode: 'SAREE_POLISH', icon: '✨', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Traditional starching, roll pressing & zari shine revival.', isActive: true },
@@ -5932,6 +5932,7 @@ class BackendDatabase {
           icon: r.icon,
           description: r.description,
           isPopular: Boolean(r.is_popular),
+          color: r.color || undefined,
           image: r.image_url || undefined,
           imageUrl: r.image_url || undefined,
         }));
