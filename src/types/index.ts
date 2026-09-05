@@ -243,6 +243,24 @@ export interface Wallet {
   transactions: WalletTransaction[];
 }
 
+export interface CustomerPreferences {
+  whatsappUpdates: boolean;
+  promotionalAlerts: boolean;
+  starchLevel: 'NONE' | 'LIGHT' | 'MEDIUM' | 'HEAVY';
+  packagingPreference: 'FOLDED' | 'HANGER';
+  fragrancePreference: 'FRESH' | 'LAVENDER' | 'SCENT_FREE';
+  deliveryInstructions: 'RING_BELL' | 'LEAVE_AT_DOOR' | 'CALL_ON_ARRIVAL';
+}
+
+export const DEFAULT_CUSTOMER_PREFERENCES: CustomerPreferences = {
+  whatsappUpdates: true,
+  promotionalAlerts: false,
+  starchLevel: 'NONE',
+  packagingPreference: 'FOLDED',
+  fragrancePreference: 'FRESH',
+  deliveryInstructions: 'RING_BELL',
+};
+
 export interface PincodeZone {
   pincode: string;
   areaName: string;
@@ -341,6 +359,10 @@ export interface PricingSettings {
   expressDeliveryFee: number;
   extraKgPrice: number;
   isGstEnabled?: boolean;
+  storeTimings?: string;
+  whatsappNotificationsEnabled?: boolean;
+  smsNotificationsEnabled?: boolean;
+  emailNotificationsEnabled?: boolean;
 }
 
 // -------------------------------------------------------------

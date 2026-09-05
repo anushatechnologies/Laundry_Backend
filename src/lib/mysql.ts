@@ -1,3 +1,4 @@
+import { createReferralTables } from '../modules/referrals/schema';
 import mysql, { type Pool } from 'mysql2/promise';
 import dotenv from 'dotenv';
 
@@ -71,6 +72,7 @@ export async function initDb(initialData: InitialData) {
     isDbConnected = true;
 
     await createTables();
+    await createReferralTables(pool);
     await seedTablesIfEmpty(initialData);
     console.log(`Connected to MySQL database "${dbName}" on ${dbHost}:${databaseOptions.port}`);
   } catch (error) {
@@ -117,16 +119,20 @@ async function createTables() {
     )
   `);
 
-  // Safe non-destructive column migrations for existing deployments
-  try {
-    await database.query(`ALTER TABLE categories ADD COLUMN image_url TEXT`);
-  } catch {}
-  try {
-    await database.query(`ALTER TABLE service_masters ADD COLUMN image_url TEXT`);
-  } catch {}
-  try {
-    await database.query(`ALTER TABLE cloth_types ADD COLUMN image_url TEXT`);
-  } catch {}
+  await database.query(`
+    CREATE TABLE IF NOT EXISTS customers (
+      id VARCHAR(255) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      phone VARCHAR(100) NOT NULL,
+      email VARCHAR(255),
+      role VARCHAR(50) DEFAULT 'CUSTOMER',
+      preferences JSON,
+      created_at VARCHAR(100),
+      updated_at VARCHAR(100),
+      INDEX idx_customer_phone (phone)
+    )
+  `);
+
   await database.query(`
     CREATE TABLE IF NOT EXISTS service_price_matrix (
       id VARCHAR(255) PRIMARY KEY, cloth_type_id VARCHAR(255), cloth_name VARCHAR(255),
@@ -139,7 +145,12 @@ async function createTables() {
     CREATE TABLE IF NOT EXISTS pricing_settings (
       id INT PRIMARY KEY, tax_percentage DECIMAL(5, 2), min_order_value DECIMAL(10, 2),
       free_delivery_threshold DECIMAL(10, 2), standard_delivery_fee DECIMAL(10, 2),
-      express_delivery_fee DECIMAL(10, 2), extra_kg_price DECIMAL(10, 2)
+      express_delivery_fee DECIMAL(10, 2), extra_kg_price DECIMAL(10, 2),
+      is_gst_enabled TINYINT(1) DEFAULT 1,
+      store_timings VARCHAR(100) DEFAULT '7:00 AM – 10:00 PM',
+      whatsapp_notifications_enabled TINYINT(1) DEFAULT 1,
+      sms_notifications_enabled TINYINT(1) DEFAULT 1,
+      email_notifications_enabled TINYINT(1) DEFAULT 1
     )
   `);
   await database.query(`
@@ -278,17 +289,6 @@ async function createTables() {
   `);
   
   await database.query(`
-    CREATE TABLE IF NOT EXISTS customers (
-      id VARCHAR(255) PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      phone VARCHAR(100) NOT NULL UNIQUE,
-      email VARCHAR(255),
-      role VARCHAR(50) DEFAULT 'CUSTOMER',
-      created_at VARCHAR(100),
-      updated_at VARCHAR(100)
-    )
-  `);
-  await database.query(`
     CREATE TABLE IF NOT EXISTS customer_addresses (
       id VARCHAR(255) PRIMARY KEY,
       customer_id VARCHAR(255) NOT NULL,
@@ -351,10 +351,18 @@ async function createTables() {
   // Column upgrade migrations
   const alterMigrations: [string, string][] = [
     ['categories', 'ADD COLUMN color VARCHAR(50) NULL'],
+    ['categories', 'ADD COLUMN image_url TEXT NULL'],
+    ['service_masters', 'ADD COLUMN image_url TEXT NULL'],
     ['cloth_types', 'ADD COLUMN image_url TEXT NULL'],
     ['cloth_types', 'ADD COLUMN sub_category VARCHAR(255) NULL'],
     ['orders', 'ADD COLUMN payment_transaction_id VARCHAR(255) NULL'],
     ['orders', 'ADD COLUMN payment_gateway_order_id VARCHAR(255) NULL'],
+    ['customers', 'ADD COLUMN preferences JSON NULL'],
+    ['pricing_settings', 'ADD COLUMN is_gst_enabled TINYINT(1) DEFAULT 1'],
+    ['pricing_settings', "ADD COLUMN store_timings VARCHAR(100) DEFAULT '7:00 AM – 10:00 PM'"],
+    ['pricing_settings', 'ADD COLUMN whatsapp_notifications_enabled TINYINT(1) DEFAULT 1'],
+    ['pricing_settings', 'ADD COLUMN sms_notifications_enabled TINYINT(1) DEFAULT 1'],
+    ['pricing_settings', 'ADD COLUMN email_notifications_enabled TINYINT(1) DEFAULT 1'],
   ];
 
   for (const [table, columnDef] of alterMigrations) {

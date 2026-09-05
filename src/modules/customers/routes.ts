@@ -691,4 +691,29 @@ customersRouter.put('/:id/plan', requireAdmin, (_req: Request, res: Response) =>
   res.status(501).json({ success: false, message: 'Customer subscription assignment is not configured.' })
 );
 
+/**
+ * GET /api/customers/:id/preferences - Get customer notification & laundry preferences
+ */
+customersRouter.get('/:id/preferences', (req: Request, res: Response) => {
+  const prefs = db.getCustomerPreferences(req.params.id);
+  return res.json({ success: true, data: prefs });
+});
+
+/**
+ * PUT /api/customers/:id/preferences - Update customer notification & laundry preferences
+ */
+customersRouter.put('/:id/preferences', (req: Request, res: Response) => {
+  const prefs = req.body || {};
+  const updated = db.updateCustomerPreferences(req.params.id, prefs);
+  return res.json({ success: true, message: 'Preferences updated successfully', data: updated });
+});
+
+/**
+ * DELETE /api/customers/:id - Permanently delete customer account and data
+ */
+customersRouter.delete('/:id', (req: Request, res: Response) => {
+  db.deleteCustomer(req.params.id);
+  return res.json({ success: true, message: 'Account and personal data removed successfully' });
+});
+
 export default customersRouter;

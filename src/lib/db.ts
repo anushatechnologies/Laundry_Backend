@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+import { referralRewardDiscount } from '../modules/referrals/service';
 import {
   ServiceCategory,
   Service,
@@ -17,6 +19,8 @@ import {
   BulkLaundryType,
   Banner,
   Subcategory,
+  CustomerPreferences,
+  DEFAULT_CUSTOMER_PREFERENCES,
 } from '../types';
 import { pool, isDbConnected } from './mysql';
 
@@ -6109,9 +6113,8 @@ class BackendDatabase {
   getOrders(): Order[] { return this.orders; }
   getOrderById(id: string): Order | undefined { return this.orders.find((o) => o.id.toUpperCase() === id.toUpperCase()); }
 
-  createOrder(data: any): Order {
-    const nextNum = 10246 + this.orders.length;
-    const id = `LAU${nextNum}`;
+  async createOrder(data: any): Promise<Order> {
+    const id = `LAU${randomUUID().replace(/-/g, '').slice(0, 16).toUpperCase()}`;
     const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const order: Order = {
       ...data,
@@ -6125,10 +6128,20 @@ class BackendDatabase {
       createdAt: now,
       updatedAt: now,
     };
-    this.orders.unshift(order);
 
+    if (data.couponCode?.startsWith('RWD') && (!isDbConnected || !pool)) {
+      throw new Error('Reward checkout requires an available database.');
+    }
     if (isDbConnected && pool) {
-      pool.query(
+      const connection = await pool.getConnection();
+      try {
+        await connection.beginTransaction();
+        await connection.query('SELECT id FROM customers WHERE id = ? FOR UPDATE', [order.customerId]);
+        if (data.couponCode?.startsWith('RWD')) {
+          const reward = await referralRewardDiscount(order.customerId, data.couponCode, order.itemTotal, connection, order.id);
+          if (reward.discountAmount !== order.discountAmount) throw new Error('Reward amount changed. Please retry checkout.');
+        }
+        await connection.query(
         `INSERT INTO orders (
           id, customer_id, customer_name, customer_phone, address, items, pricing_model_summary,
           express_tier, pickup_slot, delivery_slot, pickup_otp, delivery_otp, bag_tag_code,
@@ -6166,9 +6179,13 @@ class BackendDatabase {
           order.createdAt,
           order.updatedAt,
         ]
-      ).catch((err) => console.error('Error inserting order to MySQL:', err));
+        );
+        await connection.commit();
+      } catch (error) { await connection.rollback(); throw error; }
+      finally { connection.release(); }
     }
 
+    this.orders.unshift(order);
     return order;
   }
 
@@ -6545,10 +6562,24 @@ class BackendDatabase {
 
     if (isDbConnected && pool) {
       const s = this.pricingSettings;
-      pool.query(
-        'UPDATE pricing_settings SET tax_percentage = ?, min_order_value = ?, free_delivery_threshold = ?, standard_delivery_fee = ?, express_delivery_fee = ?, extra_kg_price = ?, is_gst_enabled = ? WHERE id = 1',
-        [s.taxPercentage, s.minOrderValue, s.freeDeliveryThreshold, s.standardDeliveryFee, s.expressDeliveryFee, s.extraKgPrice, s.isGstEnabled !== false ? 1 : 0]
-      ).catch((err) => console.error('Error updating pricing settings in MySQL:', err));
+      pool
+        .query(
+          'UPDATE pricing_settings SET tax_percentage = ?, min_order_value = ?, free_delivery_threshold = ?, standard_delivery_fee = ?, express_delivery_fee = ?, extra_kg_price = ?, is_gst_enabled = ?, store_timings = ?, whatsapp_notifications_enabled = ?, sms_notifications_enabled = ?, email_notifications_enabled = ? WHERE id = 1',
+          [
+            s.taxPercentage,
+            s.minOrderValue,
+            s.freeDeliveryThreshold,
+            s.standardDeliveryFee,
+            s.expressDeliveryFee,
+            s.extraKgPrice,
+            s.isGstEnabled !== false ? 1 : 0,
+            s.storeTimings || '7:00 AM – 10:00 PM',
+            s.whatsappNotificationsEnabled !== false ? 1 : 0,
+            s.smsNotificationsEnabled !== false ? 1 : 0,
+            s.emailNotificationsEnabled !== false ? 1 : 0,
+          ]
+        )
+        .catch((err) => console.error('Error updating pricing settings in MySQL:', err));
     }
 
     return this.pricingSettings;
@@ -7016,6 +7047,61 @@ class BackendDatabase {
     }
 
     return record;
+  }
+
+  findCustomerById(id: string): any | undefined {
+    if (!id) return undefined;
+    return this.customers.find((c) => c.id === id);
+  }
+
+  getCustomerPreferences(customerId: string): CustomerPreferences {
+    const customer = this.findCustomerById(customerId);
+    if (customer && customer.preferences) {
+      if (typeof customer.preferences === 'string') {
+        try {
+          return { ...DEFAULT_CUSTOMER_PREFERENCES, ...JSON.parse(customer.preferences) };
+        } catch {}
+      } else {
+        return { ...DEFAULT_CUSTOMER_PREFERENCES, ...customer.preferences };
+      }
+    }
+    return { ...DEFAULT_CUSTOMER_PREFERENCES };
+  }
+
+  updateCustomerPreferences(customerId: string, prefs: Partial<CustomerPreferences>): CustomerPreferences {
+    const customer = this.findCustomerById(customerId);
+    const existing = this.getCustomerPreferences(customerId);
+    const updated: CustomerPreferences = {
+      ...existing,
+      ...prefs,
+    };
+    if (customer) {
+      customer.preferences = updated;
+      customer.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    }
+    if (isDbConnected && pool) {
+      pool
+        .query('UPDATE customers SET preferences = ?, updated_at = ? WHERE id = ?', [
+          JSON.stringify(updated),
+          new Date().toISOString().replace('T', ' ').substring(0, 16),
+          customerId,
+        ])
+        .catch((err) => console.error('Error updating customer preferences in MySQL:', err));
+    }
+    return updated;
+  }
+
+  deleteCustomer(customerId: string): boolean {
+    const idx = this.customers.findIndex((c) => c.id === customerId);
+    if (idx !== -1) {
+      this.customers.splice(idx, 1);
+    }
+    if (isDbConnected && pool) {
+      pool
+        .query('DELETE FROM customers WHERE id = ?', [customerId])
+        .catch((err) => console.error('Error deleting customer from MySQL:', err));
+    }
+    return true;
   }
 
   // --- BANNERS SYSTEM ---
