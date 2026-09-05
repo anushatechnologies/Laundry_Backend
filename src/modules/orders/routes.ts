@@ -1,4 +1,5 @@
 import { referralRewardDiscount } from '../referrals/service';
+import { getWallet, debitWallet } from '../wallet/service';
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../lib/db';
@@ -109,6 +110,7 @@ const createOrderSchema = z.object({
   couponCode: z.string().trim().max(40).optional().nullable(),
   notes: z.string().trim().max(1500).optional().nullable(),
   paymentMethod: z.enum(paymentMethods),
+  useWallet: z.boolean().optional().default(false),
 });
 
 const statusSchema = z.object({
@@ -295,10 +297,6 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
     if (input.expressTier !== 'REGULAR' && !zone.expressAvailable) {
       return res.status(422).json({ success: false, message: 'Express service is not available for this pincode.' });
     }
-    if (input.paymentMethod === 'WALLET') {
-      return res.status(422).json({ success: false, message: 'Wallet payments require a verified server-side wallet and are unavailable at checkout.' });
-    }
-
     const items = priceItems(input.items, input.expressTier);
     const itemTotal = Number(items.reduce((total, item) => total + item.subtotal, 0).toFixed(2));
     const rewardCode = input.couponCode?.trim().toUpperCase();
@@ -316,7 +314,33 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
     const taxableAmount = Math.max(0, itemTotal - discountAmount + pickupDeliveryFee + expressFee);
     const effectiveTaxPercentage = (settings.isGstEnabled !== false) ? settings.taxPercentage : 0;
     const taxAmount = Number((taxableAmount * (effectiveTaxPercentage / 100)).toFixed(2));
-    const totalAmount = Number((taxableAmount + taxAmount).toFixed(2));
+    const initialTotalAmount = Number((taxableAmount + taxAmount).toFixed(2));
+
+    // Handle Wallet Balance deduction
+    let walletDeduction = 0;
+    if (input.useWallet || input.paymentMethod === 'WALLET') {
+      try {
+        const wallet = await getWallet(input.customerId);
+        if (input.paymentMethod === 'WALLET') {
+          if (wallet.balance < initialTotalAmount) {
+            return res.status(422).json({
+              success: false,
+              message: `Insufficient wallet balance (₹${wallet.balance.toFixed(2)}). Order total is ₹${initialTotalAmount.toFixed(2)}.`,
+            });
+          }
+          walletDeduction = initialTotalAmount;
+        } else if (input.useWallet && wallet.balance > 0) {
+          walletDeduction = Math.min(wallet.balance, initialTotalAmount);
+        }
+      } catch (err: any) {
+        console.warn('Wallet check error on order creation:', err?.message);
+      }
+    }
+
+    const totalAmount = Number((initialTotalAmount - walletDeduction).toFixed(2));
+    const isPaidByWallet = input.paymentMethod === 'WALLET' || (walletDeduction > 0 && totalAmount === 0);
+    const paymentMethod = isPaidByWallet ? 'WALLET' : (input.paymentMethod as PaymentMethod);
+    const paymentStatus = isPaidByWallet ? 'PAID' : 'PENDING';
 
     // Email fallback: if customer didn't provide email at sign-up,
     // try to load it from their saved customer profile
@@ -355,11 +379,20 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
       expressFee,
       taxAmount,
       totalAmount,
-      paymentMethod: input.paymentMethod as PaymentMethod,
-      paymentStatus: 'PENDING',
+      paymentMethod,
+      paymentStatus,
       notes: input.notes || undefined,
       estimatedWeightKg: items.filter((item) => item.pricingModel === 'PER_KG').reduce((total, item) => total + item.quantity, 0) || undefined,
     });
+
+    if (walletDeduction > 0) {
+      await debitWallet(
+        input.customerId,
+        walletDeduction,
+        `Applied to Order #${order.id}`,
+        order.id
+      ).catch((err) => console.error('Failed to debit wallet on order creation:', err));
+    }
 
     // Auto-trigger Pickup Scheduled email
     triggerOrderEmail(order, 'ORDER_PLACED');

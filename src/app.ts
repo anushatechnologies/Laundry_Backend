@@ -1,4 +1,5 @@
 import referralsRouter from './modules/referrals/routes';
+import walletRouter from './modules/wallet/routes';
 import express from 'express';
 import cors from 'cors';
 import ordersRouter from './modules/orders/routes';
@@ -80,6 +81,7 @@ app.use('/api/bulk-pricing', bulkPricingRouter);
 app.use('/api/slots', slotsRouter);
 app.use('/api/subscriptions', subscriptionsRouter);
 app.use('/api/referrals', referralsRouter);
+app.use('/api/wallet', walletRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/customers', customersRouter);

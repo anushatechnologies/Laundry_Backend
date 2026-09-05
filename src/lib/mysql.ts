@@ -1,4 +1,5 @@
 import { createReferralTables } from '../modules/referrals/schema';
+import { createWalletTables } from '../modules/wallet/schema';
 import mysql, { type Pool } from 'mysql2/promise';
 import dotenv from 'dotenv';
 
@@ -73,6 +74,7 @@ export async function initDb(initialData: InitialData) {
 
     await createTables();
     await createReferralTables(pool);
+    await createWalletTables(pool);
     await seedTablesIfEmpty(initialData);
     console.log(`Connected to MySQL database "${dbName}" on ${dbHost}:${databaseOptions.port}`);
   } catch (error) {
@@ -130,7 +132,7 @@ async function createTables() {
       created_at VARCHAR(100),
       updated_at VARCHAR(100),
       INDEX idx_customer_phone (phone)
-    )
+    ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
   `);
 
   await database.query(`
@@ -360,7 +362,7 @@ async function createTables() {
       is_active TINYINT(1) DEFAULT 1,
       created_at VARCHAR(100),
       updated_at VARCHAR(100)
-    )
+    ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
   `);
 
   // Column upgrade migrations

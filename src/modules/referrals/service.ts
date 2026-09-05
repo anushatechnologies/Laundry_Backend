@@ -118,28 +118,134 @@ export async function reconcileReferrals() {
   }
 }
 
+import { creditWallet } from '../wallet/service';
+
+function maskPhone(phone?: string | null): string {
+  if (!phone) return '+91 **********';
+  const clean = String(phone).replace(/\D/g, '').slice(-10);
+  if (clean.length < 10) return '+91 **********';
+  return `+91 ${clean.slice(0, 3)}****${clean.slice(-3)}`;
+}
+
+export async function getOrCreateCustomerReferralCode(customerId: string): Promise<string> {
+  const db = database();
+  const [rows]: any = await db.query('SELECT code FROM referral_codes WHERE customer_id = ?', [customerId]);
+  if (rows[0]?.code) return rows[0].code;
+
+  const newCode = 'LF' + crypto.randomBytes(3).toString('hex').toUpperCase();
+  await db.query(
+    'INSERT INTO referral_codes (customer_id, code, created_at) VALUES (?, ?, UTC_TIMESTAMP(3)) ON DUPLICATE KEY UPDATE customer_id = customer_id',
+    [customerId, newCode]
+  );
+  return newCode;
+}
+
+export async function rewardReferralOnRegistration(inviteeId: string, rawCode: string) {
+  const inviteCode = String(rawCode || '').trim().toUpperCase();
+  if (!inviteCode || !inviteIdRegex(inviteCode)) return null;
+
+  const db = database();
+  try {
+    // 1. Find referrer
+    const [owners]: any = await db.query(
+      'SELECT rc.customer_id, c.name, c.phone FROM referral_codes rc JOIN customers c ON c.id = rc.customer_id WHERE rc.code = ?',
+      [inviteCode]
+    );
+    if (!owners[0]) return null;
+
+    const referrerId = owners[0].customer_id;
+    if (referrerId === inviteeId) return null;
+
+    // 2. Prevent duplicate referral on same customer
+    const [existing]: any = await db.query('SELECT id FROM referrals WHERE invitee_id = ?', [inviteeId]);
+    if (existing.length) return null;
+
+    // 3. Fetch invitee details
+    const [invitees]: any = await db.query('SELECT name, phone FROM customers WHERE id = ?', [inviteeId]);
+    const invitee = invitees[0];
+    const masked = maskPhone(invitee?.phone);
+
+    // 4. Credit ₹100 to Referrer's Wallet
+    await creditWallet(
+      referrerId,
+      100,
+      'REFERRAL_REWARD',
+      `Referral bonus: Friend (${masked}) registered with your invite code ${inviteCode}!`,
+      inviteeId
+    );
+
+    // 5. Credit ₹50 Welcome Bonus to Invitee's Wallet
+    await creditWallet(
+      inviteeId,
+      50,
+      'WELCOME_BONUS',
+      `Welcome bonus for joining LaundryFresh with invite code ${inviteCode}!`,
+      referrerId
+    );
+
+    // 6. Record completed referral
+    const referralId = crypto.randomUUID();
+    await db.query(
+      `INSERT INTO referrals (id, referrer_id, invitee_id, code, status, terms, reason, created_at, qualified_at)
+       VALUES (?, ?, ?, ?, 'QUALIFIED', ?, 'Registered with referral code', UTC_TIMESTAMP(3), UTC_TIMESTAMP(3))`,
+      [referralId, referrerId, inviteeId, inviteCode, JSON.stringify({ referrerReward: 100, friendReward: 50 })]
+    );
+
+    console.log(`[Referrals] Rewarded ₹100 to ${referrerId} and ₹50 to ${inviteeId} via code ${inviteCode}`);
+    return { success: true, referrerId, inviteeId };
+  } catch (err) {
+    console.error('[Referrals] Error rewarding referral on registration:', err);
+    return null;
+  }
+}
+
+function inviteIdRegex(code: string): boolean {
+  return /^[A-Z0-9]{4,24}$/i.test(code);
+}
+
 export async function getReferralSummary(customerId: string) {
-  await reconcileReferrals();
   const db = database();
   const [customers]: any = await db.query('SELECT id FROM customers WHERE id = ?', [customerId]);
   if (!customers.length) throw new Error('Customer account not found.');
-  const settings = await getReferralSettings();
-  if (settings?.enabled) {
-    await db.query('INSERT INTO referral_codes (customer_id, code, created_at) VALUES (?, ?, UTC_TIMESTAMP(3)) ON DUPLICATE KEY UPDATE customer_id = customer_id', [customerId, code('LF')]);
-  }
-  const [codes]: any = await db.query('SELECT code FROM referral_codes WHERE customer_id = ?', [customerId]);
-  const [history]: any = await db.query('SELECT id, status, reason, created_at, qualified_at FROM referrals WHERE referrer_id = ? ORDER BY created_at DESC', [customerId]);
-  const [applied]: any = await db.query('SELECT code, status, reason, terms FROM referrals WHERE invitee_id = ?', [customerId]);
-  const [orders]: any = await db.query('SELECT id FROM orders WHERE customer_id = ? LIMIT 1', [customerId]);
-  const [rewards]: any = await db.query(`SELECT id, code, amount_paise / 100 AS amount, min_order_paise / 100 AS minimumOrder,
-    CASE WHEN status = 'AVAILABLE' AND expires_at <= UTC_TIMESTAMP(3) THEN 'EXPIRED' ELSE status END AS status,
-    expires_at AS expiresAt, used_order_id AS usedOrderId FROM referral_rewards WHERE customer_id = ? ORDER BY created_at DESC`, [customerId]);
-  return { settings, code: codes[0]?.code || null, canApply: !!settings?.enabled && !applied.length && !orders.length,
-    applied: applied[0] ? { code: applied[0].code, status: applied[0].status, reason: applied[0].reason, terms: decode(applied[0].terms) } : null,
-    history: history.map((item: any) => ({ id: item.id, status: item.status, reason: item.reason, createdAt: item.created_at })),
-    rewards: rewards.map((item: any) => ({ ...item, amount: Number(item.amount), minimumOrder: Number(item.minimumOrder) })),
-    stats: { invited: history.length, qualified: history.filter((item: any) => item.status === 'QUALIFIED').length,
-      available: rewards.filter((item: any) => item.status === 'AVAILABLE').reduce((sum: number, item: any) => sum + Number(item.amount), 0) } };
+
+  const personalCode = await getOrCreateCustomerReferralCode(customerId);
+
+  // Fetch friends who registered under this customer's code
+  const [friends]: any = await db.query(
+    `SELECT f.id, f.code, f.status, f.created_at AS createdAt,
+            c.name AS friendName, c.phone AS friendPhone
+     FROM referrals f
+     JOIN customers c ON c.id = f.invitee_id
+     WHERE f.referrer_id = ?
+     ORDER BY f.created_at DESC`,
+    [customerId]
+  );
+
+  const referralCount = friends.length;
+  const totalEarned = referralCount * 100;
+
+  const friendsList = friends.map((f: any) => ({
+    id: f.id,
+    name: f.friendName && f.friendName !== 'LaundryFresh Customer' ? f.friendName : 'Registered Friend',
+    phoneMasked: maskPhone(f.friendPhone),
+    createdAt: typeof f.createdAt === 'string' ? f.createdAt : new Date(f.createdAt).toISOString(),
+    bonusAwarded: 100,
+    status: '₹100 Added to Wallet',
+  }));
+
+  return {
+    code: personalCode,
+    rewardAmount: 100,
+    friendBonus: 50,
+    stats: {
+      invited: referralCount,
+      qualified: referralCount,
+      totalEarned,
+    },
+    friends: friendsList,
+    history: friendsList,
+    shareMessage: `Use my invite code ${personalCode} on LaundryFresh to get ₹50 welcome cash in your wallet for premium laundry & dry cleaning! Download now.`,
+  };
 }
 
 export async function referralRewardDiscount(customerId: string, rewardCode: string, itemTotal: number, connection?: PoolConnection, orderId?: string) {

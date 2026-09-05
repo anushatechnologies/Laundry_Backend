@@ -13,6 +13,7 @@ import { getFirebaseAuth } from '../../lib/firebase-admin';
 import { pool, isDbConnected } from '../../lib/mysql';
 import { sendSmsOtp } from '../../lib/sms';
 import { logAuditEvent } from '../../lib/audit';
+import { rewardReferralOnRegistration } from '../referrals/service';
 
 export const customersRouter = Router();
 
@@ -21,6 +22,7 @@ interface OtpRecord {
   expiresAt: number;
   name?: string;
   email?: string;
+  referralCode?: string;
 }
 
 const customerOtpStore = new Map<string, OtpRecord>();
@@ -173,7 +175,7 @@ customersRouter.all('/check-phone', (req: Request, res: Response) => {
  * Generates OTP code, caches in memory, and dispatches via SMS Gateway (Fast2SMS / 2Factor).
  */
 customersRouter.post('/send-otp', async (req: Request, res: Response) => {
-  const { phone: rawPhone, name = '', email = '' } = req.body ?? {};
+  const { phone: rawPhone, name = '', email = '', referralCode = '' } = req.body ?? {};
   const phone = String(rawPhone ?? '').replace(/\D/g, '').slice(-10);
 
   if (!phone || phone.length < 10) {
@@ -190,6 +192,7 @@ customersRouter.post('/send-otp', async (req: Request, res: Response) => {
     expiresAt,
     name: name ? String(name).trim() : undefined,
     email: email ? String(email).trim() : undefined,
+    referralCode: referralCode ? String(referralCode).trim().toUpperCase() : undefined,
   });
 
   console.log(`[Customer OTP] Generated code for +91${phone}: ${code} (expires in 10m)`);
@@ -212,7 +215,7 @@ customersRouter.post('/send-otp', async (req: Request, res: Response) => {
  * Validates the OTP code, registers/finds customer, and issues auth session.
  */
 customersRouter.post('/verify-otp', async (req: Request, res: Response) => {
-  const { phone: rawPhone, otp: rawOtp, name, email = '' } = req.body ?? {};
+  const { phone: rawPhone, otp: rawOtp, name, email = '', referralCode: rawReferralCode } = req.body ?? {};
   const phone = String(rawPhone ?? '').replace(/\D/g, '').slice(-10);
   const otp = String(rawOtp ?? '').trim();
 
@@ -260,6 +263,14 @@ customersRouter.post('/verify-otp', async (req: Request, res: Response) => {
         console.error('Welcome email error:', err)
       );
     }
+
+    // Process referral reward: ₹100 to referrer, ₹50 to new customer
+    const codeToApply = rawReferralCode || record?.referralCode;
+    if (codeToApply) {
+      rewardReferralOnRegistration(customer.id, codeToApply).catch((err) =>
+        console.error('[Registration Referral Reward] Error:', err)
+      );
+    }
   }
 
   logAuditEvent({
@@ -282,7 +293,7 @@ customersRouter.post('/verify-otp', async (req: Request, res: Response) => {
 /**
  * POST /api/customers/firebase-login
  * Headers: Authorization: Bearer <Firebase ID token>
- * Body: { name?: string, email?: string }
+ * Body: { name?: string, email?: string, referralCode?: string }
  *
  * Native Android Firebase Phone Auth confirms the SMS. This route verifies the
  * resulting Firebase ID token server-side before issuing our customer session.
@@ -299,9 +310,10 @@ customersRouter.post('/firebase-login', async (req: Request, res: Response) => {
       return res.status(422).json({ success: false, message: 'Firebase did not provide a verified Indian mobile number.' });
     }
 
-    const { name = '', email = '' } = req.body ?? {};
+    const { name = '', email = '', referralCode = '' } = req.body ?? {};
     let customer = findByPhone(phone);
     if (!customer) {
+      // New customer - use Firebase UID
       const saved = db.addCustomer({
         id: decoded.uid,
         name: String(name || 'LaundryFresh Customer').trim(),
@@ -321,18 +333,27 @@ customersRouter.post('/firebase-login', async (req: Request, res: Response) => {
           console.warn('Firebase customer welcome email error:', error),
         );
       }
-    } else if (name || email) {
-      const saved = db.addCustomer({
-        id: customer.id,
-        name: String(name || customer.name).trim(),
-        phone,
-        email: String(email || customer.email || '').trim(),
-      });
-      customer.name = saved.name;
-      customer.email = saved.email;
+
+      if (referralCode) {
+        rewardReferralOnRegistration(customer.id, referralCode).catch((err) =>
+          console.error('[Firebase Referral Reward] Error:', err)
+        );
+      }
+    } else {
+      // Existing customer - preserve their ID, just update name/email if provided
+      if (name || email) {
+        const saved = db.addCustomer({
+          id: customer.id, // Use EXISTING customer ID, not new Firebase UID
+          name: String(name || customer.name).trim(),
+          phone,
+          email: String(email || customer.email || '').trim(),
+        });
+        customer.name = saved.name;
+        customer.email = saved.email;
+      }
     }
 
-    return tokenResponse(res, customer, decoded.uid);
+    return tokenResponse(res, customer, customer.id); // Use customer ID, not Firebase UID
   } catch (error) {
     console.warn('Firebase customer login rejected:', error instanceof Error ? error.message : error);
     return res.status(401).json({ success: false, message: 'Firebase verification failed. Request a new code and try again.' });
