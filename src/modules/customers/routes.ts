@@ -179,9 +179,9 @@ customersRouter.post('/send-otp', async (req: Request, res: Response) => {
     return res.status(400).json({ success: false, message: 'Enter a valid 10-digit Indian mobile number.' });
   }
 
-  // Pre-configured test code support for fast verification
-  const isTest = phone === '9999911111' || phone === '9948598350';
-  const code = isTest ? (phone === '9948598350' ? '994859' : '123456') : Math.floor(100000 + Math.random() * 900000).toString();
+  // Real random 6-digit OTP dispatched via SMS for all real mobile numbers
+  const isDemoSimulator = phone === '9999911111';
+  const code = isDemoSimulator ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   customerOtpStore.set(phone, {

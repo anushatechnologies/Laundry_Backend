@@ -58,7 +58,9 @@ app.use((_, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   next();
 });
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '10mb', verify: (req, _res, buffer) => {
+  (req as typeof req & { rawBody?: Buffer }).rawBody = Buffer.from(buffer);
+} }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use('/uploads', express.static('public/uploads'));
 
