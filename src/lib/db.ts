@@ -33,7 +33,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Shirts, T-Shirts, Trousers, Suits, Blazers, Kurtas & Jackets.',
     isPopular: true,
     color: 'blue',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/mens-wear.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-suit-2p.jpg',
   },
   {
     id: 'cat-2',
@@ -43,7 +43,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Sarees, Kurtis, Salwar Suits, Dresses, Gowns, Dupattas & Tops.',
     isPopular: true,
     color: 'pink',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/womens-wear.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kurti.jpg',
   },
   {
     id: 'cat-3',
@@ -53,7 +53,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Bridal Lehengas, Heavy Sarees, Gowns, Sherwanis & Designer Wear.',
     isPopular: true,
     color: 'purple',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/wedding-silk.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/cat-wedding-silk.jpg',
   },
   {
     id: 'cat-4',
@@ -63,7 +63,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Shirts, Frocks, Uniforms, Baby Rompers & Baby Blankets.',
     isPopular: false,
     color: 'amber',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/kids-baby.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/cat-school-uniforms.jpg',
   },
   {
     id: 'cat-5',
@@ -73,7 +73,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Bedsheets, Blankets, Comforters, Curtains, Towels & Cushion Covers.',
     isPopular: true,
     color: 'teal',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/home-textiles.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bedsheet-king.jpg',
   },
   {
     id: 'cat-6',
@@ -83,7 +83,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Mattress, Carpet, Rug, Curtain & Sofa Cover Deep Treatment.',
     isPopular: false,
     color: 'indigo',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/winter-wear.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/cat-special-treatments.jpg',
   },
   {
     id: 'cat-7',
@@ -103,7 +103,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Gentle sanitizing wash with extra rinse for sensitive baby skin.',
     isPopular: false,
     color: 'cyan',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/kids-baby.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/cat-school-uniforms.jpg',
   },
   {
     id: 'cat-9',
@@ -113,7 +113,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Special handling, hand finish, stain treatment & bridal packaging.',
     isPopular: false,
     color: 'rose',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/wedding-silk.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/cat-wedding-silk.jpg',
   },
   {
     id: 'cat-10',
