@@ -5096,7 +5096,7 @@ export const INITIAL_PRICING_SETTINGS: PricingSettings = {
   standardDeliveryFee: 30,
   expressDeliveryFee: 80,
   extraKgPrice: 40,
-  isGstEnabled: true,
+  isGstEnabled: false, // GST DISABLED
 };
 
 export const INITIAL_SERVICES: Service[] = [
