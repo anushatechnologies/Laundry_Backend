@@ -103,6 +103,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
     }
     .btn {
       display: inline-flex;
@@ -136,11 +137,13 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       border-bottom: 2px solid #f1f5f9;
       padding-bottom: 24px;
       margin-bottom: 24px;
+      gap: 20px;
     }
     .company-section {
       display: flex;
       align-items: center;
       gap: 16px;
+      flex: 1;
     }
     .company-logo {
       width: 68px;
@@ -155,6 +158,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
     }
     .company-info {
       flex: 1;
+      min-width: 0;
     }
     .company-title {
       font-size: 24px;
@@ -167,9 +171,11 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       color: #64748b;
       margin-top: 4px;
       line-height: 1.4;
+      word-break: break-word;
     }
     .invoice-meta {
       text-align: right;
+      flex-shrink: 0;
     }
     .invoice-tag {
       display: inline-block;
@@ -222,12 +228,20 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       color: #475569;
       margin-top: 3px;
       line-height: 1.4;
+      word-break: break-word;
     }
 
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 24px;
+      border-radius: 8px;
+    }
     table {
       width: 100%;
+      min-width: 520px;
       border-collapse: collapse;
-      margin-bottom: 24px;
     }
     th {
       background: #f8fafc;
@@ -239,6 +253,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       padding: 12px 14px;
       border-bottom: 2px solid #e2e8f0;
       text-align: left;
+      white-space: nowrap;
     }
     td {
       padding: 14px;
@@ -270,6 +285,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       font-weight: 700;
       color: #1e293b;
       font-family: monospace;
+      white-space: nowrap;
     }
     .summary-divider {
       height: 1px;
@@ -288,6 +304,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       color: #ea580c;
       font-size: 20px;
       font-family: monospace;
+      white-space: nowrap;
     }
 
     .footer-note {
@@ -298,11 +315,74 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       color: #94a3b8;
     }
 
+    /* Mobile Responsive Styles */
+    @media (max-width: 680px) {
+      body {
+        padding: 12px 8px;
+      }
+      .action-bar {
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .btn {
+        padding: 8px 14px;
+        font-size: 13px;
+      }
+      .invoice-container {
+        padding: 16px 12px;
+        border-radius: 12px;
+      }
+      .header-row {
+        flex-direction: column;
+        gap: 14px;
+        align-items: stretch;
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+      }
+      .company-section {
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .company-logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 10px;
+      }
+      .company-title {
+        font-size: 20px;
+      }
+      .invoice-meta {
+        text-align: left;
+        background: #fffbeb;
+        border: 1px solid #fef3c7;
+        padding: 12px;
+        border-radius: 10px;
+      }
+      .parties-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 14px;
+        margin-bottom: 16px;
+      }
+      .summary-wrap {
+        width: 100%;
+      }
+      .summary-box {
+        width: 100%;
+        padding: 14px;
+      }
+      .summary-grand-val {
+        font-size: 18px;
+      }
+    }
+
     @media print {
       body { background: #ffffff; padding: 0; }
       .action-bar { display: none !important; }
       .invoice-container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
-      @page { margin: 15mm; size: A4; }
+      .table-responsive { overflow: visible !important; }
+      .table-responsive table { min-width: 100% !important; }
+      @page { margin: 12mm; size: A4; }
     }
   </style>
 </head>
@@ -359,21 +439,23 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 40px; text-align: center;">#</th>
-          <th>Garment & Service Description</th>
-          <th style="width: 90px; text-align: center;">SAC Code</th>
-          <th style="width: 100px; text-align: center;">Quantity</th>
-          <th style="width: 110px; text-align: right;">Unit Rate</th>
-          <th style="width: 120px; text-align: right;">Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${itemsRows}
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px; text-align: center;">#</th>
+            <th>Garment & Service Description</th>
+            <th style="width: 90px; text-align: center;">SAC Code</th>
+            <th style="width: 100px; text-align: center;">Quantity</th>
+            <th style="width: 110px; text-align: right;">Unit Rate</th>
+            <th style="width: 120px; text-align: right;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsRows}
+        </tbody>
+      </table>
+    </div>
 
     <div class="summary-wrap">
       <div class="summary-box">
