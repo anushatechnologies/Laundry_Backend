@@ -1,4 +1,5 @@
 import type { Order, PricingSettings } from '../../types';
+import { LOGO_DATA_URI } from './logo';
 
 function escapeHtml(str: string | undefined | null): string {
   if (!str) return '';
@@ -142,17 +143,14 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       gap: 16px;
     }
     .company-logo {
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      font-weight: 900;
-      color: #ffffff;
-      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+      width: 68px;
+      height: 68px;
+      border-radius: 14px;
+      object-fit: contain;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      padding: 3px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
       flex-shrink: 0;
     }
     .company-info {
@@ -317,9 +315,11 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
   <div class="invoice-container">
     <div class="header-row">
       <div class="company-section">
-        <div class="company-logo">
-          ${escapeHtml(storeName.substring(0, 1).toUpperCase())}
-        </div>
+        <img 
+          src="${LOGO_DATA_URI}" 
+          alt="${escapeHtml(storeName)}" 
+          class="company-logo" 
+        />
         <div class="company-info">
           <div class="company-title">${escapeHtml(storeName)}</div>
           <div class="company-sub">
@@ -416,15 +416,6 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       <p style="margin-top: 4px;">Thank you for trusting ${escapeHtml(storeName)} for your premium garment care!</p>
     </div>
   </div>
-
-  <script>
-    // Automatically invoke print dialog when loaded if URL has ?print=true or on standalone view
-    if (window.location.search.includes('print=true')) {
-      window.onload = function() {
-        setTimeout(function() { window.print(); }, 400);
-      };
-    }
-  </script>
 </body>
 </html>`;
 }
