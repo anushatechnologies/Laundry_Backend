@@ -1,5 +1,6 @@
 import referralsRouter from './modules/referrals/routes';
 import walletRouter from './modules/wallet/routes';
+import searchRouter from './modules/search/routes';
 import express from 'express';
 import cors from 'cors';
 import ordersRouter from './modules/orders/routes';
@@ -77,6 +78,7 @@ app.get('/api/invoices/:id/pdf', (req, res) => {
 });
 app.use('/api/orders', ordersRouter);
 app.use('/api/services', servicesRouter);
+app.use('/api/search', searchRouter);
 app.use('/api/pincodes', pincodesRouter);
 app.use('/api/coupons', couponsRouter);
 app.use('/api/staff', staffRouter);

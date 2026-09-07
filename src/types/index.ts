@@ -107,6 +107,8 @@ export interface Order {
     landmark?: string;
     city: string;
     pincode: string;
+    latitude?: number;
+    longitude?: number;
   };
   items: OrderItem[];
   pricingModelSummary: PricingModel;
@@ -357,6 +359,7 @@ export interface PricingSettings {
   freeDeliveryThreshold: number;
   standardDeliveryFee: number;
   expressDeliveryFee: number;
+  sameDayDeliveryFee?: number;
   extraKgPrice: number;
   isGstEnabled?: boolean;
   storeTimings?: string;

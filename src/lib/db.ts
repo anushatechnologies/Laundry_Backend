@@ -5095,6 +5095,7 @@ export const INITIAL_PRICING_SETTINGS: PricingSettings = {
   freeDeliveryThreshold: 499,
   standardDeliveryFee: 30,
   expressDeliveryFee: 80,
+  sameDayDeliveryFee: 160,
   extraKgPrice: 40,
   isGstEnabled: true,
   deliveryCalculationMode: 'DISTANCE_BASED',
@@ -5896,6 +5897,7 @@ class BackendDatabase {
       await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS store_latitude DECIMAL(10,7) DEFAULT 17.4929894').catch(() => {});
       await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS store_longitude DECIMAL(10,7) DEFAULT 78.4144426').catch(() => {});
       await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS store_phone VARCHAR(32) DEFAULT "+91 40 4567 8901"').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS same_day_delivery_fee DECIMAL(8,2) DEFAULT 160.00').catch(() => {});
       await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS distance_tiers TEXT').catch(() => {});
 
       const [psRows]: any = await pool.query('SELECT * FROM pricing_settings WHERE id = 1').catch(() => [[]]);
@@ -5909,6 +5911,7 @@ class BackendDatabase {
           freeDeliveryThreshold: Number(s.free_delivery_threshold),
           standardDeliveryFee: Number(s.standard_delivery_fee),
           expressDeliveryFee: Number(s.express_delivery_fee),
+          sameDayDeliveryFee: s.same_day_delivery_fee ? Number(s.same_day_delivery_fee) : Number(s.express_delivery_fee || 80) * 2,
           extraKgPrice: Number(s.extra_kg_price),
           isGstEnabled: s.is_gst_enabled !== undefined && s.is_gst_enabled !== null ? Boolean(s.is_gst_enabled) : true,
           deliveryCalculationMode: s.delivery_calculation_mode || 'DISTANCE_BASED',
@@ -6584,7 +6587,7 @@ class BackendDatabase {
         .query(
           `UPDATE pricing_settings SET
             tax_percentage = ?, min_order_value = ?, free_delivery_threshold = ?,
-            standard_delivery_fee = ?, express_delivery_fee = ?, extra_kg_price = ?,
+            standard_delivery_fee = ?, express_delivery_fee = ?, same_day_delivery_fee = ?, extra_kg_price = ?,
             is_gst_enabled = ?, store_timings = ?,
             whatsapp_notifications_enabled = ?, sms_notifications_enabled = ?, email_notifications_enabled = ?,
             delivery_calculation_mode = ?, base_distance_km = ?, base_delivery_fee = ?,
@@ -6598,6 +6601,7 @@ class BackendDatabase {
             s.freeDeliveryThreshold,
             s.standardDeliveryFee,
             s.expressDeliveryFee,
+            s.sameDayDeliveryFee ?? (s.expressDeliveryFee * 2),
             s.extraKgPrice,
             s.isGstEnabled !== false ? 1 : 0,
             s.storeTimings || '7:00 AM – 10:00 PM',

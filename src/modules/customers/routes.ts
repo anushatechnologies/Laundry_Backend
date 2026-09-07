@@ -467,6 +467,8 @@ type StoredAddress = {
   city: string;
   state?: string;
   pincode: string;
+  latitude?: number;
+  longitude?: number;
   instructions?: string;
   isDefault?: boolean;
 };
@@ -486,6 +488,8 @@ function mapAddressRow(row: any): StoredAddress {
     city: row.city,
     state: row.state || '',
     pincode: row.pincode,
+    latitude: row.latitude != null ? Number(row.latitude) : undefined,
+    longitude: row.longitude != null ? Number(row.longitude) : undefined,
     instructions: row.instructions || '',
     isDefault: Boolean(row.is_default),
   };
@@ -543,7 +547,7 @@ customersRouter.post('/:id/addresses', requireCustomerAddressOwner, async (req: 
     return res.status(400).json({ success: false, message: 'Street and pincode are required.' });
   }
 
-  const newAddress = {
+  const newAddress: StoredAddress = {
     id: body.id || `addr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
     type: body.type || 'Home',
     contactName: body.contactName || '',
@@ -555,6 +559,8 @@ customersRouter.post('/:id/addresses', requireCustomerAddressOwner, async (req: 
     city: body.city || 'Hyderabad',
     state: body.state || 'Telangana',
     pincode: body.pincode,
+    latitude: body.latitude != null && !isNaN(Number(body.latitude)) ? Number(body.latitude) : undefined,
+    longitude: body.longitude != null && !isNaN(Number(body.longitude)) ? Number(body.longitude) : undefined,
     instructions: body.instructions || '',
     isDefault: Boolean(body.isDefault),
   };
@@ -573,10 +579,10 @@ customersRouter.post('/:id/addresses', requireCustomerAddressOwner, async (req: 
         await pool.query('UPDATE customer_addresses SET is_default = 0, updated_at = ? WHERE customer_id = ?', [now, id]);
       }
       await pool.query(
-        `INSERT INTO customer_addresses (id, customer_id, type, contact_name, contact_phone, house_no, area, street, landmark, city, state, pincode, instructions, is_default, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE type = VALUES(type), contact_name = VALUES(contact_name), contact_phone = VALUES(contact_phone), house_no = VALUES(house_no), area = VALUES(area), street = VALUES(street), landmark = VALUES(landmark), city = VALUES(city), state = VALUES(state), pincode = VALUES(pincode), instructions = VALUES(instructions), is_default = VALUES(is_default), updated_at = VALUES(updated_at)`,
-        [newAddress.id, id, newAddress.type, newAddress.contactName || null, newAddress.contactPhone || null, newAddress.houseNo || null, newAddress.area || null, newAddress.street, newAddress.landmark || null, newAddress.city, newAddress.state || null, newAddress.pincode, newAddress.instructions || null, newAddress.isDefault ? 1 : 0, now, now],
+        `INSERT INTO customer_addresses (id, customer_id, type, contact_name, contact_phone, house_no, area, street, landmark, city, state, pincode, latitude, longitude, instructions, is_default, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE type = VALUES(type), contact_name = VALUES(contact_name), contact_phone = VALUES(contact_phone), house_no = VALUES(house_no), area = VALUES(area), street = VALUES(street), landmark = VALUES(landmark), city = VALUES(city), state = VALUES(state), pincode = VALUES(pincode), latitude = VALUES(latitude), longitude = VALUES(longitude), instructions = VALUES(instructions), is_default = VALUES(is_default), updated_at = VALUES(updated_at)`,
+        [newAddress.id, id, newAddress.type, newAddress.contactName || null, newAddress.contactPhone || null, newAddress.houseNo || null, newAddress.area || null, newAddress.street, newAddress.landmark || null, newAddress.city, newAddress.state || null, newAddress.pincode, newAddress.latitude ?? null, newAddress.longitude ?? null, newAddress.instructions || null, newAddress.isDefault ? 1 : 0, now, now],
       );
     } catch (error) {
       console.error('Customer address persistence error:', error);

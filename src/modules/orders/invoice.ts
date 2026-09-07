@@ -1,4 +1,4 @@
-import type { Order } from '../../types';
+import type { Order, PricingSettings } from '../../types';
 
 function escapeHtml(str: string | undefined | null): string {
   if (!str) return '';
@@ -25,7 +25,14 @@ function cleanGarmentName(item: any): string {
   return raw.replace(/null\s*\(null\)/gi, 'Premium Garment Care').replace(/\(null\)/gi, '').trim();
 }
 
-export function renderTaxInvoiceHtml(order: Order): string {
+export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): string {
+  // Use dynamic laundry hub details
+  const storeName = settings?.storeName || 'Anjani Laundry';
+  const storeAddress = settings?.storeAddress || 'D.No 4-12, Main Road, Danavaipeta, Rajahmundry, AP - 533103';
+  const storeGSTIN = '37AAACA1234F1Z5'; // Should be added to settings in future
+  const storePhone = '+91 91219 99999';
+  const storeEmail = 'anushabazaar4@gmail.com';
+  
   const invoiceNo = `INV-${order.id.replace(/\D/g, '').slice(-8) || order.id.slice(-8).toUpperCase()}`;
   const orderDate = new Date(order.createdAt).toLocaleDateString('en-IN', {
     day: '2-digit',
@@ -124,9 +131,32 @@ export function renderTaxInvoiceHtml(order: Order): string {
     .header-row {
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
       border-bottom: 2px solid #f1f5f9;
       padding-bottom: 24px;
       margin-bottom: 24px;
+    }
+    .company-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .company-logo {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 900;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+      flex-shrink: 0;
+    }
+    .company-info {
+      flex: 1;
     }
     .company-title {
       font-size: 24px;
@@ -286,13 +316,18 @@ export function renderTaxInvoiceHtml(order: Order): string {
 
   <div class="invoice-container">
     <div class="header-row">
-      <div>
-        <div class="company-title">Anjani Laundry</div>
-        <div class="company-sub">
-          <strong>Anjani Laundry & Dry Cleaning Hub</strong><br>
-          D.No 4-12, Main Road, Danavaipeta, Rajahmundry, AP - 533103<br>
-          GSTIN: <strong>37AAACA1234F1Z5</strong> • Phone: +91 91219 99999<br>
-          Email: anushabazaar4@gmail.com
+      <div class="company-section">
+        <div class="company-logo">
+          ${escapeHtml(storeName.substring(0, 1).toUpperCase())}
+        </div>
+        <div class="company-info">
+          <div class="company-title">${escapeHtml(storeName)}</div>
+          <div class="company-sub">
+            <strong>${escapeHtml(storeName)} & Dry Cleaning Hub</strong><br>
+            ${escapeHtml(storeAddress)}<br>
+            GSTIN: <strong>${escapeHtml(storeGSTIN)}</strong> • Phone: ${escapeHtml(storePhone)}<br>
+            Email: ${escapeHtml(storeEmail)}
+          </div>
         </div>
       </div>
       <div class="invoice-meta">
@@ -352,7 +387,7 @@ export function renderTaxInvoiceHtml(order: Order): string {
         </div>
         ${expressFee > 0 ? `
         <div class="summary-line">
-          <span>Express Care Surcharge</span>
+          <span>${order.expressTier === 'SAME_DAY' ? '12H Same-Day Emergency Surcharge' : '24H Express Surcharge'}</span>
           <span class="summary-val">+₹${expressFee.toFixed(2)}</span>
         </div>` : ''}
         ${discount > 0 ? `
@@ -378,7 +413,7 @@ export function renderTaxInvoiceHtml(order: Order): string {
 
     <div class="footer-note">
       <p>This is a computer-generated tax invoice issued in accordance with the Goods and Services Tax Act. No physical signature is required.</p>
-      <p style="margin-top: 4px;">Thank you for trusting Anjani Laundry for your premium garment care!</p>
+      <p style="margin-top: 4px;">Thank you for trusting ${escapeHtml(storeName)} for your premium garment care!</p>
     </div>
   </div>
 

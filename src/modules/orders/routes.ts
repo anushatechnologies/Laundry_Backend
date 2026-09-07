@@ -18,6 +18,7 @@ import type { Order, OrderStatus, PaymentMethod } from '../../types';
 import { sendOrderStatusPushNotification } from '../../lib/push';
 import { logAuditEvent } from '../../lib/audit';
 import { renderTaxInvoiceHtml } from './invoice';
+import { computeDeliveryFee } from '../../lib/delivery';
 
 const router = Router();
 
@@ -144,44 +145,16 @@ const allowedTransitions: Partial<Record<OrderStatus, OrderStatus[]>> = {
 
 function customerOrderView(order: Order) {
   const { pickupOtp, deliveryOtp, internalNotes, ...safeOrder } = order;
-  const defaultPickupDriver = {
-    id: 'stf-4',
-    name: 'Ramesh Kumar (Valet Pilot)',
-    phone: '+91 91219 99999',
-    rating: 4.9,
-    vehicle: 'Hero Splendor (AP05 BK 8921)',
-  };
-  const defaultDeliveryDriver = {
-    id: 'stf-5',
-    name: 'Suresh Patil (Delivery Pilot)',
-    phone: '+91 91219 99998',
-    rating: 4.85,
-    vehicle: 'Delivery Van (AP05 TG 4452)',
-  };
   return {
     ...safeOrder,
-    assignedPickupAgent: order.assignedPickupAgent || (['PICKUP_ASSIGNED', 'PICKED_UP', 'RECEIVED_AT_FACILITY', 'WEIGHED_VERIFIED', 'WASHING', 'DRYING', 'IRONING', 'QUALITY_CHECK', 'PACKED'].includes(order.currentStatus) ? defaultPickupDriver : undefined),
-    assignedDeliveryAgent: order.assignedDeliveryAgent || (['DELIVERY_ASSIGNED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'COMPLETED'].includes(order.currentStatus) ? defaultDeliveryDriver : undefined),
+    assignedPickupAgent: order.assignedPickupAgent || undefined,
+    assignedDeliveryAgent: order.assignedDeliveryAgent || undefined,
   };
 }
 
 function trackingView(order: Order) {
-  const defaultPickupDriver = {
-    id: 'stf-4',
-    name: 'Ramesh Kumar (Valet Pilot)',
-    phone: '+91 91219 99999',
-    rating: 4.9,
-    vehicle: 'Hero Splendor (AP05 BK 8921)',
-  };
-  const defaultDeliveryDriver = {
-    id: 'stf-5',
-    name: 'Suresh Patil (Delivery Pilot)',
-    phone: '+91 91219 99998',
-    rating: 4.85,
-    vehicle: 'Delivery Van (AP05 TG 4452)',
-  };
-  const pickupAgent = order.assignedPickupAgent || (['PICKUP_ASSIGNED', 'PICKED_UP', 'RECEIVED_AT_FACILITY', 'WEIGHED_VERIFIED', 'WASHING', 'DRYING', 'IRONING', 'QUALITY_CHECK', 'PACKED'].includes(order.currentStatus) ? defaultPickupDriver : undefined);
-  const deliveryAgent = order.assignedDeliveryAgent || (['DELIVERY_ASSIGNED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'COMPLETED'].includes(order.currentStatus) ? defaultDeliveryDriver : undefined);
+  const pickupAgent = order.assignedPickupAgent || undefined;
+  const deliveryAgent = order.assignedDeliveryAgent || undefined;
 
   return {
     id: order.id,
@@ -192,8 +165,8 @@ function trackingView(order: Order) {
     paymentStatus: order.paymentStatus,
     assignedPickupAgent: pickupAgent,
     assignedDeliveryAgent: deliveryAgent,
-    driverName: deliveryAgent?.name || pickupAgent?.name || 'Ramesh Kumar (Valet Pilot)',
-    driverPhone: deliveryAgent?.phone || pickupAgent?.phone || '+91 91219 99999',
+    driverName: deliveryAgent?.name || pickupAgent?.name || undefined,
+    driverPhone: deliveryAgent?.phone || pickupAgent?.phone || undefined,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   };
@@ -222,7 +195,7 @@ function priceItems(items: z.infer<typeof orderItemSchema>[], expressTier: Order
       // Check if priceMatrix has any entry for this cloth
       const clothMatch = db.getPriceMatrix().find((p) => p.isActive && (p.clothTypeId === item.serviceId || cleanId.startsWith(p.clothTypeId)));
       if (clothMatch) {
-        const unitPrice = expressTier === 'REGULAR' || !clothMatch.expressPrice ? clothMatch.price : clothMatch.expressPrice;
+        const unitPrice = clothMatch.price;
         return {
           ...item,
           serviceName: item.serviceName || clothMatch.clothName,
@@ -249,9 +222,7 @@ function priceItems(items: z.infer<typeof orderItemSchema>[], expressTier: Order
     }
 
     const unitPrice = catalogPrice
-      ? expressTier === 'REGULAR' || !catalogPrice.expressPrice
-        ? catalogPrice.price
-        : catalogPrice.expressPrice
+      ? catalogPrice.price
       : catalogService?.basePrice ?? serviceMaster?.baseKgPrice ?? (item.unitPrice || 0);
     const pricingModel = catalogPrice
       ? 'PER_ITEM'
@@ -355,48 +326,18 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
       ? await referralRewardDiscount(input.customerId, rewardCode, itemTotal)
       : calculateCouponDiscount(input.couponCode || undefined, itemTotal, input.customerId);
     const settings = db.getPricingSettings();
-    const minFreeOrderVal = (zone.minFreeOrderValue !== undefined && zone.minFreeOrderValue !== null) ? zone.minFreeOrderValue : (settings.freeDeliveryThreshold ?? 499);
-    const stdFee = (zone.standardFee !== undefined && zone.standardFee !== null) ? zone.standardFee : (settings.standardDeliveryFee ?? 30);
+    const deliveryCalc = computeDeliveryFee({
+      customerLat: typeof input.address.latitude === 'number' && !isNaN(input.address.latitude) ? input.address.latitude : undefined,
+      customerLng: typeof input.address.longitude === 'number' && !isNaN(input.address.longitude) ? input.address.longitude : undefined,
+      customerPincode: input.address.pincode,
+      subtotal: itemTotal,
+      isExpress: input.expressTier !== 'REGULAR',
+      expressTier: input.expressTier,
+      settings,
+    });
 
-    let pickupDeliveryFee = 0;
-    if (itemTotal >= minFreeOrderVal) {
-      pickupDeliveryFee = 0;
-    } else {
-      // Orders < minFreeOrderVal (e.g. ₹499): calculate distance-based fee or standard fee
-      const mode = settings.deliveryCalculationMode ?? 'DISTANCE_BASED';
-      const cLat = input.address.latitude;
-      const cLng = input.address.longitude;
-      if (typeof cLat === 'number' && typeof cLng === 'number' && !isNaN(cLat) && !isNaN(cLng)) {
-        const storeLat = settings.storeLatitude ?? 17.4929894;
-        const storeLng = settings.storeLongitude ?? 78.4144426;
-        const dLat = ((cLat - storeLat) * Math.PI) / 180;
-        const dLng = ((cLng - storeLng) * Math.PI) / 180;
-        const a =
-          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos((storeLat * Math.PI) / 180) * Math.cos((cLat * Math.PI) / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        const distKm = parseFloat((6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(2));
-        const baseKm = settings.baseDistanceKm ?? 3;
-        const baseFee = settings.baseDeliveryFee ?? stdFee;
-        const perKm = settings.perKmRateAfterBase ?? 10;
-
-        if (mode === 'ZONE_BASED' && settings.distanceTiers && settings.distanceTiers.length > 0) {
-          const tiers = [...settings.distanceTiers].sort((a, b) => a.maxKm - b.maxKm);
-          const matched = tiers.find((t) => distKm <= t.maxKm);
-          pickupDeliveryFee = matched ? matched.fee : Math.round(tiers[tiers.length - 1].fee + (distKm - tiers[tiers.length - 1].maxKm) * perKm);
-        } else {
-          // DISTANCE_BASED
-          if (distKm <= baseKm) {
-            pickupDeliveryFee = baseFee;
-          } else {
-            pickupDeliveryFee = Math.round(baseFee + (distKm - baseKm) * perKm);
-          }
-        }
-      } else {
-        pickupDeliveryFee = stdFee;
-      }
-    }
-
-    const expressFee = input.expressTier === 'REGULAR' ? 0 : input.expressTier === 'SAME_DAY' ? settings.expressDeliveryFee * 2 : settings.expressDeliveryFee;
+    const pickupDeliveryFee = deliveryCalc.deliveryFee;
+    const expressFee = deliveryCalc.expressFee;
     const taxableAmount = Math.max(0, itemTotal - discountAmount + pickupDeliveryFee + expressFee);
     const effectiveTaxPercentage = (settings.isGstEnabled !== false) ? (settings.taxPercentage ?? 5) : 0;
     const taxAmount = Number((taxableAmount * (effectiveTaxPercentage / 100)).toFixed(2));
@@ -674,7 +615,8 @@ router.get('/:id/invoice', (req: Request, res: Response) => {
 router.get('/:id/pdf', (req: Request, res: Response) => {
   const order = db.getOrderById(req.params.id);
   if (!order) return res.status(404).send('<h1>Order not found</h1>');
-  const html = renderTaxInvoiceHtml(order);
+  const settings = db.getPricingSettings(); // Get laundry hub details
+  const html = renderTaxInvoiceHtml(order, settings);
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   return res.send(html);
 });
@@ -685,16 +627,28 @@ router.patch('/:id/assign-driver', requireAdmin, (req: Request, res: Response) =
   const order = db.getOrderById(req.params.id);
   if (!order) return res.status(404).json({ success: false, message: 'Order not found.' });
 
+  if (!name || !String(name).trim()) {
+    return res.status(400).json({ success: false, message: 'Pilot or Driver name is required.' });
+  }
+
+  const isDelivery = agentType === 'DELIVERY';
   const agentObj = {
-    id: `agent-${Date.now()}`,
-    name: name || (agentType === 'DELIVERY' ? 'Suresh Patil (Express Delivery Pilot)' : 'Ramesh Kumar (Valet Pilot)'),
-    phone: phone || '+91 91219 99999',
+    id: req.body.id || `agent-${Date.now()}`,
+    name: String(name).trim(),
+    phone: phone ? String(phone).trim() : '+91 91219 99999',
     rating: Number(rating) || 4.9,
-    vehicle: vehicle || (agentType === 'DELIVERY' ? 'Delivery Van (AP05 TG 4452)' : 'Hero Splendor (AP05 BK 8921)'),
+    vehicle: vehicle ? String(vehicle).trim() : (isDelivery ? 'Delivery Van' : 'Valet Pilot Bike'),
   };
 
-  const savedOrder = db.assignOrderDriver(req.params.id, agentType === 'DELIVERY' ? 'DELIVERY' : 'PICKUP', agentObj);
+  const savedOrder = db.assignOrderDriver(req.params.id, isDelivery ? 'DELIVERY' : 'PICKUP', agentObj);
   if (!savedOrder) return res.status(404).json({ success: false, message: 'Order not found.' });
+
+  // Update lifecycle status if applicable
+  if (!isDelivery && savedOrder.currentStatus === 'ORDER_PLACED') {
+    db.updateOrderStatus(savedOrder.id, 'PICKUP_ASSIGNED', `Assigned pickup pilot ${agentObj.name}`, req.body.updatedBy || 'admin');
+  } else if (isDelivery && (savedOrder.currentStatus === 'PACKED' || savedOrder.currentStatus === 'QUALITY_CHECK')) {
+    db.updateOrderStatus(savedOrder.id, 'DELIVERY_ASSIGNED', `Assigned delivery pilot ${agentObj.name}`, req.body.updatedBy || 'admin');
+  }
 
   logAuditEvent({
     actorId: req.body.updatedBy || 'admin',
@@ -703,15 +657,13 @@ router.patch('/:id/assign-driver', requireAdmin, (req: Request, res: Response) =
     action: 'ORDER_DRIVER_ASSIGNED',
     resourceType: 'ORDERS',
     resourceId: req.params.id,
-    details: `Assigned ${agentType || 'PICKUP'} driver ${agentObj.name} (${agentObj.phone}) to Order #${req.params.id}.`,
+    details: `Assigned ${isDelivery ? 'DELIVERY' : 'PICKUP'} driver ${agentObj.name} (${agentObj.phone}) to Order #${req.params.id}.`,
     riskLevel: 'INFO',
-    payloadAfter: { agentType, agent: agentObj },
+    payloadAfter: { agentType: isDelivery ? 'DELIVERY' : 'PICKUP', agent: agentObj },
     ipAddress: req.ip,
   }).catch(() => {});
 
-  // Assignment is a customer-facing update. The notification includes the
-  // order ID, allowing the customer app to open this exact tracking screen.
-  triggerOrderEmail(savedOrder, agentType === 'DELIVERY' ? 'DELIVERY_ASSIGNED' : 'PICKUP_ASSIGNED');
+  triggerOrderEmail(savedOrder, isDelivery ? 'DELIVERY_ASSIGNED' : 'PICKUP_ASSIGNED');
 
   return res.json({ success: true, data: savedOrder });
 });
