@@ -83,6 +83,10 @@ function messageForStatus(status: OrderStatus) {
       title: '🛵 Pilot Assigned',
       body: 'Our pickup partner is on the way to collect your garments.',
     },
+    DELIVERY_ASSIGNED: {
+      title: 'Delivery Pilot Assigned',
+      body: 'Your delivery partner has been assigned and will bring your fresh garments soon.',
+    },
     PICKED_UP: {
       title: '👔 Garments Picked Up',
       body: 'Your garments have been safely collected and are headed to our care facility.',
@@ -295,7 +299,14 @@ export async function getDeviceStats() {
 
 export async function sendPushNotificationToCustomer(
   customerId: string,
-  payload: { title: string; body: string; data?: Record<string, string>; channel?: PushChannel; type?: string }
+  payload: { 
+    title: string; 
+    body: string; 
+    data?: Record<string, string>; 
+    channel?: PushChannel; 
+    type?: string;
+    imageUrl?: string; // Add image support
+  }
 ): Promise<PushDeliveryResult> {
   const channel = payload.channel || 'orders';
   const type = payload.type || (channel === 'promotions' ? 'OFFER' : 'ORDER');
@@ -311,12 +322,21 @@ export async function sendPushNotificationToCustomer(
 
   try {
     const messaging = getFirebaseMessaging();
+    
+    // Build notification payload
+    const notificationPayload: any = {
+      title: payload.title,
+      body: payload.body,
+    };
+    
+    // Add image if provided (for rich notifications)
+    if (payload.imageUrl) {
+      notificationPayload.imageUrl = payload.imageUrl;
+    }
+    
     const response = await messaging.sendEachForMulticast({
       tokens: fcmTokens,
-      notification: {
-        title: payload.title,
-        body: payload.body,
-      },
+      notification: notificationPayload,
       data: payload.data || {},
       android: {
         priority: 'high',
@@ -327,8 +347,19 @@ export async function sendPushNotificationToCustomer(
           icon: 'ic_stat_notification',
           priority: 'max',
           defaultVibrateTimings: true,
+          imageUrl: payload.imageUrl, // Android big picture style
         },
       },
+      apns: payload.imageUrl ? {
+        payload: {
+          aps: {
+            'mutable-content': 1,
+          },
+        },
+        fcmOptions: {
+          imageUrl: payload.imageUrl, // iOS rich notification
+        },
+      } : undefined,
     });
 
     console.log(
@@ -365,6 +396,7 @@ export async function broadcastPushNotification(payload: {
   body: string;
   channel?: PushChannel;
   data?: Record<string, string>;
+  imageUrl?: string; // Add image support for broadcast
 }): Promise<PushDeliveryResult> {
   const channel = payload.channel || 'promotions';
   let devices: { customerId: string; pushToken: string }[] = [];
@@ -405,12 +437,20 @@ export async function broadcastPushNotification(payload: {
   for (let i = 0; i < fcmTokens.length; i += batchSize) {
     const batch = fcmTokens.slice(i, i + batchSize);
     try {
+      // Build notification payload
+      const notificationPayload: any = {
+        title: payload.title,
+        body: payload.body,
+      };
+      
+      // Add image if provided (for rich notifications)
+      if (payload.imageUrl) {
+        notificationPayload.imageUrl = payload.imageUrl;
+      }
+      
       const response = await messaging.sendEachForMulticast({
         tokens: batch,
-        notification: {
-          title: payload.title,
-          body: payload.body,
-        },
+        notification: notificationPayload,
         data: payload.data || {},
         android: {
           priority: 'high',
@@ -421,8 +461,19 @@ export async function broadcastPushNotification(payload: {
             icon: 'ic_stat_notification',
             priority: 'max',
             defaultVibrateTimings: true,
+            imageUrl: payload.imageUrl, // Android big picture style
           },
         },
+        apns: payload.imageUrl ? {
+          payload: {
+            aps: {
+              'mutable-content': 1,
+            },
+          },
+          fcmOptions: {
+            imageUrl: payload.imageUrl, // iOS rich notification
+          },
+        } : undefined,
       });
 
       totalSuccess += response.successCount;

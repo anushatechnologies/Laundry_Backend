@@ -293,4 +293,141 @@ router.put('/settings', requireAdmin, (req: Request, res: Response) => {
   res.json({ success: true, data: updated });
 });
 
+// ─── Distance-Based Delivery Fee Calculator ───────────────────────────────────
+// POST /api/services/calculate-delivery-fee
+// Body: { customerLat: number, customerLng: number, subtotal: number }
+// Returns: { deliveryFee, distanceKm, freeDelivery, breakdown }
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+router.post('/calculate-delivery-fee', (req: Request, res: Response) => {
+  const { customerLat, customerLng, customerPincode, subtotal = 0, isExpress = false } = req.body;
+
+  const settings = db.getPricingSettings();
+  const storeLat = settings.storeLatitude ?? 17.4929894;
+  const storeLng = settings.storeLongitude ?? 78.4144426;
+
+  let distanceKm = 0;
+  let hasGps = false;
+
+  if (typeof customerLat === 'number' && typeof customerLng === 'number' && !isNaN(customerLat) && !isNaN(customerLng)) {
+    hasGps = true;
+    distanceKm = parseFloat(haversineKm(storeLat, storeLng, customerLat, customerLng).toFixed(2));
+
+    // Check service radius
+    const maxRadius = settings.maxServiceRadiusKm ?? 35;
+    if (distanceKm > maxRadius) {
+      return res.status(422).json({
+        success: false,
+        message: `Sorry, we don't deliver to your location. Maximum service radius is ${maxRadius} km. Your distance: ${distanceKm} km.`,
+        distanceKm,
+      });
+    }
+  } else if (customerPincode) {
+    const pin = String(customerPincode).trim();
+    const zone = db.checkPincode(pin);
+    if (!zone || !zone.isServiceable) {
+      return res.status(422).json({
+        success: false,
+        message: `Service is not currently available for pincode ${pin}.`,
+      });
+    }
+    // Default estimated local perimeter distance
+    distanceKm = settings.baseDistanceKm ?? 3.0;
+  } else {
+    // Default local zone distance
+    distanceKm = settings.baseDistanceKm ?? 3.0;
+  }
+
+  const freeThreshold = settings.freeDeliveryThreshold ?? 499;
+  const stdFee = settings.standardDeliveryFee ?? 30;
+  const baseKm = settings.baseDistanceKm ?? 3;
+  const baseFee = settings.baseDeliveryFee ?? 30;
+  const perKm = settings.perKmRateAfterBase ?? 10;
+  const isFreeDelivery = subtotal >= freeThreshold;
+
+  let deliveryFee = 0;
+  let breakdown = '';
+  const mode = settings.deliveryCalculationMode ?? 'DISTANCE_BASED';
+
+  if (isFreeDelivery) {
+    deliveryFee = 0;
+    breakdown = `Free delivery unlocked (Order subtotal ₹${subtotal} ≥ ₹${freeThreshold})`;
+  } else if (mode === 'ZONE_BASED' && settings.distanceTiers && settings.distanceTiers.length > 0) {
+    // ZONE_BASED: Use admin-configured distance tiers (minKm/maxKm/fee)
+    const tiers = [...settings.distanceTiers].sort((a, b) => a.maxKm - b.maxKm);
+    const matched = tiers.find((t) => distanceKm <= t.maxKm);
+    if (matched) {
+      deliveryFee = matched.fee;
+      breakdown = `Distance ${distanceKm} km → Tier ≤${matched.maxKm} km: ₹${deliveryFee}`;
+    } else {
+      const lastTier = tiers[tiers.length - 1];
+      const extraKm = distanceKm - lastTier.maxKm;
+      deliveryFee = Math.round(lastTier.fee + extraKm * perKm);
+      breakdown = `Distance ${distanceKm} km → Last tier (≤${lastTier.maxKm} km): ₹${lastTier.fee} + ${extraKm.toFixed(1)} km × ₹${perKm}/km = ₹${deliveryFee}`;
+    }
+  } else {
+    // DISTANCE_BASED (default): base distance + per-km rate after base
+    // Orders < ₹499 charge standard zone fee (₹30) for base zone, plus per-km for extra distance
+    if (distanceKm <= baseKm) {
+      deliveryFee = baseFee || stdFee;
+      breakdown = hasGps
+        ? `Standard zone delivery fee (₹${deliveryFee}) for ${distanceKm} km (Orders < ₹${freeThreshold})`
+        : `Standard zone delivery fee ₹${deliveryFee} across Hyderabad (Orders < ₹${freeThreshold})`;
+    } else {
+      const extraKm = parseFloat((distanceKm - baseKm).toFixed(2));
+      deliveryFee = Math.round((baseFee || stdFee) + extraKm * perKm);
+      breakdown = `Base ${baseKm} km (₹${baseFee || stdFee}) + ${extraKm} extra km × ₹${perKm}/km = ₹${deliveryFee} (Orders < ₹${freeThreshold})`;
+    }
+  }
+
+  // Calculate express fee if applicable
+  const expressFee = isExpress
+    ? (settings.expressDeliveryFee ?? 80)
+    : 0;
+
+  // Taxes
+  const isGstEnabled = settings.isGstEnabled !== false;
+  const taxPercentage = isGstEnabled ? (settings.taxPercentage ?? 5) : 0;
+  const taxableAmount = Math.max(0, subtotal + deliveryFee + expressFee);
+  const taxAmount = Number((taxableAmount * (taxPercentage / 100)).toFixed(2));
+  const finalTotal = Number((taxableAmount + taxAmount).toFixed(2));
+
+  return res.json({
+    success: true,
+    data: {
+      deliveryFee,
+      distanceKm,
+      hasGps,
+      isFreeDelivery,
+      freeDeliveryThreshold: freeThreshold,
+      standardDeliveryFee: stdFee,
+      baseDistanceKm: baseKm,
+      baseDeliveryFee: baseFee,
+      perKmRateAfterBase: perKm,
+      expressFee,
+      taxPercentage,
+      isGstEnabled,
+      taxAmount,
+      subtotal,
+      finalTotal,
+      storeName: settings.storeName || 'LaundryFresh Central Hub',
+      storeAddress: settings.storeAddress || 'Plot 18, Road 2, Banjara Hills / Kukatpally, Hyderabad',
+      storeLatitude: storeLat,
+      storeLongitude: storeLng,
+      breakdown,
+    },
+  });
+});
+
 export default router;

@@ -5096,7 +5096,24 @@ export const INITIAL_PRICING_SETTINGS: PricingSettings = {
   standardDeliveryFee: 30,
   expressDeliveryFee: 80,
   extraKgPrice: 40,
-  isGstEnabled: false, // GST DISABLED
+  isGstEnabled: true,
+  deliveryCalculationMode: 'DISTANCE_BASED',
+  baseDistanceKm: 3,
+  baseDeliveryFee: 30,
+  perKmRateAfterBase: 10,
+  maxServiceRadiusKm: 35,
+  storeName: 'Anusha Laundry Central Hub',
+  storeAddress: 'Anusha Bazaar, Kukatpally, Hyderabad - 500072',
+  storeLatitude: 17.4929894,
+  storeLongitude: 78.4144426,
+  storePhone: '+91 40 4567 8901',
+  distanceTiers: [
+    { minKm: 0, maxKm: 3, fee: 30 },
+    { minKm: 3, maxKm: 7, fee: 50 },
+    { minKm: 7, maxKm: 15, fee: 90 },
+    { minKm: 15, maxKm: 25, fee: 150 },
+    { minKm: 25, maxKm: 35, fee: 220 },
+  ],
 };
 
 export const INITIAL_SERVICES: Service[] = [
@@ -5340,56 +5357,56 @@ export const INITIAL_COUPONS: Coupon[] = [
 
 export const INITIAL_PINCODES: PincodeZone[] = [
   // --- HYDERABAD & SECUNDERABAD (50 Key Localities & Tech Hubs) ---
-  { pincode: '500081', areaName: 'Hitec City / Madhapur / Cyber Towers', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500032', areaName: 'Gachibowli / Financial District / Nanakramguda', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500084', areaName: 'Kondapur / Kothaguda / Botanical Garden', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500072', areaName: 'Kukatpally / KPHB Colony (Phase 1-6)', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500085', areaName: 'KPHB Phase 7-9 / JNTU Road', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500033', areaName: 'Jubilee Hills / Film Nagar / Road No 36', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500034', areaName: 'Banjara Hills (Road 1-14) / Panjagutta', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500089', areaName: 'Manikonda / Puppalguda / Alkapur Township', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500075', areaName: 'Gandipet / Kokapet / Narsingi', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500049', areaName: 'Miyapur / Chandanagar / Gangaram', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500050', areaName: 'BHEL / Lingampally / Tara Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500090', areaName: 'Nizampet / Pragathi Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500018', areaName: 'Ameerpet / SR Nagar / Sanathnagar', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500082', areaName: 'Somajiguda / Raj Bhavan Road / Erramanzil', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500016', areaName: 'Begumpet / Prakash Nagar / Mayur Marg', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500003', areaName: 'Secunderabad / MG Road / Paradise', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500026', areaName: 'Marredpally (East & West) / Shenoy Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500009', areaName: 'Bowenpally / Hasmathpet / Manovikas Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500015', areaName: 'Karkhana / Trimulgherry / Gunrock', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500011', areaName: 'Alwal / Lothkunta / Old Alwal', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500062', areaName: 'ECIL / AS Rao Nagar / Dr AS Rao Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500047', areaName: 'Sainikpuri / Vayupuri / Yapral', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500040', areaName: 'Malkajgiri / Safilguda / Anandbagh', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500056', areaName: 'Dammaiguda / Nagaram / Keesara', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500014', areaName: 'Kompally / Jeedimetla Village / Petbasheerabad', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500055', areaName: 'Chintal / Quthbullapur / Suchitra', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500037', areaName: 'Balanagar / Moosapet / Fathenagar', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500008', areaName: 'Mehdipatnam / Tolichowki / Shaikpet', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500028', areaName: 'Masab Tank / AC Guards / Khairatabad', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500004', areaName: 'Nampally / Red Hills / Bazar Ghat', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500001', areaName: 'Abids / Koti / Gunfoundry / Sultan Bazaar', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500029', areaName: 'Himayatnagar / Liberty / Narayanguda', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500020', areaName: 'Domalguda / Ashok Nagar / Chikkadpally', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500044', areaName: 'Vidyanagar / Nallakunta / DD Colony', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500007', areaName: 'Tarnaka / Habsiguda / Osmania University', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500017', areaName: 'Moula Ali / Lalaguda / Industrial Area', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500039', areaName: 'Uppal / Ramanthapur / Survey of India', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500076', areaName: 'Boduppal / Peerzadiguda / Medipally', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500068', areaName: 'Nagole / Alkapuri / Snehapuri Colony', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500074', areaName: 'LB Nagar / Mansoorabad / Rock Town', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500070', areaName: 'Vanasthalipuram / Hayathnagar / Auto Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500035', areaName: 'Kothapet / Saroornagar / Gaddiannaram', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500036', areaName: 'Dilsukhnagar / Chaitanyapuri / P&T Colony', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500059', areaName: 'Saidabad / Champapet / Santoshnagar', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500053', areaName: 'Chandrayangutta / Bandlaguda / Falaknuma', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500077', areaName: 'Attapur / Hyderguda / Upparpally', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500030', areaName: 'Rajendranagar / Budvel / Shivrampally', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500081', areaName: 'Hitec City / Madhapur / Cyber Towers', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500032', areaName: 'Gachibowli / Financial District / Nanakramguda', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500084', areaName: 'Kondapur / Kothaguda / Botanical Garden', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500072', areaName: 'Kukatpally / KPHB Colony (Phase 1-6)', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500085', areaName: 'KPHB Phase 7-9 / JNTU Road', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500033', areaName: 'Jubilee Hills / Film Nagar / Road No 36', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500034', areaName: 'Banjara Hills (Road 1-14) / Panjagutta', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500089', areaName: 'Manikonda / Puppalguda / Alkapur Township', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500075', areaName: 'Gandipet / Kokapet / Narsingi', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500049', areaName: 'Miyapur / Chandanagar / Gangaram', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500050', areaName: 'BHEL / Lingampally / Tara Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500090', areaName: 'Nizampet / Pragathi Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500018', areaName: 'Ameerpet / SR Nagar / Sanathnagar', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500082', areaName: 'Somajiguda / Raj Bhavan Road / Erramanzil', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500016', areaName: 'Begumpet / Prakash Nagar / Mayur Marg', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500003', areaName: 'Secunderabad / MG Road / Paradise', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500026', areaName: 'Marredpally (East & West) / Shenoy Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500009', areaName: 'Bowenpally / Hasmathpet / Manovikas Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500015', areaName: 'Karkhana / Trimulgherry / Gunrock', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500011', areaName: 'Alwal / Lothkunta / Old Alwal', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500062', areaName: 'ECIL / AS Rao Nagar / Dr AS Rao Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500047', areaName: 'Sainikpuri / Vayupuri / Yapral', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500040', areaName: 'Malkajgiri / Safilguda / Anandbagh', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500056', areaName: 'Dammaiguda / Nagaram / Keesara', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500014', areaName: 'Kompally / Jeedimetla Village / Petbasheerabad', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500055', areaName: 'Chintal / Quthbullapur / Suchitra', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500037', areaName: 'Balanagar / Moosapet / Fathenagar', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500008', areaName: 'Mehdipatnam / Tolichowki / Shaikpet', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500028', areaName: 'Masab Tank / AC Guards / Khairatabad', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500004', areaName: 'Nampally / Red Hills / Bazar Ghat', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500001', areaName: 'Abids / Koti / Gunfoundry / Sultan Bazaar', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500029', areaName: 'Himayatnagar / Liberty / Narayanguda', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500020', areaName: 'Domalguda / Ashok Nagar / Chikkadpally', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500044', areaName: 'Vidyanagar / Nallakunta / DD Colony', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500007', areaName: 'Tarnaka / Habsiguda / Osmania University', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500017', areaName: 'Moula Ali / Lalaguda / Industrial Area', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500039', areaName: 'Uppal / Ramanthapur / Survey of India', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500076', areaName: 'Boduppal / Peerzadiguda / Medipally', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500068', areaName: 'Nagole / Alkapuri / Snehapuri Colony', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500074', areaName: 'LB Nagar / Mansoorabad / Rock Town', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500070', areaName: 'Vanasthalipuram / Hayathnagar / Auto Nagar', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500035', areaName: 'Kothapet / Saroornagar / Gaddiannaram', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500036', areaName: 'Dilsukhnagar / Chaitanyapuri / P&T Colony', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500059', areaName: 'Saidabad / Champapet / Santoshnagar', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500053', areaName: 'Chandrayangutta / Bandlaguda / Falaknuma', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500077', areaName: 'Attapur / Hyderguda / Upparpally', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500030', areaName: 'Rajendranagar / Budvel / Shivrampally', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
   { pincode: '500052', areaName: 'Shamshabad / RGIA Airport Zone', city: 'Hyderabad', isServiceable: true, standardFee: 50, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
   { pincode: '500088', areaName: 'Pocharam / Ghatkesar / Infosys SEZ', city: 'Hyderabad', isServiceable: true, standardFee: 50, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
-  { pincode: '500043', areaName: 'Bandlaguda Jagir / Sun City / Peerancheru', city: 'Hyderabad', isServiceable: true, standardFee: 40, minFreeOrderValue: 399, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500043', areaName: 'Bandlaguda Jagir / Sun City / Peerancheru', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
 ];
 
 export const INITIAL_STAFF: StaffMember[] = [
@@ -5804,25 +5821,20 @@ class BackendDatabase {
           paymentTransactionId: r.payment_transaction_id || undefined,
           paymentGatewayOrderId: r.payment_gateway_order_id || undefined,
           paymentGateway: r.payment_gateway_order_id ? 'RAZORPAY' : undefined,
+          assignedPickupAgent: r.assigned_pickup_agent ? (typeof r.assigned_pickup_agent === 'string' ? JSON.parse(r.assigned_pickup_agent) : r.assigned_pickup_agent) : undefined,
+          assignedDeliveryAgent: r.assigned_delivery_agent ? (typeof r.assigned_delivery_agent === 'string' ? JSON.parse(r.assigned_delivery_agent) : r.assigned_delivery_agent) : undefined,
           createdAt: r.created_at,
           updatedAt: r.updated_at,
         }));
       }
 
-      // Sync Cloth Types - ensure full 54-garment master catalog
+      // Sync Cloth Types
       const [ctRows]: any = await pool.query('SELECT * FROM cloth_types ORDER BY sort_order ASC').catch(() => [[]]);
       if (ctRows && ctRows.length >= 50) {
         this.clothTypes = ctRows.map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          icon: r.icon,
-          categoryTag: r.category_tag,
-          categoryLabel: r.category_label,
-          subCategory: r.sub_category || undefined,
-          description: r.description,
-          isActive: Boolean(r.is_active),
-          sortOrder: r.sort_order,
-          imageUrl: r.image_url || undefined,
+          id: r.id, name: r.name, icon: r.icon, categoryTag: r.category_tag, categoryLabel: r.category_label,
+          subCategory: r.sub_category || undefined, description: r.description,
+          isActive: Boolean(r.is_active), sortOrder: r.sort_order, imageUrl: r.image_url || undefined,
         }));
       } else {
         this.clothTypes = [...INITIAL_CLOTH_TYPES];
@@ -5838,24 +5850,16 @@ class BackendDatabase {
       const [smRows]: any = await pool.query('SELECT * FROM service_masters').catch(() => [[]]);
       if (smRows && smRows.length >= 6) {
         this.serviceMasters = smRows.map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          slug: r.slug,
-          serviceCode: r.service_code,
-          icon: r.icon,
-          pricingType: r.pricing_type,
-          baseKgPrice: r.base_kg_price ? Number(r.base_kg_price) : undefined,
-          minOrderKg: r.min_order_kg ? Number(r.min_order_kg) : undefined,
-          turnaroundHours: r.turnaround_hours,
-          description: r.description,
-          isActive: Boolean(r.is_active),
-          imageUrl: r.image_url || undefined,
+          id: r.id, name: r.name, slug: r.slug, serviceCode: r.service_code, icon: r.icon,
+          pricingType: r.pricing_type, baseKgPrice: r.base_kg_price ? Number(r.base_kg_price) : undefined,
+          minOrderKg: r.min_order_kg ? Number(r.min_order_kg) : undefined, turnaroundHours: r.turnaround_hours,
+          description: r.description, isActive: Boolean(r.is_active), imageUrl: r.image_url || undefined,
         }));
       } else {
         this.serviceMasters = [...INITIAL_SERVICE_MASTERS];
         for (const sm of this.serviceMasters) {
           await pool.query(
-            'INSERT INTO service_masters (id, name, slug, service_code, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), slug=VALUES(slug), service_code=VALUES(service_code), icon=VALUES(icon), pricing_type=VALUES(pricing_type), base_kg_price=VALUES(base_kg_price), min_order_kg=VALUES(min_order_kg), turnaround_hours=VALUES(turnaround_hours), description=VALUES(description), is_active=VALUES(is_active)',
+            'INSERT INTO service_masters (id, name, slug, service_code, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name)',
             [sm.id, sm.name, sm.slug, sm.serviceCode || null, sm.icon, sm.pricingType, sm.baseKgPrice || null, sm.minOrderKg || null, sm.turnaroundHours, sm.description, sm.isActive ? 1 : 0, sm.imageUrl || null]
           ).catch(() => {});
         }
@@ -5863,36 +5867,42 @@ class BackendDatabase {
 
       // Sync Price Matrix
       const [pmRows]: any = await pool.query('SELECT * FROM service_price_matrix').catch(() => [[]]);
-      const hasStaleTestPrices = Array.isArray(pmRows) && pmRows.some((r: any) => r.cloth_type_id === 'cloth-shirt' && r.service_id === 'srv-m-dry-clean' && Number(r.price) < 50);
-      if (pmRows && pmRows.length >= 150 && !hasStaleTestPrices) {
+      if (pmRows && pmRows.length >= 150) {
         this.priceMatrix = pmRows.map((r: any) => ({
-          id: r.id,
-          clothTypeId: r.cloth_type_id,
-          clothName: r.cloth_name,
-          clothIcon: r.cloth_icon,
-          categoryTag: r.category_tag,
-          serviceId: r.service_id,
-          serviceName: r.service_name,
-          price: Number(r.price),
-          expressPrice: r.express_price ? Number(r.express_price) : undefined,
-          turnaroundHours: r.turnaround_hours,
-          isActive: Boolean(r.is_active),
+          id: r.id, clothTypeId: r.cloth_type_id, clothName: r.cloth_name, clothIcon: r.cloth_icon,
+          categoryTag: r.category_tag, serviceId: r.service_id, serviceName: r.service_name,
+          price: Number(r.price), expressPrice: r.express_price ? Number(r.express_price) : undefined,
+          turnaroundHours: r.turnaround_hours, isActive: Boolean(r.is_active),
         }));
       } else {
         this.priceMatrix = [...INITIAL_SERVICE_PRICE_MATRIX];
         for (const p of this.priceMatrix) {
           await pool.query(
-            'INSERT INTO service_price_matrix (id, cloth_type_id, cloth_name, cloth_icon, category_tag, service_id, service_name, price, express_price, turnaround_hours, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE cloth_name=VALUES(cloth_name), cloth_icon=VALUES(cloth_icon), category_tag=VALUES(category_tag), price=VALUES(price), express_price=VALUES(express_price), turnaround_hours=VALUES(turnaround_hours), is_active=VALUES(is_active)',
+            'INSERT INTO service_price_matrix (id, cloth_type_id, cloth_name, cloth_icon, category_tag, service_id, service_name, price, express_price, turnaround_hours, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE price=VALUES(price)',
             [p.id, p.clothTypeId, p.clothName, p.clothIcon, p.categoryTag, p.serviceId, p.serviceName, p.price, p.expressPrice || null, p.turnaroundHours, p.isActive ? 1 : 0]
           ).catch(() => {});
         }
       }
 
-      // Sync Pricing Settings
-      await pool.query('ALTER TABLE pricing_settings ADD COLUMN is_gst_enabled TINYINT(1) DEFAULT 1').catch(() => {});
+      // Sync Pricing Settings with distance-based delivery columns
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS is_gst_enabled TINYINT(1) DEFAULT 1').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS delivery_calculation_mode VARCHAR(32) DEFAULT "DISTANCE_BASED"').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS base_distance_km DECIMAL(6,2) DEFAULT 3.00').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS base_delivery_fee DECIMAL(8,2) DEFAULT 30.00').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS per_km_rate_after_base DECIMAL(8,2) DEFAULT 10.00').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS max_service_radius_km DECIMAL(6,2) DEFAULT 35.00').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS store_name VARCHAR(120) DEFAULT "Anusha Laundry Central Hub"').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS store_address VARCHAR(255) DEFAULT "Anusha Bazaar, Kukatpally, Hyderabad - 500072"').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS store_latitude DECIMAL(10,7) DEFAULT 17.4929894').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS store_longitude DECIMAL(10,7) DEFAULT 78.4144426').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS store_phone VARCHAR(32) DEFAULT "+91 40 4567 8901"').catch(() => {});
+      await pool.query('ALTER TABLE pricing_settings ADD COLUMN IF NOT EXISTS distance_tiers TEXT').catch(() => {});
+
       const [psRows]: any = await pool.query('SELECT * FROM pricing_settings WHERE id = 1').catch(() => [[]]);
       if (psRows && psRows.length > 0) {
         const s = psRows[0];
+        let tiers = INITIAL_PRICING_SETTINGS.distanceTiers;
+        if (s.distance_tiers) { try { tiers = JSON.parse(s.distance_tiers); } catch {} }
         this.pricingSettings = {
           taxPercentage: Number(s.tax_percentage),
           minOrderValue: Number(s.min_order_value),
@@ -5901,6 +5911,17 @@ class BackendDatabase {
           expressDeliveryFee: Number(s.express_delivery_fee),
           extraKgPrice: Number(s.extra_kg_price),
           isGstEnabled: s.is_gst_enabled !== undefined && s.is_gst_enabled !== null ? Boolean(s.is_gst_enabled) : true,
+          deliveryCalculationMode: s.delivery_calculation_mode || 'DISTANCE_BASED',
+          baseDistanceKm: s.base_distance_km ? Number(s.base_distance_km) : 3,
+          baseDeliveryFee: s.base_delivery_fee ? Number(s.base_delivery_fee) : 30,
+          perKmRateAfterBase: s.per_km_rate_after_base ? Number(s.per_km_rate_after_base) : 10,
+          maxServiceRadiusKm: s.max_service_radius_km ? Number(s.max_service_radius_km) : 35,
+          storeName: s.store_name || 'Anusha Laundry Central Hub',
+          storeAddress: s.store_address || 'Anusha Bazaar, Kukatpally, Hyderabad - 500072',
+          storeLatitude: s.store_latitude ? Number(s.store_latitude) : 17.4929894,
+          storeLongitude: s.store_longitude ? Number(s.store_longitude) : 78.4144426,
+          storePhone: s.store_phone || '+91 40 4567 8901',
+          distanceTiers: tiers,
         };
       }
 
@@ -5908,37 +5929,24 @@ class BackendDatabase {
       const [srvRows]: any = await pool.query('SELECT * FROM services').catch(() => [[]]);
       if (srvRows && srvRows.length > 0) {
         this.services = srvRows.map((r: any) => ({
-          id: r.id,
-          categoryId: r.category_id,
-          name: r.name,
-          slug: r.slug,
-          description: r.description,
+          id: r.id, categoryId: r.category_id, name: r.name, slug: r.slug, description: r.description,
           pricingModel: r.pricing_model,
           basePrice: r.id === 'srv-1' && Number(r.base_price) < 10 ? 60 : Number(r.base_price),
-          unit: r.unit,
-          minOrderQuantity: r.min_order_quantity ? Number(r.min_order_quantity) : undefined,
-          turnaroundHours: r.turnaround_hours,
-          popular: Boolean(r.popular),
+          unit: r.unit, minOrderQuantity: r.min_order_quantity ? Number(r.min_order_quantity) : undefined,
+          turnaroundHours: r.turnaround_hours, popular: Boolean(r.popular),
           expressAvailable: Boolean(r.express_available),
-          image: r.image_url || undefined,
-          imageUrl: r.image_url || undefined,
+          image: r.image_url || undefined, imageUrl: r.image_url || undefined,
         }));
         pool.query("UPDATE services SET base_price = 60 WHERE id = 'srv-1' AND base_price < 10").catch(() => {});
       }
 
       // Sync Categories
-      const [catRows]: any = await pool.query('SELECT * FROM categories');
-      if (catRows.length > 0) {
+      const [catRows]: any = await pool.query('SELECT * FROM categories').catch(() => [[]]);
+      if (catRows && catRows.length > 0) {
         this.categories = catRows.map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          slug: r.slug,
-          icon: r.icon,
-          description: r.description,
-          isPopular: Boolean(r.is_popular),
-          color: r.color || undefined,
-          image: r.image_url || undefined,
-          imageUrl: r.image_url || undefined,
+          id: r.id, name: r.name, slug: r.slug, icon: r.icon, description: r.description,
+          isPopular: Boolean(r.is_popular), color: r.color || undefined,
+          image: r.image_url || undefined, imageUrl: r.image_url || undefined,
         }));
       }
 
@@ -5946,16 +5954,12 @@ class BackendDatabase {
       const [subcatRows]: any = await pool.query('SELECT * FROM subcategories ORDER BY sort_order ASC').catch(() => [[]]);
       if (subcatRows && subcatRows.length > 0) {
         this.subcategories = subcatRows.map((r: any) => ({
-          id: r.id,
-          categoryTag: r.category_tag,
-          name: r.name,
-          imageUrl: r.image_url || undefined,
-          isActive: Boolean(r.is_active),
-          sortOrder: r.sort_order || 0,
+          id: r.id, categoryTag: r.category_tag, name: r.name,
+          imageUrl: r.image_url || undefined, isActive: Boolean(r.is_active), sortOrder: r.sort_order || 0,
         }));
       }
 
-      // Sync Coupons — ensure all master coupons (FIRST50, SILKSPA, BULKSAVE, WELCOME100, WEEKEND20) exist
+      // Sync Coupons — ensure all master coupons exist
       for (const c of INITIAL_COUPONS) {
         await pool.query(
           `INSERT INTO coupons (id, code, title, description, discount_type, discount_value, min_order_value, max_discount_cap, first_order_only, expiry_date, usage_count, is_active)
@@ -6210,6 +6214,20 @@ class BackendDatabase {
       ).catch((err) => console.error('Error updating order status in MySQL:', err));
     }
 
+    return order;
+  }
+
+  assignOrderDriver(id: string, agentType: 'PICKUP' | 'DELIVERY', agent: NonNullable<Order['assignedPickupAgent']>): Order | null {
+    const order = this.getOrderById(id);
+    if (!order) return null;
+    if (agentType === 'DELIVERY') order.assignedDeliveryAgent = agent;
+    else order.assignedPickupAgent = agent;
+    order.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    if (isDbConnected && pool) {
+      const column = agentType === 'DELIVERY' ? 'assigned_delivery_agent' : 'assigned_pickup_agent';
+      pool.query(`UPDATE orders SET ${column} = ?, updated_at = ? WHERE id = ?`, [JSON.stringify(agent), order.updatedAt, order.id])
+        .catch((err) => console.error('Error saving assigned order driver:', err));
+    }
     return order;
   }
 
@@ -6564,7 +6582,16 @@ class BackendDatabase {
       const s = this.pricingSettings;
       pool
         .query(
-          'UPDATE pricing_settings SET tax_percentage = ?, min_order_value = ?, free_delivery_threshold = ?, standard_delivery_fee = ?, express_delivery_fee = ?, extra_kg_price = ?, is_gst_enabled = ?, store_timings = ?, whatsapp_notifications_enabled = ?, sms_notifications_enabled = ?, email_notifications_enabled = ? WHERE id = 1',
+          `UPDATE pricing_settings SET
+            tax_percentage = ?, min_order_value = ?, free_delivery_threshold = ?,
+            standard_delivery_fee = ?, express_delivery_fee = ?, extra_kg_price = ?,
+            is_gst_enabled = ?, store_timings = ?,
+            whatsapp_notifications_enabled = ?, sms_notifications_enabled = ?, email_notifications_enabled = ?,
+            delivery_calculation_mode = ?, base_distance_km = ?, base_delivery_fee = ?,
+            per_km_rate_after_base = ?, max_service_radius_km = ?,
+            store_name = ?, store_address = ?, store_latitude = ?, store_longitude = ?, store_phone = ?,
+            distance_tiers = ?
+          WHERE id = 1`,
           [
             s.taxPercentage,
             s.minOrderValue,
@@ -6577,6 +6604,17 @@ class BackendDatabase {
             s.whatsappNotificationsEnabled !== false ? 1 : 0,
             s.smsNotificationsEnabled !== false ? 1 : 0,
             s.emailNotificationsEnabled !== false ? 1 : 0,
+            s.deliveryCalculationMode || 'DISTANCE_BASED',
+            s.baseDistanceKm ?? 3,
+            s.baseDeliveryFee ?? 30,
+            s.perKmRateAfterBase ?? 10,
+            s.maxServiceRadiusKm ?? 35,
+            s.storeName || 'Anusha Laundry Central Hub',
+            s.storeAddress || 'Anusha Bazaar, Kukatpally, Hyderabad - 500072',
+            s.storeLatitude ?? 17.4929894,
+            s.storeLongitude ?? 78.4144426,
+            s.storePhone || '+91 40 4567 8901',
+            s.distanceTiers ? JSON.stringify(s.distanceTiers) : null,
           ]
         )
         .catch((err) => console.error('Error updating pricing settings in MySQL:', err));
@@ -7097,10 +7135,20 @@ class BackendDatabase {
       this.customers.splice(idx, 1);
     }
     if (isDbConnected && pool) {
-      pool
-        .query('DELETE FROM customers WHERE id = ?', [customerId])
-        .catch((err) => console.error('Error deleting customer from MySQL:', err));
+      Promise.all([
+        pool.query('DELETE FROM customers WHERE id = ?', [customerId]),
+        pool.query("UPDATE orders SET customer_name = 'Deleted Customer', customer_phone = '', address = NULL, updated_at = ? WHERE customer_id = ?", [new Date().toISOString().replace('T', ' ').substring(0, 16), customerId]),
+        pool.query('DELETE FROM mobile_devices WHERE customer_id = ?', [customerId]),
+        pool.query('DELETE FROM customer_notifications WHERE customer_id = ?', [customerId]),
+      ]).catch((err) => console.error('Error deleting customer account data from MySQL:', err));
     }
+    this.orders.forEach((order) => {
+      if (order.customerId === customerId) {
+        order.customerName = 'Deleted Customer';
+        order.customerPhone = '';
+        order.address = { id: '', type: 'Home', street: '', city: '', pincode: '' };
+      }
+    });
     return true;
   }
 

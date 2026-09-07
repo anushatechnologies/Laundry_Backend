@@ -174,6 +174,7 @@ async function createTables() {
       pickup_delivery_fee DECIMAL(10, 2), express_fee DECIMAL(10, 2), tax_amount DECIMAL(10, 2),
       total_amount DECIMAL(10, 2), payment_method VARCHAR(100), payment_status VARCHAR(100),
       payment_transaction_id VARCHAR(255), payment_gateway_order_id VARCHAR(255),
+      assigned_pickup_agent JSON, assigned_delivery_agent JSON,
       created_at VARCHAR(100), updated_at VARCHAR(100)
     )
   `);
@@ -374,6 +375,8 @@ async function createTables() {
     ['cloth_types', 'ADD COLUMN sub_category VARCHAR(255) NULL'],
     ['orders', 'ADD COLUMN payment_transaction_id VARCHAR(255) NULL'],
     ['orders', 'ADD COLUMN payment_gateway_order_id VARCHAR(255) NULL'],
+    ['orders', 'ADD COLUMN assigned_pickup_agent JSON NULL'],
+    ['orders', 'ADD COLUMN assigned_delivery_agent JSON NULL'],
     ['customers', 'ADD COLUMN preferences JSON NULL'],
     ['pricing_settings', 'ADD COLUMN is_gst_enabled TINYINT(1) DEFAULT 1'],
     ['pricing_settings', "ADD COLUMN store_timings VARCHAR(100) DEFAULT '7:00 AM – 10:00 PM'"],

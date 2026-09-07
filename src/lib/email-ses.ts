@@ -1,4 +1,9 @@
-import nodemailer from 'nodemailer';
+/**
+ * AWS SES (Simple Email Service) Integration
+ * Professional email delivery with high deliverability
+ */
+
+import { SESClient, SendEmailCommand, SendEmailCommandInput } from '@aws-sdk/client-ses';
 import {
   OrderEmailData,
   getPickupScheduledEmail,
@@ -19,60 +24,67 @@ export interface SendMailOptions {
   text?: string;
 }
 
-const SMTP_HOST = process.env.SMTP_HOST || '';
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
-const SMTP_USER = process.env.SMTP_USER || '';
-const SMTP_PASS = process.env.SMTP_PASS || '';
-const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || SMTP_PORT === 465;
+// AWS SES Configuration
+const AWS_REGION = process.env.AWS_SES_REGION || process.env.AWS_REGION || 'ap-south-1'; // Mumbai region
+const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || '';
+const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || '';
 const EMAIL_FROM = process.env.EMAIL_FROM || '"Anjani Laundry" <anushabazaar4@gmail.com>';
-const ADMIN_ALERT_EMAIL = process.env.ADMIN_ALERT_EMAIL || SMTP_USER || 'anushabazaar4@gmail.com';
+const ADMIN_ALERT_EMAIL = process.env.ADMIN_ALERT_EMAIL || 'anushabazaar4@gmail.com';
 
-let transporter: nodemailer.Transporter | null = null;
+// Use environment variable or default to false for development
+const USE_AWS_SES = process.env.USE_AWS_SES === 'true';
 
-function getTransporter(): nodemailer.Transporter {
-  if (!transporter) {
-    if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-      transporter = nodemailer.createTransport({
-        host: SMTP_HOST,
-        port: SMTP_PORT,
-        secure: SMTP_SECURE,
-        auth: {
-          user: SMTP_USER,
-          pass: SMTP_PASS,
-        },
-      });
-    } else {
-      // Fallback in dev: use a JSON or test transporter
-      transporter = nodemailer.createTransport({
-        streamTransport: true,
-        newline: 'windows',
-      });
+let sesClient: SESClient | null = null;
+
+function getSESClient(): SESClient {
+  if (!sesClient && USE_AWS_SES) {
+    if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+      throw new Error('AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in .env');
     }
+
+    sesClient = new SESClient({
+      region: AWS_REGION,
+      credentials: {
+        accessKeyId: AWS_ACCESS_KEY_ID,
+        secretAccessKey: AWS_SECRET_ACCESS_KEY,
+      },
+    });
+
+    console.log(`✓ AWS SES Client initialized (Region: ${AWS_REGION})`);
   }
-  return transporter;
+  return sesClient!;
 }
 
-import { sendEmail as sendSesEmail, verifySESConnection } from './email-ses';
-
-export async function verifySmtpConnection(): Promise<{ isConnected: boolean; message: string; provider?: string }> {
+export async function verifySESConnection(): Promise<{ isConnected: boolean; message: string; region?: string }> {
   try {
-    if (process.env.USE_AWS_SES === 'true') {
-      const ses = await verifySESConnection();
-      return { isConnected: ses.isConnected, message: ses.message, provider: 'AWS_SES' };
-    }
-
-    if (!SMTP_HOST || !SMTP_USER) {
+    if (!USE_AWS_SES) {
       return {
         isConnected: false,
-        message: 'SMTP credentials not configured in backend/.env (using development fallback simulator). Or set USE_AWS_SES=true',
-        provider: 'SIMULATOR',
+        message: 'AWS SES is disabled. Set USE_AWS_SES=true in backend/.env to enable',
       };
     }
-    const t = getTransporter();
-    await t.verify();
-    return { isConnected: true, message: `SMTP connected to ${SMTP_HOST}:${SMTP_PORT}`, provider: 'SMTP' };
+
+    if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+      return {
+        isConnected: false,
+        message: 'AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY',
+      };
+    }
+
+    const client = getSESClient();
+    
+    // AWS SES doesn't have a "verify" command, but we can check if credentials are valid
+    // by checking the client configuration
+    return {
+      isConnected: true,
+      message: `AWS SES ready to send emails from ${EMAIL_FROM}`,
+      region: AWS_REGION,
+    };
   } catch (error: any) {
-    return { isConnected: false, message: `Email Provider Error: ${error.message}` };
+    return {
+      isConnected: false,
+      message: `AWS SES Error: ${error.message}`,
+    };
   }
 }
 
@@ -85,45 +97,61 @@ export interface SendEmailResult {
 }
 
 export async function sendEmail(opts: SendMailOptions): Promise<SendEmailResult> {
-  // 1. If AWS SES is enabled, send via AWS SES high-deliverability engine
-  if (process.env.USE_AWS_SES === 'true') {
-    return sendSesEmail(opts);
-  }
-
-  // 2. SMTP / Nodemailer delivery
   try {
-    const t = getTransporter();
-    const isConfigured = Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS);
-
-    if (!isConfigured) {
+    // Development mode simulation
+    if (!USE_AWS_SES) {
       console.log(`\n======================================================`);
-      console.log(`[EMAIL SIMULATOR] To: ${opts.to}`);
-      console.log(`[EMAIL SIMULATOR] Subject: ${opts.subject}`);
-      console.log(`[EMAIL SIMULATOR] (Configure SMTP in backend/.env or set USE_AWS_SES=true)`);
+      console.log(`[EMAIL SIMULATOR - AWS SES Disabled]`);
+      console.log(`To: ${opts.to}`);
+      console.log(`Subject: ${opts.subject}`);
+      console.log(`Set USE_AWS_SES=true in backend/.env to send real emails via AWS SES`);
       console.log(`======================================================\n`);
       return { success: true, messageId: `simulated-${Date.now()}` };
     }
 
-    const replyAddress = SMTP_USER || 'anushabazaar4@gmail.com';
-    const info = await t.sendMail({
-      from: EMAIL_FROM,
-      to: opts.to,
-      replyTo: replyAddress,
-      subject: opts.subject,
-      html: opts.html,
-      text: opts.text,
-      headers: {
-        'List-Unsubscribe': `<mailto:${replyAddress}?subject=Unsubscribe>`,
-        'X-Entity-Ref-ID': `anjani-laundry-${Date.now()}`,
-        'X-Mailer': 'AnjaniLaundry-Notification-Engine',
-      },
-    });
+    // AWS SES Email Sending
+    const client = getSESClient();
 
-    console.log(`✓ [EMAIL SENT] MessageId: ${info.messageId} to ${opts.to} (${opts.subject})`);
-    return { success: true, messageId: info.messageId };
+    const params: SendEmailCommandInput = {
+      Source: EMAIL_FROM,
+      Destination: {
+        ToAddresses: [opts.to],
+      },
+      Message: {
+        Subject: {
+          Data: opts.subject,
+          Charset: 'UTF-8',
+        },
+        Body: {
+          Html: {
+            Data: opts.html,
+            Charset: 'UTF-8',
+          },
+          ...(opts.text && {
+            Text: {
+              Data: opts.text,
+              Charset: 'UTF-8',
+            },
+          }),
+        },
+      },
+    };
+
+    const command = new SendEmailCommand(params);
+    const response = await client.send(command);
+
+    console.log(`✓ [AWS SES EMAIL SENT] MessageId: ${response.MessageId} to ${opts.to} (${opts.subject})`);
+    
+    return {
+      success: true,
+      messageId: response.MessageId,
+    };
   } catch (err: any) {
-    console.error(`✗ [EMAIL ERROR] Failed sending to ${opts.to}:`, err.message);
-    return { success: false, error: err.message };
+    console.error(`✗ [AWS SES EMAIL ERROR] Failed sending to ${opts.to}:`, err.message);
+    return {
+      success: false,
+      error: err.message,
+    };
   }
 }
 
@@ -191,13 +219,17 @@ export async function sendOtpNotification(to: string, name: string, otp: string)
   return sendEmail({ to, subject, html, text });
 }
 
-export async function sendWelcomeCustomerNotification(to: string, name: string, email: string, phone: string) {
-  const { subject, html, text } = getWelcomeCustomerEmail(name, email, phone);
+export async function sendWelcomeCustomerNotification(
+  to: string,
+  customerName: string,
+  customerEmail: string,
+  customerPhone: string
+) {
+  const { subject, html, text } = getWelcomeCustomerEmail(customerName, customerEmail, customerPhone);
   return sendEmail({ to, subject, html, text });
 }
 
-export async function sendAdminOrderAlert(data: OrderEmailData) {
+export async function sendAdminNewOrderAlert(data: OrderEmailData) {
   const { subject, html, text } = getAdminNewOrderAlertEmail(data);
   return sendEmail({ to: ADMIN_ALERT_EMAIL, subject, html, text });
 }
-

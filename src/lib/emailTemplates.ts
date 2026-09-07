@@ -72,12 +72,12 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateConfig[] = [
     badgeText: 'Pickup Confirmed',
     badgeBg: '#DCFCE7',
     badgeColor: '#15803D',
-    ctaText: 'Track Pickup Live →',
+    ctaText: 'View Order in App →',
     footerNote: 'Keep your laundry bag ready for driver inspection at scheduled time.',
-    senderName: 'LaundryFresh Notifications',
-    senderEmail: 'notifications@laundryfresh.in',
-    supportPhone: '+91 40 4567 8901',
-    supportEmail: 'support@anushatechnologies.com',
+    senderName: 'Anjani Laundry',
+    senderEmail: 'anushabazaar4@gmail.com',
+    supportPhone: '+91 91219 99999',
+    supportEmail: 'anushabazaar4@gmail.com',
     icon: '🧺',
   },
   {
@@ -96,10 +96,10 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateConfig[] = [
     badgeColor: '#0369A1',
     ctaText: 'View Order Status →',
     footerNote: 'Individual barcode tagging ensures 100% garment tracking.',
-    senderName: 'LaundryFresh Notifications',
-    senderEmail: 'notifications@laundryfresh.in',
-    supportPhone: '+91 40 4567 8901',
-    supportEmail: 'support@anushatechnologies.com',
+    senderName: 'Anjani Laundry',
+    senderEmail: 'anushabazaar4@gmail.com',
+    supportPhone: '+91 91219 99999',
+    supportEmail: 'anushabazaar4@gmail.com',
     icon: '🚚',
   },
   {
@@ -118,10 +118,10 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateConfig[] = [
     badgeColor: '#B45309',
     ctaText: 'Track Live Progress →',
     footerNote: 'Gentle temperature-controlled cycle ensures fabric longevity.',
-    senderName: 'LaundryFresh Notifications',
-    senderEmail: 'notifications@laundryfresh.in',
-    supportPhone: '+91 40 4567 8901',
-    supportEmail: 'support@anushatechnologies.com',
+    senderName: 'Anjani Laundry',
+    senderEmail: 'anushabazaar4@gmail.com',
+    supportPhone: '+91 91219 99999',
+    supportEmail: 'anushabazaar4@gmail.com',
     icon: '🫧',
   },
   {
@@ -140,10 +140,10 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateConfig[] = [
     badgeColor: '#15803D',
     ctaText: 'View Order Details →',
     footerNote: 'Garments will be dispatched in the next available delivery window.',
-    senderName: 'LaundryFresh Notifications',
-    senderEmail: 'notifications@laundryfresh.in',
-    supportPhone: '+91 40 4567 8901',
-    supportEmail: 'support@anushatechnologies.com',
+    senderName: 'Anjani Laundry',
+    senderEmail: 'anushabazaar4@gmail.com',
+    supportPhone: '+91 91219 99999',
+    supportEmail: 'anushabazaar4@gmail.com',
     icon: '✨',
   },
   {
@@ -162,10 +162,10 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateConfig[] = [
     badgeColor: '#6D28D9',
     ctaText: 'Track Delivery Valet →',
     footerNote: 'Please keep the OTP ready for contactless verification.',
-    senderName: 'LaundryFresh Notifications',
-    senderEmail: 'notifications@laundryfresh.in',
-    supportPhone: '+91 40 4567 8901',
-    supportEmail: 'support@anushatechnologies.com',
+    senderName: 'Anjani Laundry',
+    senderEmail: 'anushabazaar4@gmail.com',
+    supportPhone: '+91 91219 99999',
+    supportEmail: 'anushabazaar4@gmail.com',
     icon: '🚀',
   },
   {
@@ -177,17 +177,17 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateConfig[] = [
     isActive: true,
     subject: '🎉 Delivered! - Order #{{orderId}} Tax Invoice & Receipt',
     headline: 'Order Delivered!',
-    subheadline: 'Thank you for choosing LaundryFresh. Your clothes have been safely delivered.',
+    subheadline: 'Thank you for choosing Anjani Laundry. Your clothes have been safely delivered.',
     customMessage: 'We hope you love the fresh, crisp quality! Please rate your valet service experience.',
     badgeText: 'Delivered Successfully',
     badgeBg: '#DCFCE7',
     badgeColor: '#15803D',
-    ctaText: 'Download Tax Invoice →',
+    ctaText: 'View Invoice in App →',
     footerNote: 'Need any revisions or have questions? Contact our support team within 24 hours.',
-    senderName: 'LaundryFresh Notifications',
-    senderEmail: 'notifications@laundryfresh.in',
-    supportPhone: '+91 40 4567 8901',
-    supportEmail: 'support@anushatechnologies.com',
+    senderName: 'Anjani Laundry',
+    senderEmail: 'anushabazaar4@gmail.com',
+    supportPhone: '+91 91219 99999',
+    supportEmail: 'anushabazaar4@gmail.com',
     icon: '🎉',
   },
   {
@@ -197,19 +197,19 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateConfig[] = [
     event: 'OTP_VERIFICATION',
     description: 'Sent during phone/email OTP login.',
     isActive: true,
-    subject: '🔐 {{deliveryOtp}} is your LaundryFresh Verification Code',
+    subject: '🔐 {{deliveryOtp}} is your Anjani Laundry Verification Code',
     headline: 'Verification Code',
     subheadline: 'Hello {{customerName}}, use this one-time password to securely access your account.',
-    customMessage: 'Never share this code with anyone. LaundryFresh staff will never ask for your password or OTP.',
+    customMessage: 'Never share this code with anyone. Anjani Laundry staff will never ask for your password or OTP.',
     badgeText: 'Valid for 10 Mins',
     badgeBg: '#FEF2F2',
     badgeColor: '#B91C1C',
     ctaText: 'Verify & Sign In →',
     footerNote: 'If you did not request this OTP, please contact support immediately.',
-    senderName: 'LaundryFresh Security',
-    senderEmail: 'security@laundryfresh.in',
-    supportPhone: '+91 40 4567 8901',
-    supportEmail: 'support@anushatechnologies.com',
+    senderName: 'Anjani Laundry Security',
+    senderEmail: 'anushabazaar4@gmail.com',
+    supportPhone: '+91 91219 99999',
+    supportEmail: 'anushabazaar4@gmail.com',
     icon: '🔐',
   },
 ];
@@ -283,13 +283,13 @@ export function interpolatePlaceholders(templateStr: string, data: OrderEmailDat
     .replace(/\{\{\s*driverName\s*\}\}/g, data.driverName || 'Vikram Singh (In-House Fleet)')
     .replace(/\{\{\s*driverPhone\s*\}\}/g, data.driverPhone || '+91 98765 11001')
     .replace(/\{\{\s*deliveryOtp\s*\}\}/g, data.deliveryOtp || data.otp || '7392')
-    .replace(/\{\{\s*trackingUrl\s*\}\}/g, data.trackingUrl || 'https://laundryfresh.in/track/' + (data.orderId || 'LAU-8829'));
+    .replace(/\{\{\s*trackingUrl\s*\}\}/g, data.trackingUrl || 'mailto:anushabazaar4@gmail.com?subject=Order%20Status');
 }
 
 function getEmailWrapper(title: string, preheader: string, contentHtml: string, config?: EmailTemplateConfig): string {
-  const senderName = config?.senderName || 'LaundryFresh';
-  const supportPhone = config?.supportPhone || '+91 40 4567 8901';
-  const supportEmail = config?.supportEmail || 'support@anushatechnologies.com';
+  const senderName = config?.senderName || 'Anjani Laundry';
+  const supportPhone = config?.supportPhone || '+91 91219 99999';
+  const supportEmail = config?.supportEmail || 'anushabazaar4@gmail.com';
 
   return '<!DOCTYPE html>' +
 '<html lang="en">' +
@@ -319,7 +319,7 @@ function getEmailWrapper(title: string, preheader: string, contentHtml: string, 
 '              <td align="center">' +
 '                <div style="display: inline-flex; align-items: center; gap: 8px;">' +
 '                  <span style="font-size: 24px; font-weight: 900; color: ' + BRAND_DARK + '; letter-spacing: -0.5px;">' +
-'                    🧺 <span style="color: ' + BRAND_PRIMARY + ';">' + (senderName.split(' ')[0] || 'Laundry') + '</span>' + (senderName.split(' ').slice(1).join(' ') || 'Fresh') +
+'                    🧺 <span style="color: ' + BRAND_PRIMARY + ';">' + (senderName.split(' ')[0] || 'Anjani') + '</span> ' + (senderName.split(' ').slice(1).join(' ') || 'Laundry') +
 '                  </span>' +
 '                </div>' +
 '                <div style="font-size: 11px; font-weight: 600; color: ' + TEXT_MUTED + '; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">' +
@@ -342,9 +342,11 @@ function getEmailWrapper(title: string, preheader: string, contentHtml: string, 
 '          <p style="margin: 0 0 8px 0;">' +
 '            Need assistance? Support hotline available at <strong style="color: ' + BRAND_DARK + ';">' + supportPhone + '</strong> or email <a href="mailto:' + supportEmail + '" style="color: ' + BRAND_PRIMARY + '; text-decoration: none;">' + supportEmail + '</a>' +
 '          </p>' +
-'          <p style="margin: 0; font-size: 11px; color: #94A3B8;">' +
+'          <p style="margin: 0; font-size: 11px; color: #94A3B8; line-height: 1.6;">' +
 '            © ' + new Date().getFullYear() + ' ' + senderName + '. All rights reserved.<br/>' +
-'            Anusha Bazaar, Kukatpally, Hyderabad - 500072' +
+'            Anusha Bazaar, Kukatpally, Hyderabad - 500072<br/>' +
+'            <a href="mailto:' + supportEmail + '?subject=Unsubscribe%20Notifications" style="color: ' + BRAND_PRIMARY + '; text-decoration: underline;">Unsubscribe</a> | ' +
+'            <a href="mailto:' + supportEmail + '?subject=Email%20Preferences" style="color: ' + BRAND_PRIMARY + '; text-decoration: underline;">Email Preferences</a>' +
 '          </p>' +
 '        </td>' +
 '      </tr>' +
@@ -364,7 +366,7 @@ export function getPickupScheduledEmail(data: OrderEmailData, customConfig?: Ema
   const badgeText = config.badgeText || 'Pickup Confirmed';
   const ctaText = config.ctaText || 'Track Pickup Live →';
   const footerNote = interpolatePlaceholders(config.footerNote, data);
-  const trackingUrl = data.trackingUrl || ('https://laundryfresh.in/track/' + (data.orderId || ''));
+  const trackingUrl = data.trackingUrl || ('mailto:' + (config.supportEmail || 'anushabazaar4@gmail.com') + '?subject=Order%20%23' + (data.orderId || '') + '%20Status');
 
   const contentHtml = 
     '<div style="text-align: center; margin-bottom: 24px;">' +
@@ -432,7 +434,7 @@ export function getPickupScheduledEmail(data: OrderEmailData, customConfig?: Ema
     '</div>';
 
   const html = getEmailWrapper(headline, 'Your laundry pickup for Order #' + data.orderId + ' is confirmed.', contentHtml, config);
-  const text = (config.senderName || 'LaundryFresh') + ' - ' + headline + '\nOrder #' + data.orderId + '\n' + subheadline + '\nTrack: ' + trackingUrl;
+  const text = (config.senderName || 'Anjani Laundry') + ' - ' + headline + '\nOrder #' + data.orderId + '\n' + subheadline + '\nSupport: ' + (config.supportEmail || 'anushabazaar4@gmail.com');
 
   return { subject, html, text, isActive: config.isActive };
 }
@@ -447,7 +449,7 @@ export function getPickupCompletedEmail(data: OrderEmailData, customConfig?: Ema
   const badgeText = config.badgeText || 'At Processing Hub';
   const ctaText = config.ctaText || 'View Order Status →';
   const footerNote = interpolatePlaceholders(config.footerNote, data);
-  const trackingUrl = data.trackingUrl || ('https://laundryfresh.in/track/' + (data.orderId || ''));
+  const trackingUrl = data.trackingUrl || ('mailto:' + (config.supportEmail || 'anushabazaar4@gmail.com') + '?subject=Order%20%23' + (data.orderId || '') + '%20Status');
 
   const contentHtml = 
     '<div style="text-align: center; margin-bottom: 24px;">' +
@@ -483,8 +485,8 @@ export function getPickupCompletedEmail(data: OrderEmailData, customConfig?: Ema
     '  </div>' +
     '</div>';
 
-  const html = getEmailWrapper(headline, 'Order #' + data.orderId + ' has reached our facility.', contentHtml, config);
-  const text = (config.senderName || 'LaundryFresh') + ' - ' + headline + '\nOrder #' + data.orderId + '\n' + subheadline + '\nTrack: ' + trackingUrl;
+  const html = getEmailWrapper(headline, 'Order #' + data.orderId + ' reached hub.', contentHtml, config);
+  const text = (config.senderName || 'Anjani Laundry') + ' - ' + headline + '\nOrder #' + data.orderId + '\n' + subheadline + '\nSupport: ' + (config.supportEmail || 'support@anushatechnologies.com');
 
   return { subject, html, text, isActive: config.isActive };
 }
@@ -499,7 +501,7 @@ export function getWashingInProgressEmail(data: OrderEmailData, customConfig?: E
   const badgeText = config.badgeText || 'Washing In Progress';
   const ctaText = config.ctaText || 'Track Live Progress →';
   const footerNote = interpolatePlaceholders(config.footerNote, data);
-  const trackingUrl = data.trackingUrl || ('https://laundryfresh.in/track/' + (data.orderId || ''));
+  const trackingUrl = data.trackingUrl || ('mailto:' + (config.supportEmail || 'anushabazaar4@gmail.com') + '?subject=Order%20%23' + (data.orderId || '') + '%20Status');
 
   const contentHtml = 
     '<div style="text-align: center; margin-bottom: 24px;">' +
@@ -531,7 +533,7 @@ export function getWashingInProgressEmail(data: OrderEmailData, customConfig?: E
     '</div>';
 
   const html = getEmailWrapper(headline, 'Your clothes for Order #' + data.orderId + ' are being processed.', contentHtml, config);
-  const text = (config.senderName || 'LaundryFresh') + ' - ' + headline + '\nOrder #' + data.orderId + '\n' + subheadline + '\nTrack: ' + trackingUrl;
+  const text = (config.senderName || 'Anjani Laundry') + ' - ' + headline + '\nOrder #' + data.orderId + '\n' + subheadline + '\nSupport: ' + (config.supportEmail || 'anushabazaar4@gmail.com');
 
   return { subject, html, text, isActive: config.isActive };
 }
@@ -546,7 +548,7 @@ export function getWashCompleteEmail(data: OrderEmailData, customConfig?: EmailT
   const badgeText = config.badgeText || '100% Quality Checked';
   const ctaText = config.ctaText || 'View Order Details →';
   const footerNote = interpolatePlaceholders(config.footerNote, data);
-  const trackingUrl = data.trackingUrl || ('https://laundryfresh.in/track/' + (data.orderId || ''));
+  const trackingUrl = data.trackingUrl || ('mailto:' + (config.supportEmail || 'anushabazaar4@gmail.com') + '?subject=Order%20%23' + (data.orderId || '') + '%20Status');
 
   const contentHtml = 
     '<div style="text-align: center; margin-bottom: 24px;">' +
@@ -591,7 +593,7 @@ export function getWashCompleteEmail(data: OrderEmailData, customConfig?: EmailT
     '</div>';
 
   const html = getEmailWrapper(headline, 'Order #' + data.orderId + ' wash is complete.', contentHtml, config);
-  const text = (config.senderName || 'LaundryFresh') + ' - ' + headline + '\nOrder #' + data.orderId + '\n' + subheadline + '\nTrack: ' + trackingUrl;
+  const text = (config.senderName || 'Anjani Laundry') + ' - ' + headline + '\nOrder #' + data.orderId + '\n' + subheadline + '\nSupport: ' + (config.supportEmail || 'anushabazaar4@gmail.com');
 
   return { subject, html, text, isActive: config.isActive };
 }
@@ -606,7 +608,7 @@ export function getOutForDeliveryEmail(data: OrderEmailData, customConfig?: Emai
   const badgeText = config.badgeText || 'Out for Delivery';
   const ctaText = config.ctaText || 'Track Delivery Valet →';
   const footerNote = interpolatePlaceholders(config.footerNote, data);
-  const trackingUrl = data.trackingUrl || ('https://laundryfresh.in/track/' + (data.orderId || ''));
+  const trackingUrl = data.trackingUrl || ('mailto:' + (config.supportEmail || 'anushabazaar4@gmail.com') + '?subject=Order%20%23' + (data.orderId || '') + '%20Status');
   const otp = data.deliveryOtp || '7392';
 
   const contentHtml = 
@@ -646,7 +648,7 @@ export function getOutForDeliveryEmail(data: OrderEmailData, customConfig?: Emai
     '</div>';
 
   const html = getEmailWrapper(headline, 'Order #' + data.orderId + ' is out for delivery with OTP ' + otp + '.', contentHtml, config);
-  const text = (config.senderName || 'LaundryFresh') + ' - ' + headline + '\nOrder #' + data.orderId + '\nDelivery OTP: ' + otp + '\nTrack: ' + trackingUrl;
+  const text = (config.senderName || 'Anjani Laundry') + ' - ' + headline + '\nOrder #' + data.orderId + '\nDelivery OTP: ' + otp + '\nSupport: ' + (config.supportEmail || 'anushabazaar4@gmail.com');
 
   return { subject, html, text, isActive: config.isActive };
 }
@@ -661,7 +663,7 @@ export function getOrderDeliveredEmail(data: OrderEmailData, customConfig?: Emai
   const badgeText = config.badgeText || 'Delivered Successfully';
   const ctaText = config.ctaText || 'Download Tax Invoice →';
   const footerNote = interpolatePlaceholders(config.footerNote, data);
-  const trackingUrl = data.trackingUrl || ('https://laundryfresh.in/track/' + (data.orderId || ''));
+  const trackingUrl = data.trackingUrl || ('mailto:' + (config.supportEmail || 'anushabazaar4@gmail.com') + '?subject=Order%20%23' + (data.orderId || '') + '%20Status');
 
   const contentHtml = 
     '<div style="text-align: center; margin-bottom: 24px;">' +
@@ -708,7 +710,7 @@ export function getOrderDeliveredEmail(data: OrderEmailData, customConfig?: Emai
     '</div>';
 
   const html = getEmailWrapper(headline, 'Order #' + data.orderId + ' delivered.', contentHtml, config);
-  const text = (config.senderName || 'LaundryFresh') + ' - ' + headline + '\nOrder #' + data.orderId + ' delivered.\nTotal: ₹' + (data.totalAmount || 0) + '\nInvoice: ' + trackingUrl;
+  const text = (config.senderName || 'Anjani Laundry') + ' - ' + headline + '\nOrder #' + data.orderId + ' delivered.\nTotal: ₹' + (data.totalAmount || 0) + '\nSupport: ' + (config.supportEmail || 'anushabazaar4@gmail.com');
 
   return { subject, html, text, isActive: config.isActive };
 }
@@ -755,15 +757,15 @@ export function getOtpVerificationEmail(name: string, otp: string, customConfig?
     '  ' + footerNote +
     '</div>';
 
-  const html = getEmailWrapper(headline, 'Your LaundryFresh login OTP is ' + otp + '.', contentHtml, config);
-  const text = 'LaundryFresh OTP: ' + otp + '\nValid for 10 minutes.';
+  const html = getEmailWrapper(headline, 'Your Anjani Laundry login OTP is ' + otp + '.', contentHtml, config);
+  const text = 'Anjani Laundry OTP: ' + otp + '\nValid for 10 minutes.';
 
   return { subject, html, text, isActive: config.isActive };
 }
 
 // 8. Template: Welcome Customer Email
 export function getWelcomeCustomerEmail(name: string, email: string, phone: string): { subject: string; html: string; text: string } {
-  const subject = '🎉 Welcome to LaundryFresh, ' + (name || 'Friend') + '! Your Account is Ready';
+  const subject = '🎉 Welcome to Anjani Laundry, ' + (name || 'Friend') + '! Your Account is Ready';
 
   const contentHtml = 
     '<div style="text-align: center; margin-bottom: 24px;">' +
@@ -771,7 +773,7 @@ export function getWelcomeCustomerEmail(name: string, email: string, phone: stri
     '    ✨' +
     '  </div>' +
     '  <h1 style="font-size: 22px; font-weight: 800; color: ' + BRAND_DARK + '; margin: 0 0 6px 0;">' +
-    '    Welcome to LaundryFresh!' +
+    '    Welcome to Anjani Laundry!' +
     '  </h1>' +
     '  <p style="font-size: 14px; color: ' + TEXT_MUTED + '; margin: 0;">' +
     '    Hello <strong>' + (name || 'Valued Customer') + '</strong>, we\'re thrilled to have you with us.' +
@@ -798,16 +800,16 @@ export function getWelcomeCustomerEmail(name: string, email: string, phone: stri
     '  </table>' +
     '</div>' +
     '<div style="text-align: center; margin-bottom: 24px;">' +
-    '  <a href="https://laundry-website-peach.vercel.app/book" class="btn" style="background-color: #5B214F; color: #ffffff !important; display: inline-block; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 14px;">' +
-    '    Schedule Your First Pickup →' +
+    '  <a href="mailto:anushabazaar4@gmail.com?subject=Book%20Pickup" class="btn" style="background-color: #5B214F; color: #ffffff !important; display: inline-block; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 14px;">' +
+    '    Schedule Your Pickup in App →' +
     '  </a>' +
     '</div>' +
     '<div style="border-top: 1px solid #E2E8F0; padding-top: 16px; font-size: 12px; color: #94A3B8; text-align: center;">' +
-    '  Use coupon <strong>WELCOME100</strong> at checkout for ₹100 flat discount on your first order!' +
+    '  Use coupon <strong>FIRST50</strong> at checkout for ₹50 flat discount on your first order!' +
     '</div>';
 
-  const html = getEmailWrapper('Welcome to LaundryFresh', 'Welcome to LaundryFresh!', contentHtml);
-  const text = 'Welcome to LaundryFresh, ' + name + '!\nYour account (+91 ' + phone + ') is active.\nBook now: https://laundry-website-peach.vercel.app/book';
+  const html = getEmailWrapper('Welcome to Anjani Laundry', 'Welcome to Anjani Laundry!', contentHtml);
+  const text = 'Welcome to Anjani Laundry, ' + name + '!\nYour account (+91 ' + phone + ') is active.\nBook now in the Anjani Laundry mobile app.';
 
   return { subject, html, text };
 }

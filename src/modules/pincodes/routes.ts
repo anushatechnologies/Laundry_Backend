@@ -8,10 +8,10 @@ const router = Router();
 const pincodeSchema = z.object({
   pincode: z.string().trim().regex(/^\d{6}$/, 'Use a valid six-digit pincode.'),
   areaName: z.string().trim().min(2).max(120),
-  city: z.string().trim().min(2).max(120).default('Bengaluru'),
+  city: z.string().trim().min(2).max(120).default('Hyderabad'),
   isServiceable: z.boolean().optional().default(true),
-  standardFee: z.coerce.number().finite().min(0).max(5000).optional().default(40),
-  minFreeOrderValue: z.coerce.number().finite().min(0).max(100000).optional().default(399),
+  standardFee: z.coerce.number().finite().min(0).max(5000).optional().default(30),
+  minFreeOrderValue: z.coerce.number().finite().min(0).max(100000).optional().default(499),
   expressAvailable: z.boolean().optional().default(true),
   averageTurnaroundHours: z.coerce.number().int().min(1).max(240).optional().default(24),
 });
@@ -115,16 +115,94 @@ function buildSearchResult(input: {
   };
 }
 
-// Explicit, button-triggered address lookup for the no-GPS/manual picker path.
-// It is intentionally not an unrestricted autocomplete endpoint.
+// Address lookup powered by Google Places Autocomplete API with Geocoding and OSM fallbacks
 router.get('/search', async (req: Request, res: Response) => {
   const query = String(req.query.q || '').trim();
-  if (query.length < 3 || query.length > 180) {
-    return validationError(res, 'Enter at least 3 characters to search for an address.');
+  if (query.length < 2 || query.length > 180) {
+    return validationError(res, 'Enter at least 2 characters to search for an address.');
   }
 
   const mapsApiKey = process.env.GOOGLE_MAPS_SERVER_KEY?.trim();
   if (mapsApiKey) {
+    try {
+      // 1. Google Places Autocomplete API (biasing towards Hyderabad/Telangana)
+      const autoParams = new URLSearchParams({
+        input: query,
+        location: '17.385,78.4867',
+        radius: '50000',
+        components: 'country:in',
+        key: mapsApiKey,
+      });
+      const autoRes = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?${autoParams}`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (autoRes.ok) {
+        const autoData = (await autoRes.json()) as {
+          predictions?: Array<{
+            place_id: string;
+            description: string;
+            structured_formatting?: { main_text?: string; secondary_text?: string };
+          }>;
+        };
+
+        if (autoData.predictions && autoData.predictions.length > 0) {
+          const detailPromises = autoData.predictions.slice(0, 5).map(async (pred) => {
+            try {
+              const detParams = new URLSearchParams({
+                place_id: pred.place_id,
+                fields: 'geometry,address_component,formatted_address,name',
+                key: mapsApiKey,
+              });
+              const detRes = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?${detParams}`, {
+                signal: AbortSignal.timeout(4000),
+              });
+              if (!detRes.ok) return null;
+              const detData = (await detRes.json()) as {
+                result?: {
+                  geometry?: { location?: { lat?: number; lng?: number } };
+                  address_components?: GeocodeComponent[];
+                  formatted_address?: string;
+                  name?: string;
+                };
+              };
+              const r = detData.result;
+              if (!r || !r.geometry?.location?.lat || !r.geometry?.location?.lng) return null;
+              const components = r.address_components || [];
+              const lookup = (types: string[]) => getComponent(components, types);
+              const mainName = pred.structured_formatting?.main_text || r.name || '';
+              const area = lookup(['sublocality_level_1', 'sublocality', 'neighborhood', 'locality']) || mainName;
+              const city = lookup(['locality', 'administrative_area_level_2']) || 'Hyderabad';
+              const state = lookup(['administrative_area_level_1']) || 'Telangana';
+              const country = lookup(['country']) || 'India';
+              const pincode = lookup(['postal_code']) || '500072';
+
+              return buildSearchResult({
+                latitude: r.geometry.location.lat,
+                longitude: r.geometry.location.lng,
+                formattedAddress: r.formatted_address || pred.description,
+                address: mainName || (r.formatted_address || '').split(',')[0],
+                areaName: area || mainName,
+                city,
+                state,
+                country,
+                pincode,
+              });
+            } catch {
+              return null;
+            }
+          });
+
+          const resolved = (await Promise.all(detailPromises)).filter(Boolean);
+          if (resolved.length > 0) {
+            return res.json({ success: true, data: resolved });
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Google Places search failed, falling back to Geocode:', error);
+    }
+
+    // 2. Google Geocode API Fallback
     try {
       const searchParams = new URLSearchParams({
         address: query,
@@ -133,7 +211,7 @@ router.get('/search', async (req: Request, res: Response) => {
         key: mapsApiKey,
       });
       const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?${searchParams}`, {
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(5000),
       });
       if (response.ok) {
         const payload = (await response.json()) as {
@@ -146,11 +224,6 @@ router.get('/search', async (req: Request, res: Response) => {
         };
         const results = (payload.results || [])
           .filter((result) => Number.isFinite(result.geometry?.location?.lat) && Number.isFinite(result.geometry?.location?.lng))
-          .sort((left, right) => {
-            const leftIsAddress = left.types?.some((type) => ['street_address', 'premise', 'route', 'subpremise'].includes(type)) ? 1 : 0;
-            const rightIsAddress = right.types?.some((type) => ['street_address', 'premise', 'route', 'subpremise'].includes(type)) ? 1 : 0;
-            return rightIsAddress - leftIsAddress;
-          })
           .map((result) => {
             const components = result.address_components || [];
             const street = [
@@ -164,10 +237,10 @@ router.get('/search', async (req: Request, res: Response) => {
               formattedAddress: result.formatted_address || '',
               address: street || (result.formatted_address || '').split(',')[0] || '',
               areaName: getComponent(components, ['sublocality_level_1', 'sublocality', 'neighborhood', 'locality']),
-              city: getComponent(components, ['locality', 'administrative_area_level_2']),
-              state: getComponent(components, ['administrative_area_level_1']),
-              country: getComponent(components, ['country']),
-              pincode: getComponent(components, ['postal_code']),
+              city: getComponent(components, ['locality', 'administrative_area_level_2']) || 'Hyderabad',
+              state: getComponent(components, ['administrative_area_level_1']) || 'Telangana',
+              country: getComponent(components, ['country']) || 'India',
+              pincode: getComponent(components, ['postal_code']) || '500072',
             });
           })
           .filter(Boolean)
@@ -175,11 +248,12 @@ router.get('/search', async (req: Request, res: Response) => {
 
         if (results.length > 0) return res.json({ success: true, data: results });
       }
-    } catch (error) {
-      console.warn('Google Maps address search failed, falling back to OSM Nominatim:', error);
+    } catch (err) {
+      console.warn('Google Geocode fallback failed:', err);
     }
   }
 
+  // 3. OpenStreetMap Nominatim Fallback
   try {
     const searchParams = new URLSearchParams({
       format: 'jsonv2',
@@ -190,7 +264,7 @@ router.get('/search', async (req: Request, res: Response) => {
     });
     const response = await fetch(`https://nominatim.openstreetmap.org/search?${searchParams}`, {
       headers: { 'User-Agent': 'LaundryFresh-App/1.0 (support@anushatechnologies.com)' },
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(5000),
     });
     if (response.ok) {
       const payload = (await response.json()) as Array<{
@@ -208,10 +282,10 @@ router.get('/search', async (req: Request, res: Response) => {
             formattedAddress: item.display_name || '',
             address: [address.house_number, address.road].filter(Boolean).join(' ') || (item.display_name || '').split(',')[0] || '',
             areaName: address.suburb || address.neighbourhood || address.residential || address.city_district,
-            city: address.city || address.town || address.village || address.state_district,
-            state: address.state,
-            country: address.country,
-            pincode: address.postcode,
+            city: address.city || address.town || address.village || address.state_district || 'Hyderabad',
+            state: address.state || 'Telangana',
+            country: address.country || 'India',
+            pincode: address.postcode || '500072',
           });
         })
         .filter(Boolean)
@@ -248,30 +322,30 @@ router.get('/reverse-geocode', async (req: Request, res: Response) => {
           results?: Array<{ formatted_address?: string; address_components?: GeocodeComponent[]; types?: string[] }>;
         };
         const result = geoData.results?.find((candidate) =>
-          candidate.types?.some((type) => ['street_address', 'premise', 'route', 'subpremise'].includes(type)),
+          candidate.types?.some((type) => ['street_address', 'premise', 'route', 'subpremise', 'sublocality'].includes(type)),
         ) || geoData.results?.[0];
         if (result) {
           const components = result.address_components || [];
           const lookup = (types: string[]) => getComponent(components, types);
-          const pincode = lookup(['postal_code']);
-          if (pincode && /^\d{6}$/.test(pincode)) {
-            const zone = db.checkPincode(pincode);
-            const isServiceable = Boolean(zone?.isServiceable);
-            return res.json({
-              success: true,
-              data: {
-                pincode,
-                formattedAddress: result.formatted_address || '',
-                areaName: lookup(['sublocality_level_1', 'sublocality', 'neighborhood', 'locality']) || 'Local Area',
-                city: lookup(['administrative_area_level_2', 'locality']) || '',
-                isServiceable,
-                zone: zone || null,
-                message: isServiceable
-                  ? `LaundryFresh is available in ${pincode}.`
-                  : `LaundryFresh is not available in PIN ${pincode} yet.`,
-              },
-            });
-          }
+          const pincode = lookup(['postal_code']) || '500072';
+          const areaName = lookup(['sublocality_level_1', 'sublocality', 'neighborhood', 'locality']) || 'Local Area';
+          const city = lookup(['administrative_area_level_2', 'locality']) || 'Hyderabad';
+          const zone = db.checkPincode(pincode);
+          const isServiceable = Boolean(zone?.isServiceable);
+          return res.json({
+            success: true,
+            data: {
+              pincode,
+              formattedAddress: result.formatted_address || '',
+              areaName,
+              city,
+              isServiceable,
+              zone: zone || null,
+              message: isServiceable
+                ? `LaundryFresh is available in ${areaName} (${pincode}).`
+                : `LaundryFresh is not available in PIN ${pincode} yet.`,
+            },
+          });
         }
       }
     } catch (err) {

@@ -6,6 +6,7 @@ import { db } from '../../lib/db';
 import { requireAdmin } from '../../middleware/admin';
 import { verifyAccessToken } from '../../lib/customer-tokens';
 import { sendAdminOrderAlert, sendPickupScheduledNotification } from '../../lib/email';
+import { sendOrderStatusPushNotification } from '../../lib/push';
 
 const router = Router();
 
@@ -197,6 +198,11 @@ router.post('/verify-signature', requireCustomerOrderAccess, async (req: Request
   }
   const paidOrder = db.markOrderPaymentPaid(order.id, razorpay_payment_id);
   notifyPaymentSuccess(paidOrder);
+  if (paidOrder) {
+    sendOrderStatusPushNotification(paidOrder, paidOrder.currentStatus).catch((err) =>
+      console.warn(`Order push notification error for #${paidOrder.id}:`, err)
+    );
+  }
   return res.json({ success: true, data: paymentView(paidOrder) });
 });
 
@@ -280,6 +286,11 @@ router.post('/webhook', (req: Request, res: Response) => {
           Number(payment?.amount) === Math.round(existingOrder.totalAmount * 100)) {
         const paid = db.markOrderPaymentPaid(internalOrderId, paymentId);
         notifyPaymentSuccess(paid);
+        if (paid) {
+          sendOrderStatusPushNotification(paid, paid.currentStatus).catch((err) =>
+            console.warn(`Order push notification error for #${paid.id}:`, err)
+          );
+        }
         console.log(`[Razorpay Webhook] Marked order #${internalOrderId} as PAID (${paymentId})`);
       }
     }

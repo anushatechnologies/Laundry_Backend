@@ -48,6 +48,7 @@ const firebasePushSchema = z.object({
   body: z.string().trim().min(1).max(500),
   channel: z.enum(['orders', 'promotions']).default('orders'),
   orderId: z.string().trim().min(1).max(255).optional(),
+  imageUrl: z.string().url().optional(), // Image URL for rich notifications
 });
 
 const sampleData: OrderEmailData = {
@@ -74,7 +75,7 @@ const sampleData: OrderEmailData = {
   driverName: 'Vikram Singh (In-House Fleet)',
   driverPhone: '+91 98765 11001',
   deliveryOtp: '7392',
-  trackingUrl: 'https://laundryfresh.in/track/LAU-8829',
+  trackingUrl: 'mailto:anushabazaar4@gmail.com?subject=Order%20Status',
 };
 
 function renderPreviewForConfig(cfg: EmailTemplateConfig): { subject: string; html: string; text: string; isActive: boolean } {
@@ -160,7 +161,7 @@ router.get('/smtp-status', async (req: Request, res: Response) => {
       smtpHost: process.env.SMTP_HOST || 'Not Configured (Simulator Mode)',
       smtpPort: process.env.SMTP_PORT || '587',
       smtpUser: process.env.SMTP_USER || 'None',
-      emailFrom: process.env.EMAIL_FROM || 'notifications@laundryfresh.in',
+      emailFrom: process.env.EMAIL_FROM || 'anushabazaar4@gmail.com',
       ...result,
     },
   });
@@ -184,6 +185,8 @@ router.post('/push', requireConfiguredAdmin, async (req: Request, res: Response)
   const data: Record<string, string> = input.orderId
     ? { orderId: input.orderId, screen: 'ORDER_DETAIL' }
     : { screen: 'HOME' };
+  
+  if (input.imageUrl) data.imageUrl = input.imageUrl;
 
   try {
     const delivery = await sendPushNotificationToCustomer(input.customerId, {
@@ -191,6 +194,7 @@ router.post('/push', requireConfiguredAdmin, async (req: Request, res: Response)
       body: input.body,
       data,
       channel: input.channel as PushChannel,
+      imageUrl: input.imageUrl, // Add image support
     });
 
     if (!delivery.targetedDeviceCount) {
@@ -220,6 +224,7 @@ const broadcastSchema = z.object({
   channel: z.enum(['orders', 'promotions']).default('promotions'),
   screen: z.string().trim().default('OFFERS'),
   couponCode: z.string().trim().optional(),
+  imageUrl: z.string().url().optional(), // Image URL for rich notifications
 });
 
 /**
@@ -234,9 +239,10 @@ router.post('/broadcast', requireConfiguredAdmin, async (req: Request, res: Resp
     });
   }
 
-  const { title, body, channel, screen, couponCode } = parsed.data;
+  const { title, body, channel, screen, couponCode, imageUrl } = parsed.data;
   const data: Record<string, string> = { screen };
   if (couponCode) data.couponCode = couponCode;
+  if (imageUrl) data.imageUrl = imageUrl;
 
   try {
     const delivery = await broadcastPushNotification({

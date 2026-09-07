@@ -1,8 +1,11 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import { z } from 'zod';
 import { verifyAccessToken } from '../../lib/customer-tokens';
+import { requireAdmin } from '../../middleware/admin';
 import {
+  adminAdjustWallet,
   createTopupOrder,
+  getAdminWalletOverview,
   getWallet,
   verifyTopupPayment,
 } from './service';
@@ -91,6 +94,48 @@ router.post('/topup/verify', requireCustomer, async (req: Request, res: Response
   } catch (error: any) {
     console.error('Wallet topup verification error:', error);
     res.status(400).json({ success: false, message: error.message || 'Payment verification failed.' });
+  }
+});
+
+// GET /api/wallet/admin/overview - Admin: get wallet balances, stats, and transaction log
+router.get('/admin/overview', requireAdmin, async (_req: Request, res: Response) => {
+  try {
+    const data = await getAdminWalletOverview();
+    res.json({ success: true, data });
+  } catch (error: any) {
+    console.error('Admin wallet overview error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Could not load wallet overview.' });
+  }
+});
+
+// POST /api/wallet/admin/adjust - Admin: manually credit or debit customer wallet
+router.post('/admin/adjust', requireAdmin, async (req: Request, res: Response) => {
+  const schema = z.object({
+    customerId: z.string().trim().min(1),
+    amount: z.number().finite().positive(),
+    type: z.enum(['CREDIT', 'DEBIT']),
+    reason: z.string().trim().min(2).max(255),
+  });
+
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      message: parsed.error.issues.map((i) => i.message).join(' '),
+    });
+  }
+
+  try {
+    const { customerId, amount, type, reason } = parsed.data;
+    const result = await adminAdjustWallet(customerId, amount, type, reason);
+    res.json({
+      success: true,
+      message: `Successfully ${type === 'CREDIT' ? 'credited' : 'debited'} ₹${amount.toFixed(2)} for customer.`,
+      data: result,
+    });
+  } catch (error: any) {
+    console.error('Admin wallet adjustment error:', error);
+    res.status(400).json({ success: false, message: error.message || 'Could not adjust wallet.' });
   }
 });
 

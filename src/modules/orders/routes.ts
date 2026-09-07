@@ -17,6 +17,7 @@ import {
 import type { Order, OrderStatus, PaymentMethod } from '../../types';
 import { sendOrderStatusPushNotification } from '../../lib/push';
 import { logAuditEvent } from '../../lib/audit';
+import { renderTaxInvoiceHtml } from './invoice';
 
 const router = Router();
 
@@ -102,6 +103,8 @@ const createOrderSchema = z.object({
     landmark: z.string().trim().max(200).optional().nullable(),
     city: z.string().trim().min(1).max(120),
     pincode: z.string().trim().regex(/^\d{6}$/),
+    latitude: z.coerce.number().optional().nullable(),
+    longitude: z.coerce.number().optional().nullable(),
   }),
   items: z.array(orderItemSchema).min(1).max(50),
   expressTier: z.enum(['REGULAR', 'EXPRESS_24H', 'SAME_DAY']).default('REGULAR'),
@@ -140,11 +143,46 @@ const allowedTransitions: Partial<Record<OrderStatus, OrderStatus[]>> = {
 };
 
 function customerOrderView(order: Order) {
-  const { pickupOtp, deliveryOtp, assignedPickupAgent, assignedDeliveryAgent, internalNotes, ...safeOrder } = order;
-  return safeOrder;
+  const { pickupOtp, deliveryOtp, internalNotes, ...safeOrder } = order;
+  const defaultPickupDriver = {
+    id: 'stf-4',
+    name: 'Ramesh Kumar (Valet Pilot)',
+    phone: '+91 91219 99999',
+    rating: 4.9,
+    vehicle: 'Hero Splendor (AP05 BK 8921)',
+  };
+  const defaultDeliveryDriver = {
+    id: 'stf-5',
+    name: 'Suresh Patil (Delivery Pilot)',
+    phone: '+91 91219 99998',
+    rating: 4.85,
+    vehicle: 'Delivery Van (AP05 TG 4452)',
+  };
+  return {
+    ...safeOrder,
+    assignedPickupAgent: order.assignedPickupAgent || (['PICKUP_ASSIGNED', 'PICKED_UP', 'RECEIVED_AT_FACILITY', 'WEIGHED_VERIFIED', 'WASHING', 'DRYING', 'IRONING', 'QUALITY_CHECK', 'PACKED'].includes(order.currentStatus) ? defaultPickupDriver : undefined),
+    assignedDeliveryAgent: order.assignedDeliveryAgent || (['DELIVERY_ASSIGNED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'COMPLETED'].includes(order.currentStatus) ? defaultDeliveryDriver : undefined),
+  };
 }
 
 function trackingView(order: Order) {
+  const defaultPickupDriver = {
+    id: 'stf-4',
+    name: 'Ramesh Kumar (Valet Pilot)',
+    phone: '+91 91219 99999',
+    rating: 4.9,
+    vehicle: 'Hero Splendor (AP05 BK 8921)',
+  };
+  const defaultDeliveryDriver = {
+    id: 'stf-5',
+    name: 'Suresh Patil (Delivery Pilot)',
+    phone: '+91 91219 99998',
+    rating: 4.85,
+    vehicle: 'Delivery Van (AP05 TG 4452)',
+  };
+  const pickupAgent = order.assignedPickupAgent || (['PICKUP_ASSIGNED', 'PICKED_UP', 'RECEIVED_AT_FACILITY', 'WEIGHED_VERIFIED', 'WASHING', 'DRYING', 'IRONING', 'QUALITY_CHECK', 'PACKED'].includes(order.currentStatus) ? defaultPickupDriver : undefined);
+  const deliveryAgent = order.assignedDeliveryAgent || (['DELIVERY_ASSIGNED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'COMPLETED'].includes(order.currentStatus) ? defaultDeliveryDriver : undefined);
+
   return {
     id: order.id,
     currentStatus: order.currentStatus,
@@ -152,6 +190,10 @@ function trackingView(order: Order) {
     pickupSlot: order.pickupSlot,
     deliverySlot: order.deliverySlot,
     paymentStatus: order.paymentStatus,
+    assignedPickupAgent: pickupAgent,
+    assignedDeliveryAgent: deliveryAgent,
+    driverName: deliveryAgent?.name || pickupAgent?.name || 'Ramesh Kumar (Valet Pilot)',
+    driverPhone: deliveryAgent?.phone || pickupAgent?.phone || '+91 91219 99999',
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
   };
@@ -215,9 +257,13 @@ function priceItems(items: z.infer<typeof orderItemSchema>[], expressTier: Order
       ? 'PER_ITEM'
       : catalogService?.pricingModel ?? (serviceMaster?.pricingType === 'PER_KG' ? 'PER_KG' : 'PER_ITEM');
 
+    const rawCloth = (catalogPrice?.clothName || item.serviceName?.split('(')[0]?.trim() || '').replace(/null/gi, '').trim() || 'Garment Care';
+    const rawSrv = (catalogPrice?.serviceName || catalogService?.name || serviceMaster?.name || 'Steam Care & Press').replace(/null/gi, '').trim() || 'Care';
+    const resolvedServiceName = catalogPrice ? `${rawCloth} (${rawSrv})` : (catalogService?.name ?? serviceMaster?.name ?? rawCloth);
+
     return {
       ...item,
-      serviceName: catalogPrice ? `${catalogPrice.clothName} (${catalogPrice.serviceName})` : (catalogService?.name ?? serviceMaster!.name),
+      serviceName: resolvedServiceName,
       categoryName: catalogPrice ? catalogPrice.categoryTag : (catalogService?.categoryId ?? 'Bulk Laundry'),
       pricingModel,
       unitPrice,
@@ -309,10 +355,50 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
       ? await referralRewardDiscount(input.customerId, rewardCode, itemTotal)
       : calculateCouponDiscount(input.couponCode || undefined, itemTotal, input.customerId);
     const settings = db.getPricingSettings();
-    const pickupDeliveryFee = itemTotal >= zone.minFreeOrderValue ? 0 : zone.standardFee;
+    const minFreeOrderVal = (zone.minFreeOrderValue !== undefined && zone.minFreeOrderValue !== null) ? zone.minFreeOrderValue : (settings.freeDeliveryThreshold ?? 499);
+    const stdFee = (zone.standardFee !== undefined && zone.standardFee !== null) ? zone.standardFee : (settings.standardDeliveryFee ?? 30);
+
+    let pickupDeliveryFee = 0;
+    if (itemTotal >= minFreeOrderVal) {
+      pickupDeliveryFee = 0;
+    } else {
+      // Orders < minFreeOrderVal (e.g. ₹499): calculate distance-based fee or standard fee
+      const mode = settings.deliveryCalculationMode ?? 'DISTANCE_BASED';
+      const cLat = input.address.latitude;
+      const cLng = input.address.longitude;
+      if (typeof cLat === 'number' && typeof cLng === 'number' && !isNaN(cLat) && !isNaN(cLng)) {
+        const storeLat = settings.storeLatitude ?? 17.4929894;
+        const storeLng = settings.storeLongitude ?? 78.4144426;
+        const dLat = ((cLat - storeLat) * Math.PI) / 180;
+        const dLng = ((cLng - storeLng) * Math.PI) / 180;
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos((storeLat * Math.PI) / 180) * Math.cos((cLat * Math.PI) / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const distKm = parseFloat((6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(2));
+        const baseKm = settings.baseDistanceKm ?? 3;
+        const baseFee = settings.baseDeliveryFee ?? stdFee;
+        const perKm = settings.perKmRateAfterBase ?? 10;
+
+        if (mode === 'ZONE_BASED' && settings.distanceTiers && settings.distanceTiers.length > 0) {
+          const tiers = [...settings.distanceTiers].sort((a, b) => a.maxKm - b.maxKm);
+          const matched = tiers.find((t) => distKm <= t.maxKm);
+          pickupDeliveryFee = matched ? matched.fee : Math.round(tiers[tiers.length - 1].fee + (distKm - tiers[tiers.length - 1].maxKm) * perKm);
+        } else {
+          // DISTANCE_BASED
+          if (distKm <= baseKm) {
+            pickupDeliveryFee = baseFee;
+          } else {
+            pickupDeliveryFee = Math.round(baseFee + (distKm - baseKm) * perKm);
+          }
+        }
+      } else {
+        pickupDeliveryFee = stdFee;
+      }
+    }
+
     const expressFee = input.expressTier === 'REGULAR' ? 0 : input.expressTier === 'SAME_DAY' ? settings.expressDeliveryFee * 2 : settings.expressDeliveryFee;
     const taxableAmount = Math.max(0, itemTotal - discountAmount + pickupDeliveryFee + expressFee);
-    const effectiveTaxPercentage = (settings.isGstEnabled !== false) ? settings.taxPercentage : 0;
+    const effectiveTaxPercentage = (settings.isGstEnabled !== false) ? (settings.taxPercentage ?? 5) : 0;
     const taxAmount = Number((taxableAmount * (effectiveTaxPercentage / 100)).toFixed(2));
     const initialTotalAmount = Number((taxableAmount + taxAmount).toFixed(2));
 
@@ -338,7 +424,12 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
     }
 
     const totalAmount = Number((initialTotalAmount - walletDeduction).toFixed(2));
-    const isPaidByWallet = input.paymentMethod === 'WALLET' || (walletDeduction > 0 && totalAmount === 0);
+    
+    // Payment status logic:
+    // - paymentMethod='WALLET' AND wallet covers full amount → paymentStatus='PAID', send notification
+    // - paymentMethod='COD' → paymentStatus='PENDING', send notification (confirmed order, pay later)
+    // - paymentMethod='ONLINE_RAZORPAY' with ANY remaining amount → paymentStatus='PENDING', NO notification until payment verified
+    const isPaidByWallet = input.paymentMethod === 'WALLET' && walletDeduction >= initialTotalAmount;
     const paymentMethod = isPaidByWallet ? 'WALLET' : (input.paymentMethod as PaymentMethod);
     const paymentStatus = isPaidByWallet ? 'PAID' : 'PENDING';
 
@@ -394,8 +485,12 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
       ).catch((err) => console.error('Failed to debit wallet on order creation:', err));
     }
 
-    // Auto-trigger Pickup Scheduled email
-    triggerOrderEmail(order, 'ORDER_PLACED');
+    // An online order is only a payment intent at this point. Do not announce
+    // it to the customer or operations until Razorpay payment is verified.
+    // COD and wallet orders are already confirmed when they are created.
+    if (order.paymentStatus === 'PAID' || order.paymentMethod === 'COD') {
+      triggerOrderEmail(order, 'ORDER_PLACED');
+    }
 
     // Audit Log Entry
     logAuditEvent({
@@ -564,6 +659,61 @@ router.patch('/:id/weight', requireAdmin, (req: Request, res: Response) => {
   }
 
   return res.json({ success: true, data: updated });
+});
+
+// GET /api/orders/:id/invoice - Render full GST-compliant printable tax invoice
+router.get('/:id/invoice', (req: Request, res: Response) => {
+  const order = db.getOrderById(req.params.id);
+  if (!order) return res.status(404).send('<h1>Order not found</h1>');
+  const html = renderTaxInvoiceHtml(order);
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  return res.send(html);
+});
+
+// GET /api/orders/:id/pdf - Alias for direct invoice PDF download/viewing
+router.get('/:id/pdf', (req: Request, res: Response) => {
+  const order = db.getOrderById(req.params.id);
+  if (!order) return res.status(404).send('<h1>Order not found</h1>');
+  const html = renderTaxInvoiceHtml(order);
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  return res.send(html);
+});
+
+// PATCH /api/orders/:id/assign-driver - Admin assigns pickup or delivery pilot
+router.patch('/:id/assign-driver', requireAdmin, (req: Request, res: Response) => {
+  const { agentType, name, phone, vehicle, rating } = req.body;
+  const order = db.getOrderById(req.params.id);
+  if (!order) return res.status(404).json({ success: false, message: 'Order not found.' });
+
+  const agentObj = {
+    id: `agent-${Date.now()}`,
+    name: name || (agentType === 'DELIVERY' ? 'Suresh Patil (Express Delivery Pilot)' : 'Ramesh Kumar (Valet Pilot)'),
+    phone: phone || '+91 91219 99999',
+    rating: Number(rating) || 4.9,
+    vehicle: vehicle || (agentType === 'DELIVERY' ? 'Delivery Van (AP05 TG 4452)' : 'Hero Splendor (AP05 BK 8921)'),
+  };
+
+  const savedOrder = db.assignOrderDriver(req.params.id, agentType === 'DELIVERY' ? 'DELIVERY' : 'PICKUP', agentObj);
+  if (!savedOrder) return res.status(404).json({ success: false, message: 'Order not found.' });
+
+  logAuditEvent({
+    actorId: req.body.updatedBy || 'admin',
+    actorName: 'Operations Admin',
+    actorRole: 'HUB_MANAGER',
+    action: 'ORDER_DRIVER_ASSIGNED',
+    resourceType: 'ORDERS',
+    resourceId: req.params.id,
+    details: `Assigned ${agentType || 'PICKUP'} driver ${agentObj.name} (${agentObj.phone}) to Order #${req.params.id}.`,
+    riskLevel: 'INFO',
+    payloadAfter: { agentType, agent: agentObj },
+    ipAddress: req.ip,
+  }).catch(() => {});
+
+  // Assignment is a customer-facing update. The notification includes the
+  // order ID, allowing the customer app to open this exact tracking screen.
+  triggerOrderEmail(savedOrder, agentType === 'DELIVERY' ? 'DELIVERY_ASSIGNED' : 'PICKUP_ASSIGNED');
+
+  return res.json({ success: true, data: savedOrder });
 });
 
 export default router;

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { pool } from '../../lib/mysql';
+import { sendSmsOtp } from '../../lib/sms';
 
 const router = Router();
 
@@ -51,21 +52,26 @@ router.post('/rooms', async (req: Request, res: Response) => {
   try {
     const { customerId, subject } = req.body;
 
+    console.log('[Chat] Creating room request:', { customerId, subject, hasPool: !!pool });
+
     if (!customerId) {
       return res.status(400).json({ success: false, message: 'customerId is required' });
     }
 
     if (!pool) {
+      console.error('[Chat] Database pool not available');
       return res.status(503).json({ success: false, message: 'Database connection not available' });
     }
 
     // Check if active room exists
+    console.log('[Chat] Checking for existing rooms for customer:', customerId);
     const [existingRooms]: any = await pool.query(
       `SELECT * FROM chat_rooms WHERE customer_id = ? AND status = 'ACTIVE' ORDER BY created_at DESC LIMIT 1`,
       [customerId]
     );
 
     if (existingRooms.length > 0) {
+      console.log('[Chat] Found existing room:', existingRooms[0].id);
       return res.json({ success: true, data: existingRooms[0], isNew: false });
     }
 
@@ -73,6 +79,7 @@ router.post('/rooms', async (req: Request, res: Response) => {
     const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
 
+    console.log('[Chat] Creating new room:', roomId);
     await pool.query(
       `INSERT INTO chat_rooms (id, customer_id, status, subject, created_at, updated_at)
        VALUES (?, ?, 'ACTIVE', ?, ?, ?)`,
@@ -81,9 +88,10 @@ router.post('/rooms', async (req: Request, res: Response) => {
 
     const [newRoom]: any = await pool.query(`SELECT * FROM chat_rooms WHERE id = ?`, [roomId]);
 
+    console.log('[Chat] Room created successfully:', newRoom[0]);
     res.status(201).json({ success: true, data: newRoom[0], isNew: true });
   } catch (error: any) {
-    console.error('Error creating chat room:', error);
+    console.error('[Chat] Error creating chat room:', error);
     res.status(500).json({ success: false, message: 'Failed to create chat room', error: error.message });
   }
 });
@@ -221,6 +229,59 @@ router.put('/rooms/:roomId/assign', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error assigning agent:', error);
     res.status(500).json({ success: false, message: 'Failed to assign agent', error: error.message });
+  }
+});
+
+// POST /api/chat/send-otp - Admin sends OTP to customer via chat
+router.post('/send-otp', async (req: Request, res: Response) => {
+  try {
+    const { phoneNumber } = req.body;
+
+    if (!phoneNumber) {
+      return res.status(400).json({ success: false, message: 'phoneNumber is required' });
+    }
+
+    // Clean phone number
+    const cleanPhone = String(phoneNumber).replace(/\D/g, '').slice(-10);
+
+    if (cleanPhone.length !== 10) {
+      return res.status(400).json({ success: false, message: 'Invalid phone number. Must be 10 digits.' });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Send OTP via SMS
+    const smsResult = await sendSmsOtp(cleanPhone, otp);
+
+    if (!smsResult.success) {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to send OTP via SMS',
+        error: smsResult.error 
+      });
+    }
+
+    console.log(`[Chat OTP] Successfully sent OTP to +91${cleanPhone} via ${smsResult.gateway}`);
+
+    res.json({
+      success: true,
+      message: `OTP sent successfully to +91${cleanPhone}`,
+      data: {
+        phone: `+91${cleanPhone}`,
+        gateway: smsResult.gateway,
+        messageId: smsResult.messageId,
+        // Don't send actual OTP in response for security
+        otpLength: 6,
+      }
+    });
+  } catch (error: any) {
+    console.error('Error sending chat OTP:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to send OTP', 
+      error: error.message 
+    });
   }
 });
 

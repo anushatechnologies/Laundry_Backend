@@ -4,18 +4,13 @@ import { z } from 'zod';
 import { pool } from '../../lib/mysql';
 
 export const referralSettingsSchema = z.object({
-  enabled: z.boolean(),
-  referrerReward: z.number().finite().min(0).max(10000).multipleOf(0.01),
-  friendReward: z.number().finite().min(0).max(10000).multipleOf(0.01),
-  minimumFirstOrder: z.number().finite().min(0).max(100000).multipleOf(0.01),
-  minimumRedemptionOrder: z.number().finite().min(0).max(100000).multipleOf(0.01),
-  rewardValidityDays: z.number().int().min(1).max(365),
-  shareUrl: z.string().trim().max(500).refine(value => !value || /^https:\/\//.test(value), 'Use an HTTPS app download URL.'),
-}).superRefine((value, context) => {
-  if (value.enabled && (value.referrerReward <= 0 || value.minimumFirstOrder <= 0 ||
-      value.minimumRedemptionOrder <= Math.max(value.referrerReward, value.friendReward))) {
-    context.addIssue({ code: 'custom', message: 'Set a positive inviter reward and first-order minimum. Redemption minimum must exceed both reward amounts.' });
-  }
+  enabled: z.boolean().default(true),
+  referrerReward: z.number().finite().min(0).max(10000).default(100),
+  friendReward: z.number().finite().min(0).max(10000).default(50),
+  minimumFirstOrder: z.number().finite().min(0).max(100000).default(0),
+  minimumRedemptionOrder: z.number().finite().min(0).max(100000).default(0),
+  rewardValidityDays: z.number().int().min(1).max(365).default(365),
+  shareUrl: z.string().trim().max(500).optional().default(''),
 });
 export type ReferralSettings = z.infer<typeof referralSettingsSchema>;
 const decode = (value: any) => typeof value === 'string' ? JSON.parse(value) : value;
@@ -160,24 +155,28 @@ export async function rewardReferralOnRegistration(inviteeId: string, rawCode: s
     const [existing]: any = await db.query('SELECT id FROM referrals WHERE invitee_id = ?', [inviteeId]);
     if (existing.length) return null;
 
-    // 3. Fetch invitee details
+    // 3. Fetch invitee details & referral settings
     const [invitees]: any = await db.query('SELECT name, phone FROM customers WHERE id = ?', [inviteeId]);
     const invitee = invitees[0];
     const masked = maskPhone(invitee?.phone);
 
-    // 4. Credit ₹100 to Referrer's Wallet
+    const settings = await getReferralSettings().catch(() => null);
+    const referrerReward = settings?.referrerReward ?? 100;
+    const friendReward = settings?.friendReward ?? 50;
+
+    // 4. Credit configured referrerReward to Referrer's Wallet
     await creditWallet(
       referrerId,
-      100,
+      referrerReward,
       'REFERRAL_REWARD',
       `Referral bonus: Friend (${masked}) registered with your invite code ${inviteCode}!`,
       inviteeId
     );
 
-    // 5. Credit ₹50 Welcome Bonus to Invitee's Wallet
+    // 5. Credit configured friendReward Welcome Bonus to Invitee's Wallet
     await creditWallet(
       inviteeId,
-      50,
+      friendReward,
       'WELCOME_BONUS',
       `Welcome bonus for joining LaundryFresh with invite code ${inviteCode}!`,
       referrerId
@@ -188,11 +187,11 @@ export async function rewardReferralOnRegistration(inviteeId: string, rawCode: s
     await db.query(
       `INSERT INTO referrals (id, referrer_id, invitee_id, code, status, terms, reason, created_at, qualified_at)
        VALUES (?, ?, ?, ?, 'QUALIFIED', ?, 'Registered with referral code', UTC_TIMESTAMP(3), UTC_TIMESTAMP(3))`,
-      [referralId, referrerId, inviteeId, inviteCode, JSON.stringify({ referrerReward: 100, friendReward: 50 })]
+      [referralId, referrerId, inviteeId, inviteCode, JSON.stringify({ referrerReward, friendReward })]
     );
 
-    console.log(`[Referrals] Rewarded ₹100 to ${referrerId} and ₹50 to ${inviteeId} via code ${inviteCode}`);
-    return { success: true, referrerId, inviteeId };
+    console.log(`[Referrals] Rewarded ₹${referrerReward} to ${referrerId} and ₹${friendReward} to ${inviteeId} via code ${inviteCode}`);
+    return { success: true, referrerId, inviteeId, referrerReward, friendReward };
   } catch (err) {
     console.error('[Referrals] Error rewarding referral on registration:', err);
     return null;
@@ -221,22 +220,26 @@ export async function getReferralSummary(customerId: string) {
     [customerId]
   );
 
+  const settings = await getReferralSettings().catch(() => null);
+  const referrerReward = settings?.referrerReward ?? 100;
+  const friendReward = settings?.friendReward ?? 50;
+
   const referralCount = friends.length;
-  const totalEarned = referralCount * 100;
+  const totalEarned = referralCount * referrerReward;
 
   const friendsList = friends.map((f: any) => ({
     id: f.id,
     name: f.friendName && f.friendName !== 'LaundryFresh Customer' ? f.friendName : 'Registered Friend',
     phoneMasked: maskPhone(f.friendPhone),
     createdAt: typeof f.createdAt === 'string' ? f.createdAt : new Date(f.createdAt).toISOString(),
-    bonusAwarded: 100,
-    status: '₹100 Added to Wallet',
+    bonusAwarded: referrerReward,
+    status: `₹${referrerReward} Added to Wallet`,
   }));
 
   return {
     code: personalCode,
-    rewardAmount: 100,
-    friendBonus: 50,
+    rewardAmount: referrerReward,
+    friendBonus: friendReward,
     stats: {
       invited: referralCount,
       qualified: referralCount,
@@ -244,7 +247,8 @@ export async function getReferralSummary(customerId: string) {
     },
     friends: friendsList,
     history: friendsList,
-    shareMessage: `Use my invite code ${personalCode} on LaundryFresh to get ₹50 welcome cash in your wallet for premium laundry & dry cleaning! Download now.`,
+    shareUrl: settings?.shareUrl || '',
+    shareMessage: `Hey! Use my referral code *${personalCode}* when signing up on Anjani Laundry and get *₹${friendReward} Welcome Cash* directly in your wallet! 🧺✨\n\nExperience premium doorstep laundry, dry cleaning & shoe care.`,
   };
 }
 

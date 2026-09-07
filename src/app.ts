@@ -72,6 +72,9 @@ app.get('/api/health', (req, res) => {
 });
 
 // REST API Module Mounts
+app.get('/api/invoices/:id/pdf', (req, res) => {
+  res.redirect(`/api/orders/${req.params.id}/pdf`);
+});
 app.use('/api/orders', ordersRouter);
 app.use('/api/services', servicesRouter);
 app.use('/api/pincodes', pincodesRouter);

@@ -363,6 +363,17 @@ export interface PricingSettings {
   whatsappNotificationsEnabled?: boolean;
   smsNotificationsEnabled?: boolean;
   emailNotificationsEnabled?: boolean;
+  deliveryCalculationMode?: 'DISTANCE_BASED' | 'ZONE_BASED' | 'HYBRID';
+  baseDistanceKm?: number;
+  baseDeliveryFee?: number;
+  perKmRateAfterBase?: number;
+  maxServiceRadiusKm?: number;
+  distanceTiers?: DistanceTier[];
+  storeName?: string;
+  storeAddress?: string;
+  storeLatitude?: number;
+  storeLongitude?: number;
+  storePhone?: string;
 }
 
 // -------------------------------------------------------------

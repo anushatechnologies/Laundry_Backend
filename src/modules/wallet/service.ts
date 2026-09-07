@@ -292,3 +292,100 @@ export async function verifyTopupPayment(
 
   return getWallet(customerId);
 }
+
+export async function getAdminWalletOverview() {
+  const db = database();
+
+  // 1. Wallets with customer information
+  const [wallets]: any = await db.query(`
+    SELECT w.id, w.customer_id AS customerId, w.balance, w.reward_points AS rewardPoints,
+           w.created_at AS createdAt, w.updated_at AS updatedAt,
+           c.name AS customerName, c.phone AS customerPhone, c.email AS customerEmail
+    FROM wallets w
+    LEFT JOIN customers c ON c.id = w.customer_id
+    ORDER BY w.balance DESC, w.updated_at DESC
+  `);
+
+  // 2. Recent transactions with customer details
+  const [transactions]: any = await db.query(`
+    SELECT t.id, t.customer_id AS customerId, t.type, t.category, t.amount,
+           t.balance_after AS balanceAfter, t.reference_id AS referenceId,
+           t.description, t.created_at AS createdAt,
+           c.name AS customerName, c.phone AS customerPhone
+    FROM wallet_transactions t
+    LEFT JOIN customers c ON c.id = t.customer_id
+    ORDER BY t.created_at DESC
+    LIMIT 200
+  `);
+
+  // 3. Aggregate statistics
+  const totalWallets = wallets.length;
+  const totalBalance = wallets.reduce((sum: number, w: any) => sum + Number(w.balance || 0), 0);
+
+  const [statsRows]: any = await db.query(`
+    SELECT 
+      SUM(CASE WHEN type = 'CREDIT' THEN amount ELSE 0 END) AS totalCredited,
+      SUM(CASE WHEN type = 'DEBIT' THEN amount ELSE 0 END) AS totalDebited,
+      SUM(CASE WHEN category = 'TOPUP_RAZORPAY' THEN amount ELSE 0 END) AS totalTopups,
+      SUM(CASE WHEN category IN ('REFERRAL_REWARD', 'WELCOME_BONUS') THEN amount ELSE 0 END) AS totalReferralBonuses
+    FROM wallet_transactions
+  `);
+
+  const stats = statsRows[0] || {};
+
+  return {
+    stats: {
+      totalWallets,
+      totalBalance: Number(totalBalance.toFixed(2)),
+      totalCredited: Number(stats.totalCredited || 0),
+      totalDebited: Number(stats.totalDebited || 0),
+      totalTopups: Number(stats.totalTopups || 0),
+      totalReferralBonuses: Number(stats.totalReferralBonuses || 0),
+    },
+    wallets: wallets.map((w: any) => ({
+      ...w,
+      balance: Number(w.balance || 0),
+      customerName: w.customerName || 'Customer',
+      customerPhone: w.customerPhone || 'N/A',
+      createdAt: typeof w.createdAt === 'string' ? w.createdAt : new Date(w.createdAt).toISOString(),
+      updatedAt: typeof w.updatedAt === 'string' ? w.updatedAt : new Date(w.updatedAt).toISOString(),
+    })),
+    transactions: transactions.map((t: any) => ({
+      ...t,
+      amount: Number(t.amount),
+      balanceAfter: Number(t.balanceAfter),
+      customerName: t.customerName || 'Customer',
+      customerPhone: t.customerPhone || 'N/A',
+      createdAt: typeof t.createdAt === 'string' ? t.createdAt : new Date(t.createdAt).toISOString(),
+    })),
+  };
+}
+
+export async function adminAdjustWallet(
+  customerId: string,
+  amount: number,
+  type: 'CREDIT' | 'DEBIT',
+  reason: string,
+  adminId?: string
+) {
+  if (amount <= 0) {
+    throw new Error('Adjustment amount must be greater than zero.');
+  }
+
+  if (type === 'CREDIT') {
+    return await creditWallet(
+      customerId,
+      amount,
+      'CASH_RECHARGE',
+      reason || 'Administrative credit adjustment',
+      adminId || 'admin'
+    );
+  } else {
+    return await debitWallet(
+      customerId,
+      amount,
+      reason || 'Administrative debit adjustment',
+      adminId || 'admin'
+    );
+  }
+}

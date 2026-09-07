@@ -170,6 +170,40 @@ customersRouter.all('/check-phone', (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/customers/check-phone
+ * Body: { phone: string }
+ * Checks if phone number is already registered (before sending OTP)
+ */
+customersRouter.post('/check-phone', (req: Request, res: Response) => {
+  const { phone: rawPhone } = req.body ?? {};
+  const phone = String(rawPhone ?? '').replace(/\D/g, '').slice(-10);
+
+  if (!phone || phone.length < 10) {
+    return res.status(400).json({ success: false, message: 'Valid 10-digit phone number required' });
+  }
+
+  const existingCustomer = findByPhone(phone);
+  
+  if (existingCustomer) {
+    return res.json({
+      success: true,
+      exists: true,
+      message: 'This phone number is already registered. Please sign in instead.',
+      customer: {
+        name: existingCustomer.name,
+        phone: existingCustomer.phone,
+      }
+    });
+  }
+
+  return res.json({
+    success: true,
+    exists: false,
+    message: 'Phone number available for registration'
+  });
+});
+
+/**
  * POST /api/customers/send-otp
  * Body: { phone: string, name?: string, email?: string }
  * Generates OTP code, caches in memory, and dispatches via SMS Gateway (Fast2SMS / 2Factor).
