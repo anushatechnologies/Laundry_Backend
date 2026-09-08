@@ -234,6 +234,17 @@ customersRouter.post('/send-otp', async (req: Request, res: Response) => {
   // Dispatch real SMS via configured Indian gateway (Fast2SMS)
   const smsResult = await sendSmsOtp(phone, code);
 
+  // If all gateways failed and fell back to simulator (no real SMS sent),
+  // return 503 so the mobile app can trigger Firebase Phone Auth as fallback.
+  if (smsResult.gateway === 'SIMULATOR_LOG') {
+    console.warn(`[Customer OTP] ⚠️ SMS not delivered to +91${phone} — gateway unavailable or zero balance. Mobile app will use Firebase OTP fallback.`);
+    return res.status(503).json({
+      success: false,
+      message: 'SMS gateway unavailable. Firebase OTP fallback will be used.',
+      gateway: smsResult.gateway,
+    });
+  }
+
   const existingCustomer = findByPhone(phone);
   return res.json({
     success: true,
