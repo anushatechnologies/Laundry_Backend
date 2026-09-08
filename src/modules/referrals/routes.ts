@@ -2,9 +2,56 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import { z } from 'zod';
 import { verifyAccessToken } from '../../lib/customer-tokens';
 import { requireConfiguredAdmin } from '../../middleware/admin';
-import { applyReferral, getAdminReferrals, getReferralSummary, referralSettingsSchema, saveReferralSettings } from './service';
+import {
+  applyReferral,
+  detectReferralFromIp,
+  getAdminReferrals,
+  getReferralSettings,
+  getReferralSummary,
+  referralSettingsSchema,
+  saveReferralSettings,
+  trackReferralClick,
+} from './service';
 
 const router = Router();
+
+// Public: Handle referral link click (records IP and redirects to APK download / landing page)
+router.get('/click/:code', async (req, res) => {
+  try {
+    const code = req.params.code?.trim().toUpperCase();
+    const rawIp = req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || req.socket.remoteAddress || '';
+    const ip = rawIp.replace(/^::ffff:/, '');
+    if (code && ip) {
+      await trackReferralClick(ip, code, req.headers['user-agent']);
+    }
+    const settings = await getReferralSettings().catch(() => null);
+    const downloadUrl = settings?.shareUrl || 'https://laundryfresh.in/download';
+    // Append ref code if landing page supports it
+    const targetUrl = downloadUrl.includes('?')
+      ? `${downloadUrl}&ref=${encodeURIComponent(code || '')}`
+      : `${downloadUrl}?ref=${encodeURIComponent(code || '')}`;
+    res.redirect(targetUrl);
+  } catch (err) {
+    res.redirect('https://laundryfresh.in/download');
+  }
+});
+
+// Public: Mobile app checks if current device IP recently clicked a referral link (deferred deep linking)
+router.get('/detect-install', async (req, res) => {
+  try {
+    const rawIp = req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || req.socket.remoteAddress || '';
+    const ip = rawIp.replace(/^::ffff:/, '');
+    const result = await detectReferralFromIp(ip);
+    if (result) {
+      res.json({ success: true, detected: true, referralCode: result.code, bonus: result.bonus });
+    } else {
+      res.json({ success: true, detected: false });
+    }
+  } catch (error) {
+    res.json({ success: true, detected: false });
+  }
+});
+
 export function referralCustomer(req: Request, res: Response, next: NextFunction) {
   try {
     const token = req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : '';
@@ -22,7 +69,7 @@ router.get('/me', referralCustomer, async (_req, res) => {
   }
 });
 router.post('/apply', referralCustomer, async (req, res) => {
-  const parsed = z.object({ code: z.string().trim().toUpperCase().regex(/^LF[A-F0-9]{16}$/) }).safeParse(req.body);
+  const parsed = z.object({ code: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{4,20}$/) }).safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ success: false, message: 'Enter a valid invite code.' });
   try {
     await applyReferral(res.locals.customerId, parsed.data.code);

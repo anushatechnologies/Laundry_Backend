@@ -3,6 +3,7 @@ import { getWallet, debitWallet } from '../wallet/service';
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../lib/db';
+import { pool } from '../../lib/mysql';
 import { requireAdmin } from '../../middleware/admin';
 import { verifyAccessToken } from '../../lib/customer-tokens';
 import {
@@ -115,6 +116,8 @@ const createOrderSchema = z.object({
   notes: z.string().trim().max(1500).optional().nullable(),
   paymentMethod: z.enum(paymentMethods),
   useWallet: z.boolean().optional().default(false),
+  customerSubscriptionId: z.string().trim().max(100).optional().nullable(),
+  subscriptionKgUsed: z.coerce.number().min(0).max(200).optional().nullable(),
 });
 
 const statusSchema = z.object({
@@ -336,7 +339,37 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
       settings,
     });
 
-    const pickupDeliveryFee = deliveryCalc.deliveryFee;
+    // Handle Active Customer Subscription perks (Free Delivery & Bulk KG Quota)
+    let subscriptionPerkFreeDelivery = false;
+    let subscriptionKgToDeduct = 0;
+
+    if (input.customerSubscriptionId && pool) {
+      try {
+        const [subRows]: any = await pool.query(
+          `SELECT cs.*, s.free_pickup_delivery, s.name as plan_name
+           FROM customer_subscriptions cs
+           LEFT JOIN subscriptions s ON cs.subscription_id = s.id
+           WHERE cs.id = ? AND cs.customer_id = ? AND cs.status = 'ACTIVE'`,
+          [input.customerSubscriptionId, input.customerId]
+        );
+
+        if (subRows && subRows.length > 0) {
+          const sub = subRows[0];
+          if (sub.free_pickup_delivery || Number(sub.free_pickup_delivery) === 1) {
+            subscriptionPerkFreeDelivery = true;
+          }
+          const remainingKg = Number(sub.remaining_kg || 0);
+          const requestedKg = Number(input.subscriptionKgUsed || 0);
+          if (requestedKg > 0 && remainingKg > 0) {
+            subscriptionKgToDeduct = Math.min(requestedKg, remainingKg);
+          }
+        }
+      } catch (subErr) {
+        console.warn('[Orders] Error checking customer subscription:', subErr);
+      }
+    }
+
+    const pickupDeliveryFee = subscriptionPerkFreeDelivery ? 0 : deliveryCalc.deliveryFee;
     const expressFee = deliveryCalc.expressFee;
     const taxableAmount = Math.max(0, itemTotal - discountAmount + pickupDeliveryFee + expressFee);
     const effectiveTaxPercentage = (settings.isGstEnabled !== false) ? (settings.taxPercentage ?? 5) : 0;
@@ -367,12 +400,14 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
     const totalAmount = Number((initialTotalAmount - walletDeduction).toFixed(2));
     
     // Payment status logic:
-    // - paymentMethod='WALLET' AND wallet covers full amount → paymentStatus='PAID', send notification
-    // - paymentMethod='COD' → paymentStatus='PENDING', send notification (confirmed order, pay later)
-    // - paymentMethod='ONLINE_RAZORPAY' with ANY remaining amount → paymentStatus='PENDING', NO notification until payment verified
-    const isPaidByWallet = input.paymentMethod === 'WALLET' && walletDeduction >= initialTotalAmount;
-    const paymentMethod = isPaidByWallet ? 'WALLET' : (input.paymentMethod as PaymentMethod);
-    const paymentStatus = isPaidByWallet ? 'PAID' : 'PENDING';
+    // - If wallet covers full amount OR total amount is 0 (covered by subscription/wallet) -> PAID
+    // - If COD -> PENDING (confirmed order, pay at doorstep)
+    // - If ONLINE_RAZORPAY with remaining amount -> PENDING (pay via Razorpay)
+    const isFullyPaid = initialTotalAmount === 0 || walletDeduction >= initialTotalAmount;
+    const paymentMethod = isFullyPaid
+      ? 'WALLET'
+      : (input.paymentMethod as PaymentMethod);
+    const paymentStatus = isFullyPaid ? 'PAID' : 'PENDING';
 
     // Email fallback: if customer didn't provide email at sign-up,
     // try to load it from their saved customer profile
@@ -424,6 +459,13 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
         `Applied to Order #${order.id}`,
         order.id
       ).catch((err) => console.error('Failed to debit wallet on order creation:', err));
+    }
+
+    if (subscriptionKgToDeduct > 0 && input.customerSubscriptionId && pool) {
+      await pool.query(
+        'UPDATE customer_subscriptions SET used_kg = used_kg + ?, remaining_kg = GREATEST(0, remaining_kg - ?), orders_count = orders_count + 1, updated_at = ? WHERE id = ?',
+        [subscriptionKgToDeduct, subscriptionKgToDeduct, new Date().toISOString(), input.customerSubscriptionId]
+      ).catch((err) => console.error('[Orders] Failed to deduct subscription kg quota:', err));
     }
 
     // An online order is only a payment intent at this point. Do not announce

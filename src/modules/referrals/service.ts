@@ -22,9 +22,26 @@ function database() {
   return pool;
 }
 
-export async function getReferralSettings(): Promise<ReferralSettings | null> {
-  const [rows]: any = await database().query('SELECT settings FROM referral_settings WHERE id = 1');
-  return rows[0] ? referralSettingsSchema.parse(decode(rows[0].settings)) : null;
+export async function getReferralSettings(): Promise<ReferralSettings> {
+  try {
+    const [rows]: any = await database().query('SELECT settings FROM referral_settings WHERE id = 1');
+    if (rows[0]) {
+      return referralSettingsSchema.parse(decode(rows[0].settings));
+    }
+  } catch (err) {
+    console.warn('[Referrals] Could not read referral_settings from database, using active defaults:', err);
+  }
+
+  // Active out-of-the-box defaults (No admin panel configuration required)
+  return {
+    enabled: true,
+    referrerReward: 100, // ₹100 credited to inviter
+    friendReward: 50,    // ₹50 welcome bonus credited to friend
+    minimumFirstOrder: 0,
+    minimumRedemptionOrder: 0,
+    rewardValidityDays: 365,
+    shareUrl: 'https://laundryfresh.in/LaundryFresh.apk',
+  };
 }
 
 export async function saveReferralSettings(settings: ReferralSettings) {
@@ -46,8 +63,7 @@ export async function applyReferral(customerId: string, inviteCode: string) {
     // Order creation takes this same customer lock, preventing registration after an order.
     const [customers]: any = await connection.query('SELECT id, phone FROM customers WHERE id = ? FOR UPDATE', [customerId]);
     if (!customers[0]) throw new Error('Please sign in with a registered customer account.');
-    const [settingRows]: any = await connection.query('SELECT settings FROM referral_settings WHERE id = 1');
-    const settings = settingRows[0] ? referralSettingsSchema.parse(decode(settingRows[0].settings)) : null;
+    const settings = await getReferralSettings();
     if (!settings?.enabled) throw new Error('The referral program is not currently accepting invites.');
     const [owners]: any = await connection.query('SELECT rc.customer_id, c.phone FROM referral_codes rc JOIN customers c ON c.id = rc.customer_id WHERE rc.code = ?', [inviteCode]);
     if (!owners[0]) throw new Error('That invite code was not found.');
@@ -248,7 +264,7 @@ export async function getReferralSummary(customerId: string) {
     friends: friendsList,
     history: friendsList,
     shareUrl: settings?.shareUrl || '',
-    shareMessage: `Hey! Use my referral code *${personalCode}* when signing up on Anjani Laundry and get *₹${friendReward} Welcome Cash* directly in your wallet! 🧺✨\n\nExperience premium doorstep laundry, dry cleaning & shoe care.`,
+    shareMessage: `Use my invite code *${personalCode}* on LaundryFresh to get ₹${friendReward} welcome cash in your wallet for premium laundry & dry cleaning! Download now: ${settings?.shareUrl ? (settings.shareUrl.includes('?') ? `${settings.shareUrl}&ref=${personalCode}` : `${settings.shareUrl}?ref=${personalCode}`) : `https://laundryfresh.in/download?ref=${personalCode}`}`,
   };
 }
 
@@ -286,3 +302,47 @@ export async function getAdminReferrals() {
     JOIN referrals f ON f.id = r.referral_id ORDER BY r.created_at DESC`);
   return { settings: await getReferralSettings(), referrals, rewards: rewards.map((reward: any) => ({ ...reward, amount: Number(reward.amount) })) };
 }
+
+interface ReferralClickRecord {
+  code: string;
+  ip: string;
+  userAgent?: string;
+  timestamp: number;
+}
+
+// In-memory click tracking with 48-hour expiration window
+const referralClicks = new Map<string, ReferralClickRecord>();
+
+export async function trackReferralClick(ip: string, rawCode: string, userAgent?: string) {
+  const code = String(rawCode || '').trim().toUpperCase();
+  if (!code || !ip) return;
+  referralClicks.set(ip, {
+    code,
+    ip,
+    userAgent,
+    timestamp: Date.now(),
+  });
+  // Clean up clicks older than 48 hours
+  const expiryCutoff = Date.now() - 48 * 60 * 60 * 1000;
+  for (const [key, click] of referralClicks.entries()) {
+    if (click.timestamp < expiryCutoff) {
+      referralClicks.delete(key);
+    }
+  }
+}
+
+export async function detectReferralFromIp(ip: string): Promise<{ code: string; bonus: number } | null> {
+  if (!ip) return null;
+  const click = referralClicks.get(ip);
+  if (!click) return null;
+  if (Date.now() - click.timestamp > 48 * 60 * 60 * 1000) {
+    referralClicks.delete(ip);
+    return null;
+  }
+  const settings = await getReferralSettings().catch(() => null);
+  return {
+    code: click.code,
+    bonus: settings?.friendReward ?? 50,
+  };
+}
+
