@@ -32,11 +32,11 @@ export async function getReferralSettings(): Promise<ReferralSettings> {
     console.warn('[Referrals] Could not read referral_settings from database, using active defaults:', err);
   }
 
-  // Active out-of-the-box defaults (No admin panel configuration required)
+  // Active out-of-the-box defaults (User requested: 50 invite reward, 25 friend bonus)
   return {
     enabled: true,
-    referrerReward: 100, // ₹100 credited to inviter
-    friendReward: 50,    // ₹50 welcome bonus credited to friend
+    referrerReward: 50, // ₹50 credited to inviter
+    friendReward: 25,   // ₹25 welcome bonus credited to friend
     minimumFirstOrder: 0,
     minimumRedemptionOrder: 0,
     rewardValidityDays: 365,
@@ -177,8 +177,8 @@ export async function rewardReferralOnRegistration(inviteeId: string, rawCode: s
     const masked = maskPhone(invitee?.phone);
 
     const settings = await getReferralSettings().catch(() => null);
-    const referrerReward = settings?.referrerReward ?? 100;
-    const friendReward = settings?.friendReward ?? 50;
+    const referrerReward = settings?.referrerReward ?? 50;
+    const friendReward = settings?.friendReward ?? 25;
 
     // 4. Credit configured referrerReward to Referrer's Wallet
     await creditWallet(
@@ -237,8 +237,8 @@ export async function getReferralSummary(customerId: string) {
   );
 
   const settings = await getReferralSettings().catch(() => null);
-  const referrerReward = settings?.referrerReward ?? 100;
-  const friendReward = settings?.friendReward ?? 50;
+  const referrerReward = settings?.referrerReward ?? 50;
+  const friendReward = settings?.friendReward ?? 25;
 
   const referralCount = friends.length;
   const totalEarned = referralCount * referrerReward;
@@ -342,7 +342,7 @@ export async function detectReferralFromIp(ip: string): Promise<{ code: string; 
   const settings = await getReferralSettings().catch(() => null);
   return {
     code: click.code,
-    bonus: settings?.friendReward ?? 50,
+    bonus: settings?.friendReward ?? 25,
   };
 }
 
