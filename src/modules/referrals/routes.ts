@@ -15,8 +15,32 @@ import {
 
 const router = Router();
 
-// Public: Handle referral link click (records IP and redirects to APK download / landing page)
-router.get('/click/:code', async (req, res) => {
+// Public: Get dynamic referral program settings (used by mobile app for guests and users)
+router.get('/config', async (req: Request, res: Response) => {
+  try {
+    const settings = await getReferralSettings();
+    return res.json({
+      success: true,
+      enabled: settings.enabled,
+      referrerReward: settings.referrerReward,
+      friendReward: settings.friendReward,
+      minimumFirstOrder: settings.minimumFirstOrder,
+      shareUrl: settings.shareUrl || 'https://laundry.anushatechnologies.com/api/referrals/click',
+    });
+  } catch (error) {
+    return res.json({
+      success: true,
+      enabled: true,
+      referrerReward: 100,
+      friendReward: 50,
+      minimumFirstOrder: 0,
+      shareUrl: 'https://laundry.anushatechnologies.com/api/referrals/click',
+    });
+  }
+});
+
+// Public: Handle referral link click (records IP and redirects directly to APK download)
+router.get('/click/:code', async (req: Request, res: Response) => {
   try {
     const code = req.params.code?.trim().toUpperCase();
     const rawIp = req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || req.socket.remoteAddress || '';
@@ -25,14 +49,12 @@ router.get('/click/:code', async (req, res) => {
       await trackReferralClick(ip, code, req.headers['user-agent']);
     }
     const settings = await getReferralSettings().catch(() => null);
-    const downloadUrl = settings?.shareUrl || 'https://laundryfresh.in/download';
-    // Append ref code if landing page supports it
-    const targetUrl = downloadUrl.includes('?')
-      ? `${downloadUrl}&ref=${encodeURIComponent(code || '')}`
-      : `${downloadUrl}?ref=${encodeURIComponent(code || '')}`;
-    res.redirect(targetUrl);
+    const downloadUrl = (settings?.shareUrl && settings.shareUrl.endsWith('.apk'))
+      ? settings.shareUrl
+      : 'https://laundry.anushatechnologies.com/api/app-release/latest.apk';
+    return res.redirect(downloadUrl);
   } catch (err) {
-    res.redirect('https://laundryfresh.in/download');
+    return res.redirect('https://laundry.anushatechnologies.com/api/app-release/latest.apk');
   }
 });
 

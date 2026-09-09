@@ -264,7 +264,7 @@ export async function getReferralSummary(customerId: string) {
     friends: friendsList,
     history: friendsList,
     shareUrl: settings?.shareUrl || '',
-    shareMessage: `Use my invite code *${personalCode}* on LaundryFresh to get ₹${friendReward} welcome cash in your wallet for premium laundry & dry cleaning! Download now: ${settings?.shareUrl ? (settings.shareUrl.includes('?') ? `${settings.shareUrl}&ref=${personalCode}` : `${settings.shareUrl}?ref=${personalCode}`) : `https://laundryfresh.in/download?ref=${personalCode}`}`,
+    shareMessage: `Use my invite code *${personalCode}* on LaundryFresh to get ₹${friendReward} welcome cash in your wallet for premium laundry & dry cleaning! Download now: https://laundry.anushatechnologies.com/api/referrals/click/${personalCode}`,
   };
 }
 

@@ -28,11 +28,11 @@ function cleanGarmentName(item: any): string {
 
 export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): string {
   // Use dynamic laundry hub details
-  const storeName = settings?.storeName || 'Anjani Laundry';
-  const storeAddress = settings?.storeAddress || 'D.No 4-12, Main Road, Danavaipeta, Rajahmundry, AP - 533103';
-  const storeGSTIN = '37AAACA1234F1Z5'; // Should be added to settings in future
+  const storeName = settings?.storeName || 'LaundryFresh';
+  const storeAddress = settings?.storeAddress || 'Main Hub: Doorstep Delivery & Premium Fabric Care, Hyderabad';
+  const storeGSTIN = '36AAACL8842P1Z9';
   const storePhone = '+91 91219 99999';
-  const storeEmail = 'anushabazaar4@gmail.com';
+  const storeEmail = 'support@laundryfresh.in';
   
   const invoiceNo = `INV-${order.id.replace(/\D/g, '').slice(-8) || order.id.slice(-8).toUpperCase()}`;
   const orderDate = new Date(order.createdAt).toLocaleDateString('en-IN', {
@@ -403,7 +403,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
         <div class="company-info">
           <div class="company-title">${escapeHtml(storeName)}</div>
           <div class="company-sub">
-            <strong>${escapeHtml(storeName)} & Dry Cleaning Hub</strong><br>
+            <strong>${escapeHtml(storeName)} • Luxury Fabric Care & Doorstep Laundry</strong><br>
             ${escapeHtml(storeAddress)}<br>
             GSTIN: <strong>${escapeHtml(storeGSTIN)}</strong> • Phone: ${escapeHtml(storePhone)}<br>
             Email: ${escapeHtml(storeEmail)}
