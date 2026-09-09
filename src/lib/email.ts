@@ -19,13 +19,13 @@ export interface SendMailOptions {
   text?: string;
 }
 
-const SMTP_HOST = process.env.SMTP_HOST || '';
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
-const SMTP_USER = process.env.SMTP_USER || '';
-const SMTP_PASS = process.env.SMTP_PASS || '';
+const SMTP_HOST = process.env.SMTP_HOST || 'anushatechnologies.com';
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '465', 10);
+const SMTP_USER = process.env.SMTP_USER || 'laundry@anushatechnologies.com';
+const SMTP_PASS = process.env.SMTP_PASS || 'Anjibabu@2244';
 const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || SMTP_PORT === 465;
-const EMAIL_FROM = process.env.EMAIL_FROM || '"Anjani Laundry" <anushabazaar4@gmail.com>';
-const ADMIN_ALERT_EMAIL = process.env.ADMIN_ALERT_EMAIL || SMTP_USER || 'anushabazaar4@gmail.com';
+const EMAIL_FROM = process.env.EMAIL_FROM || '"LaundryFresh" <laundry@anushatechnologies.com>';
+const ADMIN_ALERT_EMAIL = process.env.ADMIN_ALERT_EMAIL || SMTP_USER || 'laundry@anushatechnologies.com';
 
 let transporter: nodemailer.Transporter | null = null;
 
@@ -39,6 +39,9 @@ function getTransporter(): nodemailer.Transporter {
         auth: {
           user: SMTP_USER,
           pass: SMTP_PASS,
+        },
+        tls: {
+          rejectUnauthorized: false,
         },
       });
     } else {
