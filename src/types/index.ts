@@ -26,7 +26,7 @@ export type OrderStatus =
   | 'COMPLETED'
   | 'CANCELLED';
 
-export type PaymentMethod = 'ONLINE_RAZORPAY' | 'UPI' | 'CARD' | 'NET_BANKING' | 'WALLET' | 'COD';
+export type PaymentMethod = 'ONLINE_RAZORPAY' | 'UPI' | 'CARD' | 'NET_BANKING' | 'WALLET' | 'COD' | 'SUBSCRIPTION';
 export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
 export type ExpressTier = 'REGULAR' | 'EXPRESS_24H' | 'SAME_DAY';
 
@@ -147,6 +147,11 @@ export interface Order {
   itemTotal: number;
   discountAmount: number;
   couponCode?: string;
+  customerSubscriptionId?: string;
+  subscriptionPlanName?: string;
+  subscriptionKgUsed?: number;
+  subscriptionDiscount?: number;
+  walletDeduction?: number;
   pickupDeliveryFee: number;
   expressFee: number;
   taxAmount: number;

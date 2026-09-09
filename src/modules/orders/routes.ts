@@ -339,9 +339,21 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
       settings,
     });
 
-    // Handle Active Customer Subscription perks (Free Delivery & Bulk KG Quota)
+    // Calculate combined order weight (Bulk KG + Garments estimated weight)
+    const bulkKg = items
+      .filter((item) => item.pricingModel === 'PER_KG')
+      .reduce((total, item) => total + item.quantity, 0);
+    const pieceCount = items
+      .filter((item) => item.pricingModel !== 'PER_KG')
+      .reduce((total, item) => total + item.quantity, 0);
+    const pieceKg = Number((pieceCount * 0.25).toFixed(1));
+    const calculatedOrderWeight = bulkKg > 0 ? Number((bulkKg + pieceKg).toFixed(1)) : Math.max(1, pieceKg);
+
+    // Handle Active Customer Subscription perks (Free Delivery & Bulk/Garment Quota)
     let subscriptionPerkFreeDelivery = false;
     let subscriptionKgToDeduct = 0;
+    let subscriptionDiscount = 0;
+    let subscriptionPlanName = '';
 
     if (input.customerSubscriptionId && pool) {
       try {
@@ -355,13 +367,17 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
 
         if (subRows && subRows.length > 0) {
           const sub = subRows[0];
+          subscriptionPlanName = sub.plan_name || 'Active Membership';
           if (sub.free_pickup_delivery || Number(sub.free_pickup_delivery) === 1) {
             subscriptionPerkFreeDelivery = true;
           }
           const remainingKg = Number(sub.remaining_kg || 0);
-          const requestedKg = Number(input.subscriptionKgUsed || 0);
-          if (requestedKg > 0 && remainingKg > 0) {
-            subscriptionKgToDeduct = Math.min(requestedKg, remainingKg);
+          const requestedKg = Number(input.subscriptionKgUsed || calculatedOrderWeight || 0);
+          if (remainingKg > 0 && calculatedOrderWeight > 0) {
+            subscriptionKgToDeduct = Math.min(requestedKg, remainingKg, calculatedOrderWeight);
+            const coverageFraction = Math.min(1, subscriptionKgToDeduct / calculatedOrderWeight);
+            // Subscription quota discount covers item costs up to the covered weight fraction
+            subscriptionDiscount = Math.min(itemTotal, Number((itemTotal * coverageFraction).toFixed(2)));
           }
         }
       } catch (subErr) {
@@ -371,7 +387,8 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
 
     const pickupDeliveryFee = subscriptionPerkFreeDelivery ? 0 : deliveryCalc.deliveryFee;
     const expressFee = deliveryCalc.expressFee;
-    const taxableAmount = Math.max(0, itemTotal - discountAmount + pickupDeliveryFee + expressFee);
+    const totalDiscounts = Number((discountAmount + subscriptionDiscount).toFixed(2));
+    const taxableAmount = Math.max(0, Number((itemTotal - totalDiscounts + pickupDeliveryFee + expressFee).toFixed(2)));
     const effectiveTaxPercentage = (settings.isGstEnabled !== false) ? (settings.taxPercentage ?? 5) : 0;
     const taxAmount = Number((taxableAmount * (effectiveTaxPercentage / 100)).toFixed(2));
     const initialTotalAmount = Number((taxableAmount + taxAmount).toFixed(2));
@@ -400,12 +417,13 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
     const totalAmount = Number((initialTotalAmount - walletDeduction).toFixed(2));
     
     // Payment status logic:
-    // - If wallet covers full amount OR total amount is 0 (covered by subscription/wallet) -> PAID
+    // - If initial total is 0 (covered completely by subscription quota + free delivery) -> PAID with SUBSCRIPTION
+    // - If wallet covers full amount -> PAID with WALLET
     // - If COD -> PENDING (confirmed order, pay at doorstep)
     // - If ONLINE_RAZORPAY with remaining amount -> PENDING (pay via Razorpay)
     const isFullyPaid = initialTotalAmount === 0 || walletDeduction >= initialTotalAmount;
-    const paymentMethod = isFullyPaid
-      ? 'WALLET'
+    const paymentMethod: PaymentMethod = isFullyPaid
+      ? (subscriptionDiscount > 0 && initialTotalAmount === 0 ? 'SUBSCRIPTION' : 'WALLET')
       : (input.paymentMethod as PaymentMethod);
     const paymentStatus = isFullyPaid ? 'PAID' : 'PENDING';
 
@@ -442,6 +460,11 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
       itemTotal,
       discountAmount,
       couponCode: couponCode || undefined,
+      customerSubscriptionId: input.customerSubscriptionId || undefined,
+      subscriptionPlanName: subscriptionPlanName || undefined,
+      subscriptionKgUsed: subscriptionKgToDeduct > 0 ? subscriptionKgToDeduct : undefined,
+      subscriptionDiscount: subscriptionDiscount > 0 ? subscriptionDiscount : undefined,
+      walletDeduction: walletDeduction > 0 ? walletDeduction : undefined,
       pickupDeliveryFee,
       expressFee,
       taxAmount,
@@ -449,7 +472,7 @@ router.post('/', requireCustomerIdentity, async (req: Request, res: Response) =>
       paymentMethod,
       paymentStatus,
       notes: input.notes || undefined,
-      estimatedWeightKg: items.filter((item) => item.pricingModel === 'PER_KG').reduce((total, item) => total + item.quantity, 0) || undefined,
+      estimatedWeightKg: calculatedOrderWeight || undefined,
     });
 
     if (walletDeduction > 0) {
