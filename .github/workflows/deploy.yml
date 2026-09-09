@@ -138,11 +138,6 @@ jobs:
             if [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}" ]; then
               echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}" | base64 -d > serviceAccountKey.json
               echo "serviceAccountKey.json written from base64 secret."
-            elif [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
-              cat << 'F_EOF' > serviceAccountKey.json
-${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-F_EOF
-              echo "serviceAccountKey.json written from raw JSON secret."
             fi
 
             # 5. Install dependencies and compile TypeScript
