@@ -79,7 +79,7 @@ const orderStatuses = [
   'OUT_FOR_DELIVERY', 'DELIVERED', 'COMPLETED', 'CANCELLED',
 ] as const;
 
-const paymentMethods = ['ONLINE_RAZORPAY', 'UPI', 'CARD', 'NET_BANKING', 'WALLET', 'COD'] as const;
+const paymentMethods = ['ONLINE_RAZORPAY', 'UPI', 'CARD', 'NET_BANKING', 'WALLET', 'COD', 'SUBSCRIPTION'] as const;
 
 const orderItemSchema = z.object({
   id: z.string().trim().min(1).max(160),
