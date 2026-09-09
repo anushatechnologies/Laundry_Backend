@@ -119,10 +119,10 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       transition: all 0.2s;
     }
     .btn-primary {
-      background: #ea580c;
+      background: #0F766E;
       color: #ffffff;
     }
-    .btn-primary:hover { background: #c2410c; }
+    .btn-primary:hover { background: #0D9488; }
     .btn-secondary {
       background: #ffffff;
       color: #334155;
@@ -163,7 +163,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
     .company-title {
       font-size: 24px;
       font-weight: 900;
-      color: #ea580c;
+      color: #0F766E;
       letter-spacing: -0.5px;
     }
     .company-sub {
@@ -301,7 +301,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       align-items: center;
     }
     .summary-grand-val {
-      color: #ea580c;
+      color: #0F766E;
       font-size: 20px;
       font-family: monospace;
       white-space: nowrap;
@@ -389,7 +389,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
 <body>
   <div class="action-bar">
     <button class="btn btn-secondary" onclick="window.history.length > 1 ? window.history.back() : window.close()">← Return</button>
-    <button class="btn btn-primary" onclick="window.print()">📥 Print / Download PDF</button>
+    <button class="btn btn-primary" onclick="window.print()">📥 Print / Save as PDF</button>
   </div>
 
   <div class="invoice-container">
@@ -498,6 +498,18 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
       <p style="margin-top: 4px;">Thank you for trusting ${escapeHtml(storeName)} for your premium garment care!</p>
     </div>
   </div>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('print') === 'true' || params.get('download') === 'true') {
+          setTimeout(function() {
+            window.print();
+          }, 400);
+        }
+      } catch (e) {}
+    });
+  </script>
 </body>
 </html>`;
 }
