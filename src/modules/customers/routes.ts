@@ -288,6 +288,12 @@ customersRouter.post('/firebase-login', async (req: Request, res: Response) => {
         customer.name = saved.name;
         customer.email = saved.email;
       }
+
+      if (referralCode) {
+        rewardReferralOnRegistration(customer.id, referralCode).catch((err) =>
+          console.error('[Firebase Referral Reward for Existing Customer] Error:', err)
+        );
+      }
     }
 
     return tokenResponse(res, customer, customer.id); // Use customer ID, not Firebase UID

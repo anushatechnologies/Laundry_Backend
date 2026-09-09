@@ -61,21 +61,55 @@ export async function applyReferral(customerId: string, inviteCode: string) {
   try {
     await connection.beginTransaction();
     // Order creation takes this same customer lock, preventing registration after an order.
-    const [customers]: any = await connection.query('SELECT id, phone FROM customers WHERE id = ? FOR UPDATE', [customerId]);
+    const [customers]: any = await connection.query('SELECT id, phone, name FROM customers WHERE id = ? FOR UPDATE', [customerId]);
     if (!customers[0]) throw new Error('Please sign in with a registered customer account.');
+    const invitee = customers[0];
     const settings = await getReferralSettings();
     if (!settings?.enabled) throw new Error('The referral program is not currently accepting invites.');
-    const [owners]: any = await connection.query('SELECT rc.customer_id, c.phone FROM referral_codes rc JOIN customers c ON c.id = rc.customer_id WHERE rc.code = ?', [inviteCode]);
+    const [owners]: any = await connection.query('SELECT rc.customer_id, c.phone, c.name FROM referral_codes rc JOIN customers c ON c.id = rc.customer_id WHERE rc.code = ?', [inviteCode]);
     if (!owners[0]) throw new Error('That invite code was not found.');
+    const referrerId = owners[0].customer_id;
     const digits = (phone: string) => String(phone).replace(/\D/g, '').slice(-10);
-    if (owners[0].customer_id === customerId || digits(owners[0].phone) === digits(customers[0].phone)) throw new Error('You cannot use your own referral code.');
+    if (referrerId === customerId || digits(owners[0].phone) === digits(invitee.phone)) throw new Error('You cannot use your own referral code.');
     const [existing]: any = await connection.query('SELECT id FROM referrals WHERE invitee_id = ?', [customerId]);
     if (existing.length) throw new Error('An invite code has already been applied to your account.');
     const [orders]: any = await connection.query('SELECT id FROM orders WHERE customer_id = ? LIMIT 1', [customerId]);
     if (orders.length) throw new Error('Apply an invite code before placing your first order.');
-    await connection.query('INSERT INTO referrals (id, referrer_id, invitee_id, code, status, terms, created_at) VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(3))',
-      [crypto.randomUUID(), owners[0].customer_id, customerId, inviteCode, 'PENDING', JSON.stringify(settings)]);
+
+    const referrerReward = settings?.referrerReward ?? 50;
+    const friendReward = settings?.friendReward ?? 25;
+    const masked = maskPhone(invitee.phone);
+
+    // 1. Credit configured referrerReward to Referrer's Wallet
+    await creditWallet(
+      referrerId,
+      referrerReward,
+      'REFERRAL_REWARD',
+      `Referral bonus: Friend (${masked}) applied your invite code ${inviteCode}!`,
+      customerId,
+      connection
+    );
+
+    // 2. Credit configured friendReward Welcome Bonus to Invitee's Wallet
+    await creditWallet(
+      customerId,
+      friendReward,
+      'WELCOME_BONUS',
+      `Welcome bonus for joining LaundryFresh with invite code ${inviteCode}!`,
+      referrerId,
+      connection
+    );
+
+    // 3. Record qualified referral
+    const referralId = crypto.randomUUID();
+    await connection.query(
+      `INSERT INTO referrals (id, referrer_id, invitee_id, code, status, terms, reason, created_at, qualified_at)
+       VALUES (?, ?, ?, ?, 'QUALIFIED', ?, 'Applied referral code', UTC_TIMESTAMP(3), UTC_TIMESTAMP(3))`,
+      [referralId, referrerId, customerId, inviteCode, JSON.stringify({ referrerReward, friendReward })]
+    );
+
     await connection.commit();
+    console.log(`[Referrals] Rewarded ₹${referrerReward} to referrer ${referrerId} and ₹${friendReward} to invitee ${customerId} via code ${inviteCode}`);
   } catch (error) { await connection.rollback(); throw error; }
   finally { connection.release(); }
 }
