@@ -205,134 +205,26 @@ customersRouter.post('/check-phone', (req: Request, res: Response) => {
 
 /**
  * POST /api/customers/send-otp
- * Body: { phone: string, name?: string, email?: string }
- * Generates OTP code, caches in memory, and dispatches via SMS Gateway (Fast2SMS / 2Factor).
+ * Strict Firebase Phone Auth enforcement - no third-party OTP services allowed.
  */
-customersRouter.post('/send-otp', async (req: Request, res: Response) => {
-  const { phone: rawPhone, name = '', email = '', referralCode = '' } = req.body ?? {};
-  const phone = String(rawPhone ?? '').replace(/\D/g, '').slice(-10);
-
-  if (!phone || phone.length < 10) {
-    return res.status(400).json({ success: false, message: 'Enter a valid 10-digit Indian mobile number.' });
-  }
-
-  // Real random 6-digit OTP dispatched via SMS for all real mobile numbers
-  const isDemoSimulator = phone === '9999911111';
-  const code = isDemoSimulator ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-  customerOtpStore.set(phone, {
-    code,
-    expiresAt,
-    name: name ? String(name).trim() : undefined,
-    email: email ? String(email).trim() : undefined,
-    referralCode: referralCode ? String(referralCode).trim().toUpperCase() : undefined,
-  });
-
-  console.log(`[Customer OTP] Generated code for +91${phone}: ${code} (expires in 10m)`);
-
-  // Dispatch real SMS via configured Indian gateway (Fast2SMS)
-  const smsResult = await sendSmsOtp(phone, code);
-
-  // If all gateways failed and fell back to simulator (no real SMS sent),
-  // return 503 so the mobile app can trigger Firebase Phone Auth as fallback.
-  if (smsResult.gateway === 'SIMULATOR_LOG') {
-    console.warn(`[Customer OTP] ⚠️ SMS not delivered to +91${phone} — gateway unavailable or zero balance. Mobile app will use Firebase OTP fallback.`);
-    return res.status(503).json({
-      success: false,
-      message: 'SMS gateway unavailable. Firebase OTP fallback will be used.',
-      gateway: smsResult.gateway,
-    });
-  }
-
-  const existingCustomer = findByPhone(phone);
-  return res.json({
-    success: true,
-    message: `OTP sent successfully to +91 ${phone}`,
-    gateway: smsResult.gateway,
-    exists: Boolean(existingCustomer),
+customersRouter.post('/send-otp', async (_req: Request, res: Response) => {
+  return res.status(410).json({
+    success: false,
+    code: 'FIREBASE_PHONE_AUTH_REQUIRED',
+    message: 'Third-party OTP services are disabled. The app strictly uses Google Firebase Phone Authentication directly via /customers/firebase-login.',
   });
 });
 
 /**
  * POST /api/customers/verify-otp
- * Body: { phone: string, otp: string, name?: string, email?: string }
- * Validates the OTP code, registers/finds customer, and issues auth session.
+ * Strict Firebase Phone Auth enforcement - no third-party OTP services allowed.
  */
-customersRouter.post('/verify-otp', async (req: Request, res: Response) => {
-  const { phone: rawPhone, otp: rawOtp, name, email = '', referralCode: rawReferralCode } = req.body ?? {};
-  const phone = String(rawPhone ?? '').replace(/\D/g, '').slice(-10);
-  const otp = String(rawOtp ?? '').trim();
-
-  if (!phone || phone.length < 10) {
-    return res.status(400).json({ success: false, message: 'Invalid phone number' });
-  }
-  if (!otp || otp.length !== 6) {
-    return res.status(400).json({ success: false, message: 'Please enter the 6-digit OTP' });
-  }
-
-  const record = customerOtpStore.get(phone);
-  const isTest = (phone === '9999911111' && otp === '123456') || (phone === '9948598350' && otp === '994859');
-  const isValidOtp = isTest || (record && record.code === otp && Date.now() <= record.expiresAt);
-
-  if (!isValidOtp) {
-    return res.status(401).json({ success: false, message: 'Invalid or expired OTP code. Please try again.' });
-  }
-
-  // Clear OTP once verified
-  customerOtpStore.delete(phone);
-
-  let customer = findByPhone(phone);
-  if (!customer) {
-    const customerName = (name || record?.name || 'LaundryFresh Customer').trim();
-    const customerEmail = (email || record?.email || '').trim();
-
-    // Persist permanently in BackendDatabase & MySQL
-    const savedCustomer = db.addCustomer({
-      name: customerName,
-      phone,
-      email: customerEmail,
-    });
-
-    customer = {
-      id: savedCustomer.id,
-      name: savedCustomer.name,
-      phone: savedCustomer.phone,
-      email: savedCustomer.email,
-      totalOrders: 0,
-      totalSpent: 0,
-    };
-
-    if (customerEmail) {
-      sendWelcomeCustomerNotification(customerEmail, customerName, customerEmail, phone).catch((err) =>
-        console.error('Welcome email error:', err)
-      );
-    }
-
-    // Process referral reward: ₹100 to referrer, ₹50 to new customer
-    const codeToApply = rawReferralCode || record?.referralCode;
-    if (codeToApply) {
-      rewardReferralOnRegistration(customer.id, codeToApply).catch((err) =>
-        console.error('[Registration Referral Reward] Error:', err)
-      );
-    }
-  }
-
-  logAuditEvent({
-    actorId: customer.id,
-    actorName: customer.name,
-    actorEmail: customer.email,
-    actorRole: 'CUSTOMER',
-    action: 'CUSTOMER_SIGNIN_OTP',
-    resourceType: 'CUSTOMERS',
-    resourceId: customer.id,
-    details: `Customer ${customer.name} (+91 ${customer.phone}) authenticated via mobile OTP.`,
-    riskLevel: 'INFO',
-    payloadAfter: { phone: customer.phone, name: customer.name },
-    ipAddress: req.ip,
-  }).catch(() => {});
-
-  return tokenResponse(res, customer, `cust_${phone}`);
+customersRouter.post('/verify-otp', async (_req: Request, res: Response) => {
+  return res.status(410).json({
+    success: false,
+    code: 'FIREBASE_PHONE_AUTH_REQUIRED',
+    message: 'Third-party OTP verification is disabled. Authenticate with Google Firebase and pass the ID token to /customers/firebase-login.',
+  });
 });
 
 /**

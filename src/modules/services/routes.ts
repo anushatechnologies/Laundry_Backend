@@ -72,6 +72,17 @@ router.get('/', (req: Request, res: Response) => {
   res.json({ success: true, data: { services, categories } });
 });
 
+// Pricing Settings & Financial Rules (MUST be placed before parameterized /:id route)
+router.get('/settings', (req: Request, res: Response) => {
+  const settings = db.getPricingSettings();
+  res.json({ success: true, data: settings });
+});
+
+router.put('/settings', requireAdmin, (req: Request, res: Response) => {
+  const updated = db.updatePricingSettings(req.body);
+  res.json({ success: true, data: updated });
+});
+
 router.post('/', requireAdmin, (req: Request, res: Response) => {
   const parsed = legacyServiceSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ success: false, message: parsed.error.issues[0]?.message || 'Invalid service details.' });
@@ -283,16 +294,7 @@ router.post('/pricing-matrix/upsert', requireAdmin, (req: Request, res: Response
   res.json({ success: true, data: result });
 });
 
-// Pricing Settings & Financial Rules
-router.get('/settings', (req: Request, res: Response) => {
-  const settings = db.getPricingSettings();
-  res.json({ success: true, data: settings });
-});
 
-router.put('/settings', requireAdmin, (req: Request, res: Response) => {
-  const updated = db.updatePricingSettings(req.body);
-  res.json({ success: true, data: updated });
-});
 
 // ─── Distance-Based Delivery Fee Calculator ───────────────────────────────────
 // POST /api/services/calculate-delivery-fee

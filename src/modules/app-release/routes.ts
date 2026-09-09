@@ -40,6 +40,10 @@ router.get('/download', async (_req: Request, res: Response) => {
       : null;
 
     if (!targetPath) {
+      const latest = await getLatestAppRelease();
+      if (latest?.fileUrl && latest.fileUrl.startsWith('http')) {
+        return res.redirect(latest.fileUrl);
+      }
       return res.status(404).json({
         success: false,
         message: 'No APK file uploaded on the server. Please upload an APK via the Admin Panel.',

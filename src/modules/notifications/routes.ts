@@ -463,4 +463,74 @@ router.post('/test-email', async (req: Request, res: Response) => {
   }
 });
 
+// 9. Get Live Fast2SMS Gateway Wallet & SMS Balance (for Admin Panel)
+router.get('/sms-wallet', requireConfiguredAdmin, async (_req: Request, res: Response) => {
+  const apiKey = process.env.FAST2SMS_API_KEY;
+  if (!apiKey) {
+    return res.json({
+      success: false,
+      message: 'Fast2SMS API key is not configured in backend environment.',
+      data: {
+        configured: false,
+        wallet: 0,
+        smsCount: 0,
+        currency: 'INR',
+        gateway: 'Fast2SMS Quick Route',
+        status: 'Unconfigured',
+      },
+    });
+  }
+
+  try {
+    const response = await fetch('https://www.fast2sms.com/dev/wallet', {
+      method: 'GET',
+      headers: {
+        authorization: apiKey.trim(),
+      },
+    });
+    const data: any = await response.json().catch(() => ({}));
+    if (data && data.return === true) {
+      const walletBalance = Number(data.wallet) || 0;
+      // Fast2SMS charges ₹5.00 per SMS on Quick Route (q), and ₹0.25 on DLT / Smart OTP route
+      const quickSmsCount = Math.floor(walletBalance / 5);
+      const dltSmsCount = Number(data.sms_count) || Math.floor(walletBalance / 0.25);
+      return res.json({
+        success: true,
+        data: {
+          configured: true,
+          wallet: walletBalance,
+          smsCount: quickSmsCount,
+          quickSmsCount,
+          dltSmsCount,
+          currency: 'INR',
+          gateway: 'Fast2SMS Quick Route',
+          status: walletBalance >= 10 ? 'Active' : walletBalance > 0 ? 'Low Balance' : 'Exhausted',
+          ratePerSms: 5.00,
+          dltRatePerSms: 0.25,
+          lastChecked: new Date().toISOString(),
+        },
+      });
+    }
+
+    return res.json({
+      success: false,
+      message: data.message || 'Could not fetch wallet balance from Fast2SMS.',
+      data: {
+        configured: true,
+        wallet: 0,
+        smsCount: 0,
+        currency: 'INR',
+        gateway: 'Fast2SMS Quick Route',
+        status: 'Error',
+        raw: data,
+      },
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      message: err?.message || 'Fast2SMS wallet query failed.',
+    });
+  }
+});
+
 export default router;

@@ -25,7 +25,29 @@ export async function sendSmsOtp(phone: string, otpCode: string): Promise<SmsRes
     try {
       console.log(`[SMS] Attempting Fast2SMS dispatch for +91${cleanPhone}...`);
 
-      // 1A. Quick SMS route ('q') - Fastest delivery, no template/website verification roadblock
+      // 1A. Primary: Fast2SMS OTP route ('otp') - Costs only ₹0.25 / SMS (Requires Fast2SMS website verification)
+      const otpPayload = JSON.stringify({
+        variables_values: otpCode,
+        route: 'otp',
+        numbers: cleanPhone,
+      });
+      const otpRes = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+        method: 'POST',
+        headers: {
+          authorization: FAST2SMS_KEY.trim(),
+          'Content-Type': 'application/json',
+        },
+        body: otpPayload,
+      });
+      const otpData: any = await otpRes.json().catch(() => ({}));
+      if (otpData && (otpData.return === true || otpData.status_code === 200)) {
+        console.log(`[SMS] Fast2SMS OTP route (₹0.25) dispatched to +91${cleanPhone}:`, otpData.message || otpData.request_id);
+        return { success: true, gateway: 'Fast2SMS (₹0.25 OTP)', messageId: otpData.request_id || otpData.message?.[0] };
+      }
+
+      console.warn('[SMS] Fast2SMS OTP route not verified yet (falling back to Quick SMS):', otpData?.message || otpData);
+
+      // 1B. Fallback: Quick SMS route ('q') - Instant delivery without verification, but Fast2SMS charges ₹5.00 / SMS
       const quickPayload = JSON.stringify({
         route: 'q',
         message: `Your LaundryFresh verification code is: ${otpCode}. Valid for 10 minutes. Do not share this code.`,
@@ -44,29 +66,7 @@ export async function sendSmsOtp(phone: string, otpCode: string): Promise<SmsRes
       const qData: any = await qRes.json().catch(() => ({}));
       if (qData && (qData.return === true || qData.status_code === 200)) {
         console.log(`[SMS] Fast2SMS Quick SMS dispatched successfully to +91${cleanPhone}:`, qData.message || qData.request_id);
-        return { success: true, gateway: 'Fast2SMS', messageId: qData.request_id || qData.message?.[0] };
-      }
-
-      console.warn('[SMS] Fast2SMS Quick SMS warning:', qData);
-
-      // 1B. Fallback: Fast2SMS OTP route ('otp')
-      const otpPayload = JSON.stringify({
-        variables_values: otpCode,
-        route: 'otp',
-        numbers: cleanPhone,
-      });
-      const otpRes = await fetch('https://www.fast2sms.com/dev/bulkV2', {
-        method: 'POST',
-        headers: {
-          authorization: FAST2SMS_KEY.trim(),
-          'Content-Type': 'application/json',
-        },
-        body: otpPayload,
-      });
-      const otpData: any = await otpRes.json().catch(() => ({}));
-      if (otpData && (otpData.return === true || otpData.status_code === 200)) {
-        console.log(`[SMS] Fast2SMS OTP route dispatched to +91${cleanPhone}:`, otpData.message || otpData.request_id);
-        return { success: true, gateway: 'Fast2SMS', messageId: otpData.request_id || otpData.message?.[0] };
+        return { success: true, gateway: 'Fast2SMS (Quick Route)', messageId: qData.request_id || qData.message?.[0] };
       }
 
       // 1C. Fallback: GET query string

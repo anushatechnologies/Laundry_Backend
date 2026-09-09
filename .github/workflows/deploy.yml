@@ -45,6 +45,7 @@ jobs:
           FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
           FIREBASE_DATABASE_URL: ${{ secrets.FIREBASE_DATABASE_URL }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_SERVICE_ACCOUNT_B64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
           SMTP_HOST: ${{ secrets.SMTP_HOST || 'smtp.gmail.com' }}
           SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
           SMTP_SECURE: ${{ secrets.SMTP_SECURE || 'false' }}
@@ -134,10 +135,14 @@ jobs:
           ENV_EOF
 
             # 4. Write serviceAccountKey.json if secret provided
-            if [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            if [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}" ]; then
+              echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}" | base64 -d > serviceAccountKey.json
+              echo "serviceAccountKey.json written from base64 secret."
+            elif [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
               cat << 'F_EOF' > serviceAccountKey.json
-          ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          F_EOF
+${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+F_EOF
+              echo "serviceAccountKey.json written from raw JSON secret."
             fi
 
             # 5. Install dependencies and compile TypeScript
