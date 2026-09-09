@@ -25,7 +25,7 @@ router.get('/latest', async (_req: Request, res: Response) => {
 });
 
 // Public: Direct download stream of LaundryFresh.apk
-router.get('/download', async (_req: Request, res: Response) => {
+router.get(['/download', '/latest.apk'], async (_req: Request, res: Response) => {
   try {
     const uploadsDir = path.join(process.cwd(), 'public/uploads');
     const apkPath = path.join(uploadsDir, 'LaundryFresh.apk');
