@@ -7,6 +7,7 @@ import { requireAdmin } from '../../middleware/admin';
 import { verifyAccessToken } from '../../lib/customer-tokens';
 import { sendAdminOrderAlert, sendPickupScheduledNotification } from '../../lib/email';
 import { sendOrderStatusPushNotification } from '../../lib/push';
+import { reverseOrderWalletDeduction } from '../wallet/service';
 
 const router = Router();
 
@@ -184,6 +185,11 @@ router.post('/verify-signature', requireCustomerOrderAccess, async (req: Request
   const received = Buffer.from(razorpay_signature, 'utf8');
   if (expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
     db.markOrderPaymentFailed(order.id);
+    await reverseOrderWalletDeduction(
+      order.id,
+      order.customerId,
+      `Refund: Wallet deduction reversed for failed payment signature on Order #${order.id}`
+    ).catch((err) => console.error(`[Payments] Failed to refund wallet on verify failure for #${order.id}:`, err));
     return res.status(400).json({ success: false, message: 'Payment verification failed.' });
   }
 
@@ -240,11 +246,18 @@ async function notifyPaymentSuccess(order: any) {
   }
 }
 
-router.post('/mark-failed', requireCustomerOrderAccess, (req: Request, res: Response) => {
+router.post('/mark-failed', requireCustomerOrderAccess, async (req: Request, res: Response) => {
   const parsed = createPaymentSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ success: false, message: 'A valid internal order ID is required.' });
   const order = db.markOrderPaymentFailed(parsed.data.internalOrderId);
   if (!order) return res.status(404).json({ success: false, message: 'Pending order not found.' });
+
+  await reverseOrderWalletDeduction(
+    order.id,
+    order.customerId,
+    `Refund: Wallet deduction reversed for unconfirmed Order #${order.id}`
+  ).catch((err) => console.error(`[Payments] Failed to refund wallet on mark-failed for #${order.id}:`, err));
+
   return res.json({ success: true, data: paymentView(order) });
 });
 

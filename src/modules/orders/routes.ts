@@ -1,5 +1,5 @@
 import { referralRewardDiscount } from '../referrals/service';
-import { getWallet, debitWallet } from '../wallet/service';
+import { getWallet, debitWallet, reverseOrderWalletDeduction } from '../wallet/service';
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../lib/db';
@@ -616,6 +616,22 @@ router.patch('/:id/status', requireAdmin, (req: Request, res: Response) => {
   
   if (updated) {
     triggerOrderEmail(updated, parsed.data.status);
+
+    if (parsed.data.status === 'CANCELLED') {
+      reverseOrderWalletDeduction(
+        current.id,
+        current.customerId,
+        `Refund: Wallet deduction reversed for cancelled Order #${current.id}`
+      ).catch((err) => console.error(`[Orders] Failed to reverse wallet deduction for cancelled #${current.id}:`, err));
+
+      if (current.customerSubscriptionId && current.subscriptionKgUsed && current.subscriptionKgUsed > 0 && pool) {
+        const kg = Number(current.subscriptionKgUsed);
+        pool.query(
+          'UPDATE customer_subscriptions SET used_kg = GREATEST(0, used_kg - ?), remaining_kg = remaining_kg + ?, orders_count = GREATEST(0, orders_count - 1), updated_at = ? WHERE id = ?',
+          [kg, kg, new Date().toISOString(), current.customerSubscriptionId]
+        ).catch((err) => console.error(`[Orders] Failed to restore subscription kg for cancelled #${current.id}:`, err));
+      }
+    }
 
     // Audit Log Entry
     logAuditEvent({

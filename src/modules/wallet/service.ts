@@ -389,3 +389,42 @@ export async function adminAdjustWallet(
     );
   }
 }
+
+export async function reverseOrderWalletDeduction(
+  orderId: string,
+  customerId?: string,
+  reason?: string
+): Promise<{ refunded: boolean; amount: number; message: string }> {
+  if (!pool) return { refunded: false, amount: 0, message: 'Database not available.' };
+  const db = database();
+
+  const [debits]: any = await db.query(
+    'SELECT * FROM wallet_transactions WHERE reference_id = ? AND type = "DEBIT"',
+    [orderId]
+  );
+  if (!debits || debits.length === 0) {
+    return { refunded: false, amount: 0, message: 'No wallet debit found for this order.' };
+  }
+
+  const [credits]: any = await db.query(
+    'SELECT * FROM wallet_transactions WHERE reference_id = ? AND type = "CREDIT"',
+    [orderId]
+  );
+
+  const totalDebited = debits.reduce((acc: number, d: any) => acc + Number(d.amount), 0);
+  const totalCredited = (credits || []).reduce((acc: number, c: any) => acc + Number(c.amount), 0);
+  const amountToRefund = Number((totalDebited - totalCredited).toFixed(2));
+
+  if (amountToRefund <= 0) {
+    return { refunded: false, amount: 0, message: 'Wallet deduction already reversed.' };
+  }
+
+  const custId = customerId || debits[0].customer_id;
+  const desc = reason || `Refund: Wallet deduction reversed for cancelled Order #${orderId}`;
+
+  await creditWallet(custId, amountToRefund, 'DISPUTE_REFUND', desc, orderId);
+  console.log(`[Wallet] Successfully reversed ₹${amountToRefund} for cancelled/failed Order #${orderId} to customer ${custId}`);
+
+  return { refunded: true, amount: amountToRefund, message: `Successfully refunded ₹${amountToRefund}` };
+}
+
