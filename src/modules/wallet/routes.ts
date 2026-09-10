@@ -18,8 +18,9 @@ function requireCustomer(req: Request, res: Response, next: NextFunction) {
       ? req.headers.authorization.slice(7)
       : '';
     const identity = verifyAccessToken(token);
-    if (!identity.customerId) throw new Error('Sign in required.');
-    res.locals.customerId = identity.customerId;
+    const customerId = identity.customerId || identity.uid;
+    if (!customerId) throw new Error('Sign in required.');
+    res.locals.customerId = customerId;
     next();
   } catch {
     res.status(401).json({ success: false, message: 'Please sign in to access your wallet.' });

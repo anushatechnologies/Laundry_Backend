@@ -1,6 +1,7 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import { pool } from '../../lib/mysql';
+import { sendPushNotificationToCustomer } from '../../lib/push';
 
 interface ChatMessage {
   id: string;
@@ -24,6 +25,12 @@ interface TypingStatus {
 const activeUsers = new Map<string, { socketId: string; userId: string; userType: string; roomId?: string }>();
 const roomParticipants = new Map<string, Set<string>>(); // roomId -> Set<socketId>
 
+let ioInstance: SocketIOServer | null = null;
+
+export function getSocketIO(): SocketIOServer | null {
+  return ioInstance;
+}
+
 export function initializeSocket(httpServer: HttpServer) {
   const io = new SocketIOServer(httpServer, {
     cors: {
@@ -32,6 +39,8 @@ export function initializeSocket(httpServer: HttpServer) {
     },
     path: '/socket.io/',
   });
+
+  ioInstance = io;
 
   io.on('connection', (socket) => {
     console.log(`[Socket] Client connected: ${socket.id}`);
@@ -140,10 +149,57 @@ export function initializeSocket(httpServer: HttpServer) {
           io.to(roomId).emit('new_message', chatMessage);
 
           console.log(`[Socket] Message sent in room ${roomId} by ${senderId}`);
+
+          // If message is from AGENT, send high-priority FCM push notification to the customer
+          if (senderType === 'AGENT' || (senderType as any) === 'ADMIN') {
+            try {
+              const [roomRows]: any = await pool.query(
+                'SELECT customer_id FROM chat_rooms WHERE id = ?',
+                [roomId]
+              );
+              if (roomRows && roomRows.length > 0 && roomRows[0].customer_id) {
+                const customerId = roomRows[0].customer_id;
+                const snippet = message.length > 120 ? `${message.substring(0, 117)}...` : message;
+                await sendPushNotificationToCustomer(customerId, {
+                  title: 'LaundryFresh Support 💬',
+                  body: snippet,
+                  channel: 'orders',
+                  type: 'CHAT',
+                  data: {
+                    screen: 'CHAT',
+                    type: 'CHAT',
+                    roomId,
+                    senderType: 'AGENT',
+                  },
+                });
+                console.log(`[Socket Push] FCM Notification sent to customer ${customerId}`);
+              }
+            } catch (pushErr) {
+              console.warn('[Socket Push] Error sending FCM notification to customer:', pushErr);
+            }
+          }
         }
       } catch (error) {
         console.error('[Socket] Error sending message:', error);
         socket.emit('message_error', { error: 'Failed to send message' });
+      }
+    });
+
+    // Handle clearing all messages in a room
+    socket.on('clear_messages', async (data: { roomId: string }) => {
+      try {
+        const { roomId } = data;
+        if (pool) {
+          await pool.query('DELETE FROM chat_messages WHERE room_id = ?', [roomId]);
+          await pool.query(
+            'UPDATE chat_rooms SET last_message = NULL, last_message_at = NULL, updated_at = ? WHERE id = ?',
+            [new Date().toISOString(), roomId]
+          );
+          io.to(roomId).emit('messages_cleared', { roomId });
+          console.log(`[Socket] Messages cleared in room ${roomId}`);
+        }
+      } catch (error) {
+        console.error('[Socket] Error clearing messages:', error);
       }
     });
 

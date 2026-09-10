@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { pool } from '../../lib/mysql';
 import { sendSmsOtp } from '../../lib/sms';
+import { getSocketIO } from './socket';
+import { sendPushNotificationToCustomer } from '../../lib/push';
 
 const router = Router();
 
@@ -156,11 +158,72 @@ router.post('/messages', async (req: Request, res: Response) => {
     );
 
     const [savedMessage]: any = await pool.query(`SELECT * FROM chat_messages WHERE id = ?`, [messageId]);
+    const messageRecord = savedMessage[0];
 
-    res.status(201).json({ success: true, data: savedMessage[0] });
+    // Real-time broadcast via Socket.io
+    const io = getSocketIO();
+    if (io) {
+      io.to(roomId).emit('new_message', messageRecord);
+    }
+
+    // If message is from AGENT or ADMIN, send high-priority FCM push notification to the customer
+    if (senderType === 'AGENT' || senderType === 'ADMIN') {
+      try {
+        const [roomRows]: any = await pool.query('SELECT customer_id FROM chat_rooms WHERE id = ?', [roomId]);
+        if (roomRows && roomRows.length > 0 && roomRows[0].customer_id) {
+          const customerId = roomRows[0].customer_id;
+          const snippet = message.length > 120 ? `${message.substring(0, 117)}...` : message;
+          await sendPushNotificationToCustomer(customerId, {
+            title: 'LaundryFresh Support 💬',
+            body: snippet,
+            channel: 'orders',
+            type: 'CHAT',
+            data: {
+              screen: 'CHAT',
+              type: 'CHAT',
+              roomId,
+              senderType: 'AGENT',
+            },
+          });
+          console.log(`[REST Chat Push] FCM Notification sent to customer ${customerId}`);
+        }
+      } catch (pushErr) {
+        console.warn('[REST Chat Push] Error sending FCM notification to customer:', pushErr);
+      }
+    }
+
+    res.status(201).json({ success: true, data: messageRecord });
   } catch (error: any) {
     console.error('Error saving chat message:', error);
     res.status(500).json({ success: false, message: 'Failed to save message', error: error.message });
+  }
+});
+
+// DELETE /api/chat/rooms/:roomId/messages - Clear all messages in a chat room
+router.delete('/rooms/:roomId/messages', async (req: Request, res: Response) => {
+  try {
+    const { roomId } = req.params;
+
+    if (!pool) {
+      return res.status(503).json({ success: false, message: 'Database connection not available' });
+    }
+
+    await pool.query('DELETE FROM chat_messages WHERE room_id = ?', [roomId]);
+    await pool.query(
+      'UPDATE chat_rooms SET last_message = NULL, last_message_at = NULL, updated_at = ? WHERE id = ?',
+      [new Date().toISOString(), roomId]
+    );
+
+    const io = getSocketIO();
+    if (io) {
+      io.to(roomId).emit('messages_cleared', { roomId });
+    }
+
+    console.log(`[Chat] All messages cleared in room ${roomId}`);
+    res.json({ success: true, message: 'All messages cleared successfully' });
+  } catch (error: any) {
+    console.error('Error clearing chat messages:', error);
+    res.status(500).json({ success: false, message: 'Failed to clear chat messages', error: error.message });
   }
 });
 

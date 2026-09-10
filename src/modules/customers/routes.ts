@@ -249,6 +249,25 @@ customersRouter.post('/firebase-login', async (req: Request, res: Response) => {
 
     const { name = '', email = '', referralCode = '' } = req.body ?? {};
     let customer = findByPhone(phone);
+    if (!customer && isDbConnected && pool) {
+      try {
+        const [rows]: any = await pool.query('SELECT * FROM customers WHERE phone LIKE ?', [`%${phone}`]);
+        if (rows && rows.length > 0) {
+          const r = rows[0];
+          customer = {
+            id: r.id,
+            name: r.name,
+            phone: r.phone,
+            email: r.email || '',
+            totalOrders: 0,
+            totalSpent: 0,
+          };
+          db.addCustomer(r);
+        }
+      } catch (err) {
+        console.warn('MySQL customer lookup error in firebase-login:', err);
+      }
+    }
     if (!customer) {
       // New customer - use Firebase UID
       const saved = db.addCustomer({
@@ -338,13 +357,24 @@ customersRouter.post('/refresh-token', (req: Request, res: Response) => {
 
   try {
     const { uid, customerId } = verifyRefreshToken(refreshToken);
+    const resolvedCustId = customerId || uid;
+
+    let name = '';
+    let phone = '';
+    let email = '';
+    const cust = db.findCustomerById?.(resolvedCustId) || db.getCustomers?.()?.find?.((c: any) => c.id === resolvedCustId);
+    if (cust) {
+      name = cust.name || '';
+      phone = cust.phone || '';
+      email = cust.email || '';
+    }
 
     const payload: CustomerTokenPayload = {
-      uid,
-      customerId,
-      phone: '',
-      name: '',
-      email: '',
+      uid: uid || resolvedCustId,
+      customerId: resolvedCustId,
+      phone,
+      name,
+      email,
       role: 'CUSTOMER',
     };
     const accessToken = signAccessToken(payload);
