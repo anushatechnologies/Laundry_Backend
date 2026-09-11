@@ -39,6 +39,7 @@ function customerSummaries() {
       id: string; name: string; email?: string; phone: string;
       pincode?: string; totalOrders: number; totalSpent: number;
       joinedAt?: string; lastOrderAt?: string;
+      wishlist?: string[]; wishlistCount?: number;
     }
   >();
 
@@ -46,6 +47,7 @@ function customerSummaries() {
   for (const customer of db.getCustomers()) {
     const cleanPhone = customer.phone?.replace(/\D/g, '').slice(-10);
     if (!cleanPhone) continue;
+    const wish = Array.isArray(customer.wishlist) ? customer.wishlist : [];
     map.set(cleanPhone, {
       id: customer.id,
       name: customer.name || 'Valued Customer',
@@ -56,6 +58,8 @@ function customerSummaries() {
       totalSpent: 0,
       joinedAt: customer.createdAt,
       lastOrderAt: customer.updatedAt || customer.createdAt,
+      wishlist: wish,
+      wishlistCount: wish.length,
     });
   }
 
@@ -78,7 +82,19 @@ function customerSummaries() {
       if (order.customerName && order.customerName !== 'Valued Customer') {
         existing.name = order.customerName;
       }
+      if (!existing.email && order.customerEmail) {
+        existing.email = order.customerEmail;
+      }
+      if (!existing.wishlist || existing.wishlist.length === 0) {
+        const cust = db.findCustomerById?.(order.customerId) || db.getCustomers?.()?.find((c: any) => c.id === order.customerId);
+        if (cust?.wishlist?.length) {
+          existing.wishlist = cust.wishlist;
+          existing.wishlistCount = cust.wishlist.length;
+        }
+      }
     } else {
+      const cust = db.findCustomerById?.(order.customerId) || db.getCustomers?.()?.find((c: any) => c.id === order.customerId);
+      const wish = Array.isArray(cust?.wishlist) ? cust.wishlist : [];
       map.set(cleanPhone, {
         id: order.customerId,
         name: order.customerName || 'Valued Customer',
@@ -89,6 +105,8 @@ function customerSummaries() {
         totalSpent: Number(order.totalAmount) || 0,
         joinedAt: orderDate,
         lastOrderAt: orderDate,
+        wishlist: wish,
+        wishlistCount: wish.length,
       });
       // Also ensure this customer is persisted in db
       db.addCustomer({
@@ -560,6 +578,14 @@ customersRouter.get('/', (_req: Request, res: Response) => {
   return res.json({ success: true, count: customers.length, data: customers });
 });
 
+/**
+ * GET /api/customers/analytics/wishlist - Aggregated demand across customer wishlists
+ */
+customersRouter.get('/analytics/wishlist', (_req: Request, res: Response) => {
+  const analytics = db.getWishlistAnalytics();
+  return res.json({ success: true, count: analytics.length, data: analytics });
+});
+
 customersRouter.get('/:id', (req: Request, res: Response) => {
   const customer = customerSummaries().find((c) => c.id === req.params.id);
   if (!customer) return res.status(404).json({ success: false, message: 'Customer not found.' });
@@ -572,6 +598,29 @@ customersRouter.get('/:id', (req: Request, res: Response) => {
 customersRouter.put('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name, email, phone, wishlist } = req.body;
+
+  // Validate email format if provided
+  if (email !== undefined && String(email).trim() !== '') {
+    const emailStr = String(email).trim().toLowerCase();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(emailStr)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email address format. Please enter a valid email (e.g. name@example.com).',
+      });
+    }
+  }
+
+  // Validate name if provided
+  if (name !== undefined && String(name).trim() !== '') {
+    const nameStr = String(name).trim();
+    if (!/^[a-zA-Z\s.\-]+$/.test(nameStr)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name can only contain letters, spaces, dots, and hyphens.',
+      });
+    }
+  }
 
   const updated = db.updateCustomerProfile(id, {
     name: name !== undefined ? String(name).trim() : undefined,
@@ -602,6 +651,24 @@ customersRouter.put('/:id', async (req: Request, res: Response) => {
         if (name) o.customerName = name;
         if (email) o.customerEmail = email;
       });
+
+    if (isDbConnected && pool) {
+      try {
+        const cleanPhone = updated.phone?.replace(/\D/g, '').slice(-10) || id.replace(/\D/g, '').slice(-10);
+        await pool.query(
+          'UPDATE customers SET name = COALESCE(?, name), email = ?, updated_at = NOW() WHERE id = ? OR phone LIKE ?',
+          [name ? String(name).trim() : null, email !== undefined ? (String(email).trim().toLowerCase() || null) : null, id, `%${cleanPhone}`]
+        );
+        if (email && String(email).trim()) {
+          await pool.query(
+            'UPDATE orders SET customer_email = ? WHERE customer_id = ? OR customer_phone LIKE ?',
+            [String(email).trim().toLowerCase(), id, `%${cleanPhone}`]
+          );
+        }
+      } catch (err) {
+        console.error('MySQL customer update error in PUT /customers/:id:', err);
+      }
+    }
   }
 
   return res.json({

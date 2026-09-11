@@ -253,6 +253,9 @@ export interface Wallet {
 export interface CustomerPreferences {
   whatsappUpdates: boolean;
   promotionalAlerts: boolean;
+  pushNotifications?: boolean;
+  emailInvoices?: boolean;
+  smsAlerts?: boolean;
   starchLevel: 'NONE' | 'LIGHT' | 'MEDIUM' | 'HEAVY';
   packagingPreference: 'FOLDED' | 'HANGER';
   fragrancePreference: 'FRESH' | 'LAVENDER' | 'SCENT_FREE';
@@ -262,6 +265,9 @@ export interface CustomerPreferences {
 export const DEFAULT_CUSTOMER_PREFERENCES: CustomerPreferences = {
   whatsappUpdates: true,
   promotionalAlerts: false,
+  pushNotifications: true,
+  emailInvoices: true,
+  smsAlerts: true,
   starchLevel: 'NONE',
   packagingPreference: 'FOLDED',
   fragrancePreference: 'FRESH',

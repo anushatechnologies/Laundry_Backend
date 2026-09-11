@@ -558,20 +558,22 @@ function triggerOrderEmail(order: Order, status?: OrderStatus) {
   };
 
   const targetStatus = status || order.currentStatus;
+  const prefs = order.customerId ? db.getCustomerPreferences(order.customerId) : undefined;
 
-  // Push delivery is intentionally asynchronous. Order updates and customer
-  // emails must never be blocked by a mobile-device notification provider.
-  sendOrderStatusPushNotification(order, targetStatus).catch((err: any) =>
-    console.warn(`Order push notification error for #${order.id}:`, err)
-  );
+  // Push delivery respects customer pushNotifications preference (defaults to true)
+  if (!prefs || prefs.pushNotifications !== false) {
+    sendOrderStatusPushNotification(order, targetStatus).catch((err: any) =>
+      console.warn(`Order push notification error for #${order.id}:`, err)
+    );
+  }
 
   // 1. If new order placed → Alert Admin immediately
   if (targetStatus === 'ORDER_PLACED') {
     sendAdminOrderAlert(emailData).catch((err) => console.error('Admin order alert error:', err));
   }
 
-  // 2. If customer has an email address → dispatch customer status update email
-  if (email) {
+  // 2. If customer has an email address and has not disabled email receipts/invoices
+  if (email && (!prefs || prefs.emailInvoices !== false)) {
     switch (targetStatus) {
       case 'ORDER_PLACED':
       case 'PICKUP_ASSIGNED':

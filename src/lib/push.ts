@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { pool, isDbConnected } from './mysql';
 import { getFirebaseMessaging } from './firebase-admin';
+import { db } from './db';
 import type { Order, OrderStatus } from '../types';
 
 export type PushProvider = 'FCM';
@@ -311,6 +312,17 @@ export async function sendPushNotificationToCustomer(
   const channel = payload.channel || 'orders';
   const type = payload.type || (channel === 'promotions' ? 'OFFER' : 'ORDER');
 
+  // Check customer preferences for push notifications and promotional alerts
+  const prefs = db.getCustomerPreferences(customerId);
+  if (prefs) {
+    if (channel === 'promotions' && prefs.promotionalAlerts === false) {
+      return { targetedDeviceCount: 0, successCount: 0, failureCount: 0 };
+    }
+    if (channel === 'orders' && prefs.pushNotifications === false) {
+      return { targetedDeviceCount: 0, successCount: 0, failureCount: 0 };
+    }
+  }
+
   // Always save into customer in-app notification feed so they can see it when opening the app
   await saveNotificationToFeed(customerId, payload.title, payload.body, channel, type, payload.data || {});
 
@@ -415,6 +427,14 @@ export async function broadcastPushNotification(payload: {
     }
   } else {
     devices = [...fallbackDevices.values()].map((d) => ({ customerId: d.customerId, pushToken: d.pushToken }));
+  }
+
+  // Filter out customers who have explicitly disabled promotional alerts
+  if (channel === 'promotions') {
+    devices = devices.filter((d) => {
+      const p = db.getCustomerPreferences(d.customerId);
+      return !p || p.promotionalAlerts !== false;
+    });
   }
 
   const fcmTokens = Array.from(new Set(devices.map((d) => d.pushToken)));

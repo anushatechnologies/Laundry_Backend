@@ -19,3 +19,7 @@ serviceAccountKey.json
 # Misc
 .DS_Store
 Thumbs.db
+
+# APK release binaries
+*.apk
+public/uploads/*.apk

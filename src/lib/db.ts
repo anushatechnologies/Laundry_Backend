@@ -7250,6 +7250,16 @@ class BackendDatabase {
       wishlist: data.wishlist !== undefined ? data.wishlist : this.customers[idx].wishlist,
       updatedAt: now,
     };
+
+    if (isDbConnected && pool) {
+      pool
+        .query(
+          'UPDATE customers SET name = ?, email = ?, phone = ?, updated_at = NOW() WHERE id = ? OR phone LIKE ?',
+          [this.customers[idx].name, this.customers[idx].email || null, this.customers[idx].phone, this.customers[idx].id, `%${cleanPhone}`]
+        )
+        .catch((err) => console.error('Error updating customer in MySQL:', err));
+    }
+
     return this.customers[idx];
   }
 
@@ -7273,6 +7283,15 @@ class BackendDatabase {
     if (!currentList.includes(itemId)) {
       customer.wishlist = [...currentList, itemId];
       customer.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+      if (isDbConnected && pool) {
+        pool
+          .query(
+            'UPDATE customers SET wishlist = ?, updated_at = NOW() WHERE id = ? OR phone LIKE ?',
+            [JSON.stringify(customer.wishlist), customer.id, `%${cleanPhone}`]
+          )
+          .catch((err) => console.error('Error updating customer wishlist in MySQL:', err));
+      }
     }
     return customer.wishlist;
   }
@@ -7285,6 +7304,15 @@ class BackendDatabase {
     if (!customer) return [];
     customer.wishlist = (customer.wishlist || []).filter((id: string) => id !== itemId);
     customer.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    if (isDbConnected && pool) {
+      pool
+        .query(
+          'UPDATE customers SET wishlist = ?, updated_at = NOW() WHERE id = ? OR phone LIKE ?',
+          [JSON.stringify(customer.wishlist), customer.id, `%${cleanPhone}`]
+        )
+        .catch((err) => console.error('Error removing customer wishlist item in MySQL:', err));
+    }
     return customer.wishlist;
   }
 
@@ -7300,7 +7328,54 @@ class BackendDatabase {
     const merged = Array.from(new Set([...currentList, ...itemIds.filter(Boolean)]));
     customer.wishlist = merged;
     customer.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    if (isDbConnected && pool) {
+      pool
+        .query(
+          'UPDATE customers SET wishlist = ?, updated_at = NOW() WHERE id = ? OR phone LIKE ?',
+          [JSON.stringify(customer.wishlist), customer.id, `%${cleanPhone}`]
+        )
+        .catch((err) => console.error('Error merging customer wishlist in MySQL:', err));
+    }
     return customer.wishlist;
+  }
+
+  getWishlistAnalytics(): Array<{
+    clothId: string;
+    clothName: string;
+    categoryTag: string;
+    savedCount: number;
+  }> {
+    const counts = new Map<string, number>();
+    for (const c of this.customers) {
+      if (Array.isArray(c.wishlist)) {
+        for (const id of c.wishlist) {
+          if (id && typeof id === 'string') {
+            counts.set(id, (counts.get(id) || 0) + 1);
+          }
+        }
+      }
+    }
+
+    const result: Array<{
+      clothId: string;
+      clothName: string;
+      categoryTag: string;
+      savedCount: number;
+    }> = [];
+
+    for (const [id, count] of counts.entries()) {
+      const cloth = this.clothTypes.find((item) => item.id === id);
+      const cleanName = id.replace(/^cloth-/, '').replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+      result.push({
+        clothId: id,
+        clothName: cloth?.name || cleanName,
+        categoryTag: cloth?.categoryTag || 'GENERAL',
+        savedCount: count,
+      });
+    }
+
+    return result.sort((a, b) => b.savedCount - a.savedCount);
   }
 }
 
