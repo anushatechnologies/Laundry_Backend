@@ -1,5 +1,5 @@
 import { referralRewardDiscount } from '../referrals/service';
-import { getWallet, debitWallet, reverseOrderWalletDeduction } from '../wallet/service';
+import { getWallet, debitWallet, creditWallet, reverseOrderWalletDeduction } from '../wallet/service';
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../lib/db';
@@ -604,7 +604,217 @@ function triggerOrderEmail(order: Order, status?: OrderStatus) {
   }
 }
 
-router.patch('/:id/status', requireAdmin, (req: Request, res: Response) => {
+export interface CancelOrderResult {
+  success: boolean;
+  order?: Order;
+  refundAmount: number;
+  restoredKg: number;
+  restoredOrderCount: boolean;
+  message: string;
+}
+
+export async function cancelAndRefundOrder(
+  orderId: string,
+  options: {
+    cancelledBy?: string;
+    role?: 'CUSTOMER' | 'ADMIN' | 'SYSTEM';
+    reason?: string;
+  } = {}
+): Promise<CancelOrderResult> {
+  const current = db.getOrderById(orderId);
+  if (!current) {
+    return {
+      success: false,
+      refundAmount: 0,
+      restoredKg: 0,
+      restoredOrderCount: false,
+      message: 'Order not found.',
+    };
+  }
+
+  if (current.currentStatus === 'CANCELLED') {
+    return {
+      success: false,
+      order: current,
+      refundAmount: 0,
+      restoredKg: 0,
+      restoredOrderCount: false,
+      message: 'This order is already cancelled.',
+    };
+  }
+
+  const role = options.role || 'CUSTOMER';
+  const cancelledBy = options.cancelledBy || 'Customer';
+  const reason = options.reason || (role === 'ADMIN' ? 'Cancelled by Operations Admin' : 'Cancelled by customer');
+
+  // Customer self-cancellation validations
+  if (role === 'CUSTOMER') {
+    if (options.cancelledBy && current.customerId && current.customerId !== options.cancelledBy) {
+      return {
+        success: false,
+        order: current,
+        refundAmount: 0,
+        restoredKg: 0,
+        restoredOrderCount: false,
+        message: 'You are not authorized to cancel this order.',
+      };
+    }
+
+    const nonCancellableStatuses: OrderStatus[] = [
+      'PICKED_UP',
+      'RECEIVED_AT_FACILITY',
+      'WEIGHED_VERIFIED',
+      'WASHING',
+      'DRYING',
+      'IRONING',
+      'QUALITY_CHECK',
+      'PACKED',
+      'DELIVERY_ASSIGNED',
+      'OUT_FOR_DELIVERY',
+      'DELIVERED',
+      'COMPLETED',
+    ];
+    if (nonCancellableStatuses.includes(current.currentStatus)) {
+      return {
+        success: false,
+        order: current,
+        refundAmount: 0,
+        restoredKg: 0,
+        restoredOrderCount: false,
+        message: `Orders cannot be self-cancelled once garments are picked up or in ${current.currentStatus.replace(/_/g, ' ')} stage. Please contact support.`,
+      };
+    }
+  } else if (role === 'ADMIN') {
+    if (['DELIVERED', 'COMPLETED'].includes(current.currentStatus)) {
+      return {
+        success: false,
+        order: current,
+        refundAmount: 0,
+        restoredKg: 0,
+        restoredOrderCount: false,
+        message: 'Delivered or completed orders cannot be cancelled.',
+      };
+    }
+  }
+
+  // 1. Calculate Refund Amount (Online paid + Wallet deduction)
+  const paidOnline = current.paymentStatus === 'PAID' ? Number(current.totalAmount || 0) : 0;
+  const paidWallet = Number(current.walletDeduction || 0);
+  const totalCustomerPayment = Number((paidOnline + paidWallet).toFixed(2));
+
+  let amountToRefund = 0;
+  if (totalCustomerPayment > 0 && pool) {
+    try {
+      const [creditRows]: any = await pool.query(
+        'SELECT COALESCE(SUM(amount), 0) AS total_refunded FROM wallet_transactions WHERE reference_id = ? AND type = "CREDIT"',
+        [current.id]
+      );
+      const alreadyRefunded = Number(creditRows?.[0]?.total_refunded || 0);
+      amountToRefund = Math.max(0, Number((totalCustomerPayment - alreadyRefunded).toFixed(2)));
+    } catch (txErr) {
+      console.warn('[Orders] Error checking existing wallet refunds:', txErr);
+      amountToRefund = totalCustomerPayment;
+    }
+  } else if (totalCustomerPayment > 0) {
+    amountToRefund = totalCustomerPayment;
+  }
+
+  // 2. Process Wallet Credit if amountToRefund > 0
+  if (amountToRefund > 0 && current.customerId) {
+    try {
+      await creditWallet(
+        current.customerId,
+        amountToRefund,
+        'DISPUTE_REFUND',
+        `Refund for cancelled Order #${current.id}${reason ? ` (${reason})` : ''}`,
+        current.id
+      );
+      console.log(`[Orders] Successfully credited ₹${amountToRefund} to customer ${current.customerId} wallet for cancelled #${current.id}`);
+    } catch (refundErr) {
+      console.error(`[Orders] Failed to credit wallet for cancelled #${current.id}:`, refundErr);
+    }
+  }
+
+  // 3. Restore Subscription Quota & Orders Count
+  let restoredKg = 0;
+  let restoredOrderCount = false;
+  if (current.customerSubscriptionId && pool) {
+    restoredKg = Number(current.subscriptionKgUsed || 0);
+    try {
+      await pool.query(
+        `UPDATE customer_subscriptions 
+         SET used_kg = GREATEST(0, COALESCE(used_kg, 0) - ?), 
+             remaining_kg = COALESCE(remaining_kg, 0) + ?, 
+             orders_count = GREATEST(0, COALESCE(orders_count, 0) - 1), 
+             updated_at = ? 
+         WHERE id = ?`,
+        [restoredKg, restoredKg, new Date().toISOString(), current.customerSubscriptionId]
+      );
+      restoredOrderCount = true;
+      console.log(`[Orders] Restored ${restoredKg} kg and decremented order count for subscription ${current.customerSubscriptionId}`);
+    } catch (subErr) {
+      console.error(`[Orders] Failed to restore subscription quota for cancelled #${current.id}:`, subErr);
+    }
+  }
+
+  // 4. Update Order Status to CANCELLED and paymentStatus to REFUNDED (if payment was made)
+  const newPaymentStatus = (totalCustomerPayment > 0 || current.paymentStatus === 'PAID') ? 'REFUNDED' : current.paymentStatus;
+  const updatedOrder = db.markOrderCancelledAndRefunded(current.id, reason, cancelledBy, newPaymentStatus) || current;
+
+  // 5. Send Cancellation Push Notification & Email
+  triggerOrderEmail(updatedOrder, 'CANCELLED');
+
+  // 6. Audit Trail
+  logAuditEvent({
+    actorId: cancelledBy,
+    actorName: role === 'ADMIN' ? 'Staff Operations' : (current.customerName || 'Customer'),
+    actorRole: role === 'ADMIN' ? 'HUB_MANAGER' : 'CUSTOMER',
+    action: 'ORDER_STATUS_CHANGED',
+    resourceType: 'ORDERS',
+    resourceId: current.id,
+    details: `Order #${current.id} cancelled by ${role}. Refunded ₹${amountToRefund} to wallet.${restoredKg > 0 ? ` Restored ${restoredKg} kg to subscription.` : ''} Note: ${reason}`,
+    riskLevel: 'HIGH_RISK',
+    payloadBefore: { status: current.currentStatus, paymentStatus: current.paymentStatus },
+    payloadAfter: { status: 'CANCELLED', paymentStatus: newPaymentStatus, refundedAmount: amountToRefund, restoredKg },
+  }).catch(() => {});
+
+  const messageParts = [`Order #${current.id} has been cancelled.`];
+  if (amountToRefund > 0) {
+    messageParts.push(`₹${amountToRefund.toFixed(2)} has been credited to your LaundryFresh Wallet.`);
+  }
+  if (restoredKg > 0) {
+    messageParts.push(`${restoredKg} KG fabric quota has been restored to your subscription.`);
+  }
+
+  return {
+    success: true,
+    order: updatedOrder,
+    refundAmount: amountToRefund,
+    restoredKg,
+    restoredOrderCount,
+    message: messageParts.join(' '),
+  };
+}
+
+// POST /api/orders/:id/cancel - Customer or authorized user cancels order
+router.post('/:id/cancel', async (req: Request, res: Response) => {
+  const { customerId, reason } = req.body || {};
+  const orderId = req.params.id;
+
+  const result = await cancelAndRefundOrder(orderId, {
+    cancelledBy: customerId ? String(customerId).trim() : undefined,
+    role: 'CUSTOMER',
+    reason: reason ? String(reason).trim() : 'Customer requested cancellation',
+  });
+
+  if (!result.success) {
+    return res.status(400).json(result);
+  }
+
+  return res.json(result);
+});
+
+router.patch('/:id/status', requireAdmin, async (req: Request, res: Response) => {
   const parsed = statusSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ success: false, message: 'Invalid order status update.' });
 
@@ -614,26 +824,19 @@ router.patch('/:id/status', requireAdmin, (req: Request, res: Response) => {
     return res.status(409).json({ success: false, message: `Cannot move an order from ${current.currentStatus} to ${parsed.data.status}.` });
   }
 
+  if (parsed.data.status === 'CANCELLED') {
+    const cancelResult = await cancelAndRefundOrder(req.params.id, {
+      cancelledBy: parsed.data.updatedBy || 'admin',
+      role: 'ADMIN',
+      reason: parsed.data.notes || 'Cancelled by Operations Admin',
+    });
+    return res.json({ success: true, data: cancelResult.order, refundAmount: cancelResult.refundAmount, message: cancelResult.message });
+  }
+
   const updated = db.updateOrderStatus(req.params.id, parsed.data.status, parsed.data.notes, parsed.data.updatedBy);
   
   if (updated) {
     triggerOrderEmail(updated, parsed.data.status);
-
-    if (parsed.data.status === 'CANCELLED') {
-      reverseOrderWalletDeduction(
-        current.id,
-        current.customerId,
-        `Refund: Wallet deduction reversed for cancelled Order #${current.id}`
-      ).catch((err) => console.error(`[Orders] Failed to reverse wallet deduction for cancelled #${current.id}:`, err));
-
-      if (current.customerSubscriptionId && current.subscriptionKgUsed && current.subscriptionKgUsed > 0 && pool) {
-        const kg = Number(current.subscriptionKgUsed);
-        pool.query(
-          'UPDATE customer_subscriptions SET used_kg = GREATEST(0, used_kg - ?), remaining_kg = remaining_kg + ?, orders_count = GREATEST(0, orders_count - 1), updated_at = ? WHERE id = ?',
-          [kg, kg, new Date().toISOString(), current.customerSubscriptionId]
-        ).catch((err) => console.error(`[Orders] Failed to restore subscription kg for cancelled #${current.id}:`, err));
-      }
-    }
 
     // Audit Log Entry
     logAuditEvent({
@@ -644,7 +847,7 @@ router.patch('/:id/status', requireAdmin, (req: Request, res: Response) => {
       resourceType: 'ORDERS',
       resourceId: req.params.id,
       details: `Order #${req.params.id} status updated from ${current.currentStatus} to ${parsed.data.status}.${parsed.data.notes ? ` Note: ${parsed.data.notes}` : ''}`,
-      riskLevel: parsed.data.status === 'CANCELLED' ? 'HIGH_RISK' : 'INFO',
+      riskLevel: 'INFO',
       payloadBefore: { status: current.currentStatus },
       payloadAfter: { status: parsed.data.status, notes: parsed.data.notes },
       ipAddress: req.ip,

@@ -6221,6 +6221,40 @@ class BackendDatabase {
     return order;
   }
 
+  markOrderCancelledAndRefunded(
+    id: string,
+    notes?: string,
+    updatedBy?: string,
+    newPaymentStatus?: 'REFUNDED' | 'FAILED' | 'PENDING'
+  ): Order | null {
+    const order = this.getOrderById(id);
+    if (!order) return null;
+    order.currentStatus = 'CANCELLED';
+    if (newPaymentStatus) {
+      order.paymentStatus = newPaymentStatus as any;
+    }
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    order.statusHistory.push({
+      status: 'CANCELLED',
+      title: 'Order Cancelled',
+      description: notes || 'Order has been cancelled.',
+      timestamp: now,
+      updatedBy: updatedBy || 'Customer',
+    });
+    order.updatedAt = now;
+
+    if (isDbConnected && pool) {
+      pool
+        .query(
+          'UPDATE orders SET current_status = ?, payment_status = ?, status_history = ?, updated_at = ? WHERE id = ?',
+          [order.currentStatus, order.paymentStatus, JSON.stringify(order.statusHistory), order.updatedAt, order.id]
+        )
+        .catch((err) => console.error('Error updating cancelled order in MySQL:', err));
+    }
+
+    return order;
+  }
+
   assignOrderDriver(id: string, agentType: 'PICKUP' | 'DELIVERY', agent: NonNullable<Order['assignedPickupAgent']>): Order | null {
     const order = this.getOrderById(id);
     if (!order) return null;
