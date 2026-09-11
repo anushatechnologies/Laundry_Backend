@@ -757,8 +757,16 @@ export async function cancelAndRefundOrder(
     }
   }
 
-  // 4. Update Order Status to CANCELLED and paymentStatus to REFUNDED (if payment was made)
-  const newPaymentStatus = (totalCustomerPayment > 0 || current.paymentStatus === 'PAID') ? 'REFUNDED' : current.paymentStatus;
+  // 4. Update Order Status to CANCELLED
+  //    - REFUNDED: if customer had paid (online or wallet)
+  //    - FAILED: if order was never paid (COD/PENDING) — clearly marks no collection will happen
+  //    - Keeps PAID for edge cases where totalAmount is 0 (fully subscription-covered)
+  const newPaymentStatus: 'REFUNDED' | 'FAILED' | 'PENDING' =
+    (totalCustomerPayment > 0 || current.paymentStatus === 'PAID')
+      ? 'REFUNDED'
+      : current.paymentStatus === 'PENDING'
+        ? 'FAILED'
+        : current.paymentStatus as 'FAILED' | 'PENDING';
   const updatedOrder = db.markOrderCancelledAndRefunded(current.id, reason, cancelledBy, newPaymentStatus) || current;
 
   // 5. Send Cancellation Push Notification & Email
