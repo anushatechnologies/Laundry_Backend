@@ -122,12 +122,18 @@ router.get('/', (req: Request, res: Response) => {
   
   // Get all items with their prices
   const allItems = (catalog.clothTypes || []).map(cloth => {
+    const clothNameLower = (cloth.name || '').trim().toLowerCase();
     const prices = (catalog.priceMatrix || [])
-      .filter(p => p && p.clothTypeId === cloth.id && p.isActive)
-      .sort((a, b) => (a.price || 0) - (b.price || 0));
+      .filter(p => p && (p.clothTypeId === cloth.id || (p.clothName && p.clothName.trim().toLowerCase() === clothNameLower)) && p.isActive)
+      .sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
     
-    const primaryPrice = prices[0];
+    const primaryPrice = prices.find(p => Number(p.price) > 0) || prices[0];
     const serviceMaster = (catalog.serviceMasters || []).find(s => s.id === primaryPrice?.serviceId);
+    
+    // Non-zero guaranteed fallback price
+    const catTag = String(cloth.categoryTag || '').toUpperCase();
+    const defaultFallbackPrice = catTag.includes('KID') ? 15 : catTag.includes('HOME') ? 40 : catTag.includes('PREMIUM') || catTag.includes('TRADITIONAL') ? 50 : 20;
+    const finalPrice = (primaryPrice?.price && Number(primaryPrice.price) > 0) ? Number(primaryPrice.price) : defaultFallbackPrice;
     
     return {
       id: cloth.id,
@@ -136,9 +142,9 @@ router.get('/', (req: Request, res: Response) => {
       categoryTag: cloth.categoryTag,
       subcategory: cloth.subCategory || '',
       imageUrl: cloth.imageUrl || '',
-      serviceName: serviceMaster?.name || primaryPrice?.serviceName || 'Standard Service',
+      serviceName: serviceMaster?.name || primaryPrice?.serviceName || 'Steam Press',
       serviceId: primaryPrice?.serviceId,
-      price: primaryPrice?.price || 0,
+      price: finalPrice,
       unit: 'Piece',
       turnaroundHours: primaryPrice?.turnaroundHours || 24,
       pricingModel: 'PER_ITEM',
@@ -146,7 +152,7 @@ router.get('/', (req: Request, res: Response) => {
       allPrices: prices.map(p => ({
         serviceId: p.serviceId,
         serviceName: p.serviceName,
-        price: p.price,
+        price: Number(p.price) || finalPrice,
         unit: 'Piece',
         turnaroundHours: p.turnaroundHours,
       })),
