@@ -5360,6 +5360,7 @@ export const INITIAL_PINCODES: PincodeZone[] = [
   // --- HYDERABAD & SECUNDERABAD (50 Key Localities & Tech Hubs) ---
   { pincode: '500081', areaName: 'Hitec City / Madhapur / Cyber Towers', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
   { pincode: '500032', areaName: 'Gachibowli / Financial District / Nanakramguda', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
+  { pincode: '500104', areaName: 'Siri Sampada Arcade 1 / Khajaguda / Gachibowli', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
   { pincode: '500084', areaName: 'Kondapur / Kothaguda / Botanical Garden', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
   { pincode: '500072', areaName: 'Kukatpally / KPHB Colony (Phase 1-6)', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
   { pincode: '500085', areaName: 'KPHB Phase 7-9 / JNTU Road', city: 'Hyderabad', isServiceable: true, standardFee: 30, minFreeOrderValue: 499, expressAvailable: true, averageTurnaroundHours: 24 },
