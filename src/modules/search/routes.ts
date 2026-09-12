@@ -5,100 +5,169 @@ import { db } from '../../lib/db';
 const router = Router();
 
 // Laundry-specific keywords and synonyms for better search matching
-const LAUNDRY_KEYWORDS = {
-  // Services
-  'wash': ['washing', 'laundry', 'clean', 'cleaning'],
-  'iron': ['press', 'ironing', 'pressing', 'steam'],
-  'dry clean': ['dryclean', 'dry cleaning', 'drycleaning'],
-  'fold': ['folding', 'folded'],
-  'starch': ['starching', 'starched'],
-  'steam': ['steaming', 'steamed', 'press'],
-  
-  // Common laundry items
-  'shirt': ['shirts', 'tshirt', 't-shirt', 'tee'],
-  'pant': ['pants', 'trouser', 'trousers'],
-  'suit': ['suits', 'blazer', 'formal'],
-  'dress': ['dresses', 'gown', 'frock'],
-  'saree': ['sari', 'sarees', 'saris'],
-  'kurta': ['kurtas', 'kurti', 'kurtis'],
-  'jeans': ['jean', 'denim'],
-  'jacket': ['jackets', 'coat'],
-  'blanket': ['blankets', 'comforter', 'quilt'],
-  'bedsheet': ['bed sheet', 'sheets', 'linen'],
-  'towel': ['towels'],
-  'curtain': ['curtains', 'drapes'],
-  
-  // Fabrics
-  'silk': ['pure silk', 'silken'],
-  'cotton': ['cotton handloom'],
-  'wool': ['woolen', 'pashmina'],
-  'linen': ['flax'],
-  'chiffon': ['georgette'],
-  'velvet': ['velveteen'],
-  
-  // Categories
-  'men': ['mens', 'male', 'gents'],
-  'women': ['womens', 'ladies', 'female'],
-  'kids': ['children', 'child', 'baby'],
-  'home': ['household', 'linen'],
+const GARMENT_SYNONYMS: Record<string, string[]> = {
+  saree: ['saree', 'sari'],
+  shirt: ['shirt', 'tshirt', 't-shirt', 'tee', 'polo'],
+  tshirt: ['tshirt', 't-shirt', 'tee', 'polo', 'shirt'],
+  pant: ['pant', 'trouser', 'chino', 'bottom'],
+  trouser: ['trouser', 'pant', 'chino', 'bottom'],
+  chino: ['chino', 'trouser', 'pant'],
+  jeans: ['jeans', 'jean', 'denim'],
+  suit: ['suit', 'blazer', 'tuxedo'],
+  blazer: ['blazer', 'coat', 'suit'],
+  jacket: ['jacket', 'windcheater', 'shrug'],
+  coat: ['coat', 'overcoat', 'blazer'],
+  kurta: ['kurta', 'kameez', 'kurti'],
+  kurti: ['kurti', 'tunic', 'kurta'],
+  lehenga: ['lehenga', 'ghagra', 'choli'],
+  dress: ['dress', 'frock', 'gown', 'maxi', 'onepiece'],
+  frock: ['frock', 'dress', 'gown'],
+  gown: ['gown', 'maxi', 'dress'],
+  bedsheet: ['bedsheet', 'bed sheet', 'sheet', 'bedcover'],
+  sheet: ['sheet', 'bedsheet', 'bed sheet', 'bedcover'],
+  pillow: ['pillow', 'cushion', 'bolster'],
+  cushion: ['cushion', 'pillow'],
+  blanket: ['blanket', 'quilt', 'razai', 'comforter', 'mink', 'fleece', 'duvet'],
+  quilt: ['quilt', 'blanket', 'razai', 'comforter', 'duvet'],
+  comforter: ['comforter', 'duvet', 'blanket', 'quilt'],
+  razai: ['razai', 'quilt', 'blanket', 'comforter'],
+  curtain: ['curtain', 'drape', 'sheer'],
+  towel: ['towel', 'bathrobe'],
+  sweater: ['sweater', 'cardigan', 'pullover', 'woolen'],
+  cardigan: ['cardigan', 'sweater'],
+  hoodie: ['hoodie', 'sweatshirt'],
+  sweatshirt: ['sweatshirt', 'hoodie'],
+  shoe: ['shoe', 'shoes', 'sneaker', 'sneakers', 'boot', 'footwear'],
+  sneaker: ['sneaker', 'shoes', 'shoe', 'footwear'],
+  sherwani: ['sherwani', 'indo-western', 'achkan'],
+  dhoti: ['dhoti', 'mundu', 'veshti'],
+  top: ['top', 'blouse', 'tunic', 'tee'],
+  blouse: ['blouse', 'top'],
+  skirt: ['skirt', 'pinafore'],
+  shorts: ['shorts', 'bermuda', 'half pant'],
+  uniform: ['uniform', 'school uniform'],
+  romper: ['romper', 'onesie', 'baby suit'],
 };
+
+function stemWord(raw: string): string {
+  const w = raw.toLowerCase().trim();
+  if (w.length <= 3) return w;
+
+  if (w === 'men' || w === 'mens') return 'man';
+  if (w === 'women' || w === 'womens') return 'woman';
+  if (w === 'children') return 'child';
+  if (w === 'jeans') return 'jeans';
+  if (w === 'chinos') return 'chino';
+  if (w === 'trousers') return 'trouser';
+  if (w === 'shoes') return 'shoe';
+  if (w === 'sarees' || w === 'saris') return 'saree';
+
+  if (w.endsWith('ies') && w.length > 4) return w.slice(0, -3) + 'y';
+  if (w.endsWith('ses') || w.endsWith('xes') || w.endsWith('ches') || w.endsWith('shes')) return w.slice(0, -2);
+  if (w.endsWith('ees') && w.length > 4) return w.slice(0, -1);
+  if (w.endsWith('s') && !w.endsWith('ss') && w.length > 3) return w.slice(0, -1);
+  return w;
+}
 
 // Normalize query for better matching
 function normalizeQuery(query: string): string {
   return query
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9\s]/g, ' ') // Remove special chars
-    .replace(/\s+/g, ' ');         // Normalize spaces
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ');
 }
 
-// Calculate relevance score
+// Calculate relevance score with garment intent verification
 function calculateRelevance(item: any, query: string, normalizedQuery: string): number {
-  let score = 0;
   const itemName = (item.name || '').toLowerCase();
+  const nameWords = itemName.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+  const stemmedNameWords = nameWords.map(stemWord);
   const itemDesc = (item.description || '').toLowerCase();
   const itemCategory = (item.categoryTag || '').toLowerCase();
   const itemSubcategory = ((item.subcategory || item.subCategory) || '').toLowerCase();
   const serviceName = (item.serviceName || '').toLowerCase();
-  
-  // Exact match (highest priority)
-  if (itemName === normalizedQuery) score += 100;
-  
-  // Starts with query
-  if (itemName.startsWith(normalizedQuery)) score += 50;
-  
-  // Contains exact query
-  if (itemName.includes(normalizedQuery)) score += 30;
-  
-  // Individual word matches
-  const queryWords = normalizedQuery.split(' ');
-  queryWords.forEach(word => {
-    if (word.length < 2) return; // Skip single letters
-    
-    if (itemName.includes(word)) score += 10;
-    if (itemDesc.includes(word)) score += 5;
-    if (itemCategory.includes(word)) score += 8;
-    if (itemSubcategory.includes(word)) score += 7;
-    if (serviceName.includes(word)) score += 6;
-  });
-  
-  // Synonym/keyword matching
-  Object.entries(LAUNDRY_KEYWORDS).forEach(([key, synonyms]) => {
-    const allTerms = [key, ...synonyms];
-    allTerms.forEach(term => {
-      if (normalizedQuery.includes(term)) {
-        if (itemName.includes(key) || itemName.includes(term)) score += 15;
-        if (itemDesc.includes(key) || itemDesc.includes(term)) score += 8;
-        synonyms.forEach(syn => {
-          if (itemName.includes(syn)) score += 12;
-        });
+
+  const queryWords = normalizedQuery.split(' ').filter(w => w.length > 0);
+  if (queryWords.length === 0) return 0;
+
+  // Detect garment intent
+  const targetGarmentKeys = new Set<string>();
+  queryWords.forEach((word) => {
+    const stemmed = stemWord(word);
+    if (GARMENT_SYNONYMS[word]) targetGarmentKeys.add(word);
+    if (GARMENT_SYNONYMS[stemmed]) targetGarmentKeys.add(stemmed);
+    Object.entries(GARMENT_SYNONYMS).forEach(([key, syns]) => {
+      if (syns.includes(word) || syns.includes(stemmed)) {
+        targetGarmentKeys.add(key);
       }
     });
   });
-  
-  // Boost popular items slightly
+
+  const hasGarmentIntent = targetGarmentKeys.size > 0;
+  if (hasGarmentIntent) {
+    const allowedTerms = new Set<string>();
+    targetGarmentKeys.forEach((key) => {
+      allowedTerms.add(key);
+      (GARMENT_SYNONYMS[key] || []).forEach((syn) => {
+        allowedTerms.add(syn);
+        allowedTerms.add(stemWord(syn));
+      });
+    });
+
+    const matchesGarment = Array.from(allowedTerms).some((term) => {
+      const stemmedTerm = stemWord(term);
+      return (
+        nameWords.includes(term) ||
+        nameWords.includes(stemmedTerm) ||
+        stemmedNameWords.includes(term) ||
+        stemmedNameWords.includes(stemmedTerm) ||
+        itemName.includes(term) ||
+        itemName.includes(stemmedTerm)
+      );
+    });
+
+    if (!matchesGarment) {
+      return 0; // Strictly exclude mismatched garments
+    }
+  }
+
+  let score = 0;
+
+  // Exact match (highest priority)
+  if (itemName === normalizedQuery) score += 500;
+  else if (itemName.startsWith(normalizedQuery)) score += 300;
+  else if (itemName.includes(normalizedQuery)) score += 200;
+
+  // Individual word matches
+  let matchedWords = 0;
+  queryWords.forEach(word => {
+    if (word.length < 2) return;
+    const sWord = stemWord(word);
+
+    if (nameWords.includes(word) || nameWords.includes(sWord)) {
+      score += 150;
+      matchedWords++;
+    } else if (stemmedNameWords.includes(sWord) || stemmedNameWords.includes(word)) {
+      score += 120;
+      matchedWords++;
+    } else if (itemName.includes(word) || itemName.includes(sWord)) {
+      score += 80;
+      matchedWords++;
+    }
+
+    if (itemDesc.includes(word)) score += 10;
+    if (itemCategory.includes(word)) score += 15;
+    if (itemSubcategory.includes(word)) score += 25;
+    if (serviceName.includes(word)) score += 30;
+  });
+
+  if (queryWords.length > 1 && matchedWords === queryWords.length) {
+    score += 200;
+  }
+
   if (item.isPopular) score += 5;
-  
+
   return score;
 }
 
@@ -110,15 +179,37 @@ router.get('/', (req: Request, res: Response) => {
   const minPrice = parseFloat(req.query.minPrice as string) || 0;
   const maxPrice = parseFloat(req.query.maxPrice as string) || Infinity;
   
-  if (!query || query.trim().length < 2) {
-    return res.status(400).json({
-      success: false,
-      message: 'Search query must be at least 2 characters',
+  if (!query || query.trim().length === 0) {
+    return res.json({
+      success: true,
+      data: {
+        query: '',
+        normalizedQuery: '',
+        results: [],
+        groupedResults: {},
+        totalResults: 0,
+        totalMatched: 0,
+        limit,
+        hasMore: false,
+        suggestions: ['Shirt', 'Saree', 'Dry Cleaning', 'Blanket', 'Steam Press', 'Jeans'],
+        categories: [],
+      },
     });
   }
   
   const normalizedQuery = normalizeQuery(query);
   const catalog = db.getFullCatalog();
+
+  const CAT_LABELS: Record<string, string> = {
+    MENS: "Men's Wear",
+    WOMENS: "Women's Wear",
+    KIDS: "Kids & Baby",
+    HOME_TEXTILES: "Home Textiles",
+    BRIDAL: "Premium & Bridal",
+    SPECIAL: "Deep Treatment",
+    FOOTWEAR: "Footwear",
+    ACCESSORIES: "Accessories",
+  };
   
   // Get all items with their prices
   const allItems = (catalog.clothTypes || []).map(cloth => {
@@ -140,21 +231,23 @@ router.get('/', (req: Request, res: Response) => {
       name: cloth.name,
       description: cloth.description || '',
       categoryTag: cloth.categoryTag,
-      subcategory: cloth.subCategory || '',
-      imageUrl: cloth.imageUrl || '',
+      categoryLabel: CAT_LABELS[catTag] || (cloth as any).categoryLabel || catTag,
+      subcategory: cloth.subCategory || (cloth as any).subcategory || 'General',
+      imageUrl: cloth.imageUrl || (cloth as any).image || '',
       serviceName: serviceMaster?.name || primaryPrice?.serviceName || 'Steam Press',
-      serviceId: primaryPrice?.serviceId,
+      serviceId: primaryPrice?.serviceId || 'srv-m-steam-iron',
       price: finalPrice,
       unit: 'Piece',
       turnaroundHours: primaryPrice?.turnaroundHours || 24,
       pricingModel: 'PER_ITEM',
       isPopular: false,
+      availableServices: prices.map(p => String(p.serviceName || p.serviceId)),
       allPrices: prices.map(p => ({
         serviceId: p.serviceId,
         serviceName: p.serviceName,
         price: Number(p.price) || finalPrice,
         unit: 'Piece',
-        turnaroundHours: p.turnaroundHours,
+        turnaroundHours: p.turnaroundHours || 24,
       })),
     };
   });
@@ -162,9 +255,15 @@ router.get('/', (req: Request, res: Response) => {
   // Filter by category if specified
   let filtered = allItems;
   if (category && category !== 'ALL') {
-    filtered = filtered.filter(item => 
-      item.categoryTag.toUpperCase() === category
-    );
+    const cleanCat = category.replace(/[^A-Z]/g, '');
+    filtered = filtered.filter(item => {
+      const itemCat = String(item.categoryTag || '').toUpperCase().replace(/[^A-Z]/g, '');
+      if (itemCat === cleanCat) return true;
+      if ((cleanCat.includes('HOME') || cleanCat.includes('TEXTILE') || cleanCat.includes('LINEN')) && (itemCat.includes('HOME') || itemCat.includes('TEXTILE') || itemCat.includes('LINEN'))) return true;
+      if ((cleanCat.includes('KID') || cleanCat.includes('BABY')) && (itemCat.includes('KID') || itemCat.includes('BABY'))) return true;
+      if ((cleanCat.includes('SHOE') || cleanCat.includes('FOOTWEAR')) && (itemCat.includes('SHOE') || itemCat.includes('FOOTWEAR'))) return true;
+      return false;
+    });
   }
   
   // Calculate relevance scores
@@ -199,10 +298,10 @@ router.get('/', (req: Request, res: Response) => {
   const suggestions: string[] = [];
   if (results.length === 0) {
     // Suggest related terms
-    Object.entries(LAUNDRY_KEYWORDS).forEach(([key, synonyms]) => {
-      if (normalizedQuery.includes(key) || synonyms.some(s => normalizedQuery.includes(s))) {
+    Object.entries(GARMENT_SYNONYMS).forEach(([key, synonyms]) => {
+      if (normalizedQuery.includes(key) || synonyms.some((s: string) => normalizedQuery.includes(s))) {
         suggestions.push(key);
-        synonyms.slice(0, 2).forEach(s => suggestions.push(s));
+        synonyms.slice(0, 2).forEach((s: string) => suggestions.push(s));
       }
     });
     
@@ -272,7 +371,7 @@ router.get('/autocomplete', (req: Request, res: Response) => {
   }));
   
   // Get all keywords
-  const keywords = Object.keys(LAUNDRY_KEYWORDS).map(key => ({
+  const keywords = Object.keys(GARMENT_SYNONYMS).map(key => ({
     text: key,
     type: 'keyword' as const,
     icon: '🔍',
