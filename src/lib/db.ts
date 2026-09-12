@@ -5847,6 +5847,40 @@ export const INITIAL_MAINTENANCE_LOGS: any[] = [
 
 export const INITIAL_BANNERS: Banner[] = [
   {
+    id: 'banner-video-1',
+    title: 'Premium Cinematic Garment Care',
+    subtitle: 'Pure Ozone Sanitization & German Fabric Spa Technology',
+    badgeText: 'CINEMATIC CARE',
+    couponCode: 'CINEMA30',
+    discountPercent: 30,
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/banners/banner-first50.jpg',
+    mediaType: 'VIDEO',
+    videoUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/banners/videos/banner-video-premium-cinematic-1.mp4',
+    actionType: 'BOOK',
+    actionTarget: '',
+    displayOrder: 1,
+    isActive: true,
+    createdAt: '2026-01-01 10:00',
+    updatedAt: '2026-09-12 12:00',
+  },
+  {
+    id: 'banner-video-2',
+    title: 'Delicate Silk, Wool & Suit Dry Cleaning',
+    subtitle: 'Zero Color Bleed, Charak Polish & Doorstep Express Delivery',
+    badgeText: 'ROYAL SPA',
+    couponCode: 'ROYAL25',
+    discountPercent: 25,
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/banners/banner-silkspa.jpg',
+    mediaType: 'VIDEO',
+    videoUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/banners/videos/banner-video-premium-cinematic-2.mp4',
+    actionType: 'CATEGORY',
+    actionTarget: 'bridal-wear',
+    displayOrder: 2,
+    isActive: true,
+    createdAt: '2026-01-01 10:00',
+    updatedAt: '2026-09-12 12:00',
+  },
+  {
     id: 'banner-1',
     title: '50% Flat Discount on First Order',
     subtitle: 'Pure Ozone Sanitization & Doorstep Pickup across Hyderabad',
@@ -5856,7 +5890,7 @@ export const INITIAL_BANNERS: Banner[] = [
     imageUrl: 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=1200&q=80',
     actionType: 'BOOK',
     actionTarget: '',
-    displayOrder: 1,
+    displayOrder: 3,
     isActive: true,
     createdAt: '2026-01-01 10:00',
     updatedAt: '2026-01-01 10:00',
@@ -5871,7 +5905,7 @@ export const INITIAL_BANNERS: Banner[] = [
     imageUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=1200&q=80',
     actionType: 'CATEGORY',
     actionTarget: 'bridal-wear',
-    displayOrder: 2,
+    displayOrder: 4,
     isActive: true,
     createdAt: '2026-01-01 10:00',
     updatedAt: '2026-01-01 10:00',
@@ -5886,7 +5920,7 @@ export const INITIAL_BANNERS: Banner[] = [
     imageUrl: 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?auto=format&fit=crop&w=1200&q=80',
     actionType: 'CATEGORY',
     actionTarget: 'bulk-laundry',
-    displayOrder: 3,
+    displayOrder: 5,
     isActive: true,
     createdAt: '2026-01-01 10:00',
     updatedAt: '2026-01-01 10:00',
@@ -5901,7 +5935,7 @@ export const INITIAL_BANNERS: Banner[] = [
     imageUrl: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
     actionType: 'BOOK',
     actionTarget: '',
-    displayOrder: 4,
+    displayOrder: 6,
     isActive: true,
     createdAt: '2026-01-01 10:00',
     updatedAt: '2026-01-01 10:00',
@@ -6273,8 +6307,8 @@ class BackendDatabase {
       } else if (this.banners && this.banners.length > 0) {
         for (const b of this.banners) {
           await pool.query(
-            'INSERT INTO banners (id, title, subtitle, badge_text, coupon_code, discount_percent, image_url, action_type, action_target, display_order, is_active, start_date, end_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=VALUES(title), subtitle=VALUES(subtitle), badge_text=VALUES(badge_text), coupon_code=VALUES(coupon_code), discount_percent=VALUES(discount_percent), image_url=VALUES(image_url), action_type=VALUES(action_type), action_target=VALUES(action_target), display_order=VALUES(display_order), is_active=VALUES(is_active), updated_at=VALUES(updated_at)',
-            [b.id, b.title, b.subtitle || null, b.badgeText || null, b.couponCode || null, b.discountPercent || 0, b.imageUrl, b.actionType || 'BOOK', b.actionTarget || '', b.displayOrder || 1, b.isActive ? 1 : 0, b.startDate || null, b.endDate || null, b.createdAt || null, b.updatedAt || null]
+            'INSERT INTO banners (id, title, subtitle, badge_text, coupon_code, discount_percent, image_url, media_type, video_url, action_type, action_target, display_order, is_active, start_date, end_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=VALUES(title), subtitle=VALUES(subtitle), badge_text=VALUES(badge_text), coupon_code=VALUES(coupon_code), discount_percent=VALUES(discount_percent), image_url=VALUES(image_url), media_type=VALUES(media_type), video_url=VALUES(video_url), action_type=VALUES(action_type), action_target=VALUES(action_target), display_order=VALUES(display_order), is_active=VALUES(is_active), updated_at=VALUES(updated_at)',
+            [b.id, b.title, b.subtitle || null, b.badgeText || null, b.couponCode || null, b.discountPercent || 0, b.imageUrl, b.mediaType || 'IMAGE', b.videoUrl || null, b.actionType || 'BOOK', b.actionTarget || '', b.displayOrder || 1, b.isActive ? 1 : 0, b.startDate || null, b.endDate || null, b.createdAt || null, b.updatedAt || null]
           ).catch((err) => console.error('Error seeding banner to MySQL:', err));
         }
       }

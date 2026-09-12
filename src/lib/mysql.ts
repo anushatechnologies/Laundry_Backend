@@ -293,12 +293,18 @@ async function createTables() {
     )
   `);
 
-  await database.query(`
-    ALTER TABLE banners ADD COLUMN IF NOT EXISTS media_type VARCHAR(20) DEFAULT 'IMAGE';
-  `).catch(() => undefined);
-  await database.query(`
-    ALTER TABLE banners ADD COLUMN IF NOT EXISTS video_url TEXT;
-  `).catch(() => undefined);
+  try {
+    const [bCols]: any = await database.query('DESCRIBE banners');
+    const existingBannerCols = (bCols || []).map((c: any) => c.Field);
+    if (!existingBannerCols.includes('media_type')) {
+      await database.query("ALTER TABLE banners ADD COLUMN media_type VARCHAR(20) DEFAULT 'IMAGE'");
+    }
+    if (!existingBannerCols.includes('video_url')) {
+      await database.query('ALTER TABLE banners ADD COLUMN video_url TEXT');
+    }
+  } catch (err) {
+    console.error('Error ensuring banner columns in MySQL:', err);
+  }
   
   await database.query(`
     CREATE TABLE IF NOT EXISTS customer_addresses (
