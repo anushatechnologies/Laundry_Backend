@@ -143,55 +143,55 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Backpacks, Handbags, Suitcases, Trolley Bags, Belts & Wallets.',
     isPopular: true,
     color: 'emerald',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bag-luxury.jpg',
   },
 ];
 
 export const INITIAL_SUBCATEGORIES: Subcategory[] = [
   // Men's
-  { id: 'sub-m-1', categoryTag: 'MENS', name: 'Shirts', imageUrl: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
-  { id: 'sub-m-2', categoryTag: 'MENS', name: 'T-Shirts & Polos', imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
-  { id: 'sub-m-3', categoryTag: 'MENS', name: 'Trousers & Chinos', imageUrl: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
-  { id: 'sub-m-4', categoryTag: 'MENS', name: 'Jeans & Denim', imageUrl: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 4 },
-  { id: 'sub-m-5', categoryTag: 'MENS', name: 'Ethnic Wear', imageUrl: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 5 },
-  { id: 'sub-m-6', categoryTag: 'MENS', name: 'Suits & Blazers', imageUrl: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 6 },
-  { id: 'sub-m-7', categoryTag: 'MENS', name: 'Winter Wear', imageUrl: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 7 },
-  { id: 'sub-m-8', categoryTag: 'MENS', name: 'Sports & Gym', imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 8 },
+  { id: 'sub-m-1', categoryTag: 'MENS', name: 'Shirts', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-shirt.jpg', isActive: true, sortOrder: 1 },
+  { id: 'sub-m-2', categoryTag: 'MENS', name: 'T-Shirts & Polos', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-tshirt.jpg', isActive: true, sortOrder: 2 },
+  { id: 'sub-m-3', categoryTag: 'MENS', name: 'Trousers & Chinos', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-trouser.jpg', isActive: true, sortOrder: 3 },
+  { id: 'sub-m-4', categoryTag: 'MENS', name: 'Jeans & Denim', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-jeans.jpg', isActive: true, sortOrder: 4 },
+  { id: 'sub-m-5', categoryTag: 'MENS', name: 'Ethnic Wear', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-sherwani.jpg', isActive: true, sortOrder: 5 },
+  { id: 'sub-m-6', categoryTag: 'MENS', name: 'Suits & Blazers', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-blazer.jpg', isActive: true, sortOrder: 6 },
+  { id: 'sub-m-7', categoryTag: 'MENS', name: 'Winter Wear', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-jacket.jpg', isActive: true, sortOrder: 7 },
+  { id: 'sub-m-8', categoryTag: 'MENS', name: 'Sports & Gym', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-tracksuit-m.jpg', isActive: true, sortOrder: 8 },
 
   // Women's
-  { id: 'sub-w-1', categoryTag: 'WOMENS', name: 'Sarees', imageUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
-  { id: 'sub-w-2', categoryTag: 'WOMENS', name: 'Blouses', imageUrl: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
-  { id: 'sub-w-3', categoryTag: 'WOMENS', name: 'Kurtis & Kurtas', imageUrl: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
-  { id: 'sub-w-4', categoryTag: 'WOMENS', name: 'Salwar & Suits', imageUrl: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 4 },
-  { id: 'sub-w-5', categoryTag: 'WOMENS', name: 'Western Dresses', imageUrl: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 5 },
-  { id: 'sub-w-6', categoryTag: 'WOMENS', name: 'Tops & Shirts', imageUrl: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 6 },
-  { id: 'sub-w-7', categoryTag: 'WOMENS', name: 'Lehengas', imageUrl: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 7 },
-  { id: 'sub-w-8', categoryTag: 'WOMENS', name: 'Gowns', imageUrl: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 8 },
-  { id: 'sub-w-9', categoryTag: 'WOMENS', name: 'Dupattas & Stoles', imageUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 9 },
+  { id: 'sub-w-1', categoryTag: 'WOMENS', name: 'Sarees', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-saree-silk.jpg', isActive: true, sortOrder: 1 },
+  { id: 'sub-w-2', categoryTag: 'WOMENS', name: 'Blouses', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-blouse.jpg', isActive: true, sortOrder: 2 },
+  { id: 'sub-w-3', categoryTag: 'WOMENS', name: 'Kurtis & Kurtas', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kurti.jpg', isActive: true, sortOrder: 3 },
+  { id: 'sub-w-4', categoryTag: 'WOMENS', name: 'Salwar & Suits', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-salwar.jpg', isActive: true, sortOrder: 4 },
+  { id: 'sub-w-5', categoryTag: 'WOMENS', name: 'Western Dresses', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-gown.jpg', isActive: true, sortOrder: 5 },
+  { id: 'sub-w-6', categoryTag: 'WOMENS', name: 'Tops & Shirts', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kurti.jpg', isActive: true, sortOrder: 6 },
+  { id: 'sub-w-7', categoryTag: 'WOMENS', name: 'Lehengas', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-lehenga.jpg', isActive: true, sortOrder: 7 },
+  { id: 'sub-w-8', categoryTag: 'WOMENS', name: 'Gowns', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-gown.jpg', isActive: true, sortOrder: 8 },
+  { id: 'sub-w-9', categoryTag: 'WOMENS', name: 'Dupattas & Stoles', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-dupatta.jpg', isActive: true, sortOrder: 9 },
 
   // Kids
-  { id: 'sub-k-1', categoryTag: 'KIDS', name: 'Baby Clothing', imageUrl: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
-  { id: 'sub-k-2', categoryTag: 'KIDS', name: 'Boys Clothing', imageUrl: 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
-  { id: 'sub-k-3', categoryTag: 'KIDS', name: 'Girls Clothing', imageUrl: 'https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
-  { id: 'sub-k-4', categoryTag: 'KIDS', name: 'School Uniforms', imageUrl: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 4 },
-  { id: 'sub-k-5', categoryTag: 'KIDS', name: 'Party Wear', imageUrl: 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 5 },
+  { id: 'sub-k-1', categoryTag: 'KIDS', name: 'Baby Clothing', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-baby-romper.jpg', isActive: true, sortOrder: 1 },
+  { id: 'sub-k-2', categoryTag: 'KIDS', name: 'Boys Clothing', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kid-shirt.jpg', isActive: true, sortOrder: 2 },
+  { id: 'sub-k-3', categoryTag: 'KIDS', name: 'Girls Clothing', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kids-frock.jpg', isActive: true, sortOrder: 3 },
+  { id: 'sub-k-4', categoryTag: 'KIDS', name: 'School Uniforms', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/cat-school-uniforms.jpg', isActive: true, sortOrder: 4 },
+  { id: 'sub-k-5', categoryTag: 'KIDS', name: 'Party Wear', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kids-frock.jpg', isActive: true, sortOrder: 5 },
 
   // Home Textiles
-  { id: 'sub-h-1', categoryTag: 'HOME_TEXTILES', name: 'Bedsheets', imageUrl: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
-  { id: 'sub-h-2', categoryTag: 'HOME_TEXTILES', name: 'Bed Covers', imageUrl: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
-  { id: 'sub-h-3', categoryTag: 'HOME_TEXTILES', name: 'Blankets', imageUrl: 'https://images.unsplash.com/photo-1580301762395-21ce84d00bc6?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
-  { id: 'sub-h-4', categoryTag: 'HOME_TEXTILES', name: 'Comforters & Quilts', imageUrl: 'https://images.unsplash.com/photo-1580301762395-21ce84d00bc6?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 4 },
-  { id: 'sub-h-5', categoryTag: 'HOME_TEXTILES', name: 'Curtains', imageUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 5 },
-  { id: 'sub-h-6', categoryTag: 'HOME_TEXTILES', name: 'Sofa & Cushion Covers', imageUrl: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 6 },
-  { id: 'sub-h-7', categoryTag: 'HOME_TEXTILES', name: 'Towels', imageUrl: 'https://images.unsplash.com/photo-1616627547584-bf28cee262db?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 7 },
+  { id: 'sub-h-1', categoryTag: 'HOME_TEXTILES', name: 'Bedsheets', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bedsheet-king.jpg', isActive: true, sortOrder: 1 },
+  { id: 'sub-h-2', categoryTag: 'HOME_TEXTILES', name: 'Bed Covers', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bedsheet-king.jpg', isActive: true, sortOrder: 2 },
+  { id: 'sub-h-3', categoryTag: 'HOME_TEXTILES', name: 'Blankets', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-blanket-double.jpg', isActive: true, sortOrder: 3 },
+  { id: 'sub-h-4', categoryTag: 'HOME_TEXTILES', name: 'Comforters & Quilts', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-blanket-double.jpg', isActive: true, sortOrder: 4 },
+  { id: 'sub-h-5', categoryTag: 'HOME_TEXTILES', name: 'Curtains', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-curtain.jpg', isActive: true, sortOrder: 5 },
+  { id: 'sub-h-6', categoryTag: 'HOME_TEXTILES', name: 'Sofa & Cushion Covers', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-sofa-cover-3s.jpg', isActive: true, sortOrder: 6 },
+  { id: 'sub-h-7', categoryTag: 'HOME_TEXTILES', name: 'Towels', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-towel.jpg', isActive: true, sortOrder: 7 },
 
   // Footwear & Accessories
-  { id: 'sub-f-1', categoryTag: 'FOOTWEAR', name: 'Sneakers', imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
-  { id: 'sub-f-2', categoryTag: 'FOOTWEAR', name: 'Formal Shoes', imageUrl: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
-  { id: 'sub-f-3', categoryTag: 'FOOTWEAR', name: 'Sports Shoes', imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
-  { id: 'sub-a-1', categoryTag: 'ACCESSORIES', name: 'Backpacks', imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 1 },
-  { id: 'sub-a-2', categoryTag: 'ACCESSORIES', name: 'Handbags', imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 2 },
-  { id: 'sub-a-3', categoryTag: 'ACCESSORIES', name: 'Belts & Wallets', imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=400&q=80', isActive: true, sortOrder: 3 },
+  { id: 'sub-f-1', categoryTag: 'FOOTWEAR', name: 'Sneakers', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_shoe_clean.jpg', isActive: true, sortOrder: 1 },
+  { id: 'sub-f-2', categoryTag: 'FOOTWEAR', name: 'Formal Shoes', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_shoe_clean.jpg', isActive: true, sortOrder: 2 },
+  { id: 'sub-f-3', categoryTag: 'FOOTWEAR', name: 'Sports Shoes', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_shoe_clean.jpg', isActive: true, sortOrder: 3 },
+  { id: 'sub-a-1', categoryTag: 'ACCESSORIES', name: 'Backpacks', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bag-backpack.jpg', isActive: true, sortOrder: 1 },
+  { id: 'sub-a-2', categoryTag: 'ACCESSORIES', name: 'Handbags', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bag-luxury.jpg', isActive: true, sortOrder: 2 },
+  { id: 'sub-a-3', categoryTag: 'ACCESSORIES', name: 'Belts & Wallets', imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bag-luxury.jpg', isActive: true, sortOrder: 3 },
 ];
 
 
@@ -427,10 +427,10 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
   {
     "id": "cloth-lehenga",
     "name": "Lehenga / Bridal Set",
-    "icon": "\ud83d\udc57",
+    "icon": "👗",
     "categoryTag": "WOMENS",
     "categoryLabel": "Women's Clothing",
-    "subCategory": "Occasion Wear",
+    "subCategory": "Lehengas",
     "description": "Heavy zari, mirror-work, bridal flare skirt & choli set.",
     "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-lehenga.jpg",
     "isActive": true,
@@ -439,10 +439,10 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
   {
     "id": "cloth-gown",
     "name": "Party Wear Gown / Maxi",
-    "icon": "\ud83d\udc57",
+    "icon": "👗",
     "categoryTag": "WOMENS",
     "categoryLabel": "Women's Clothing",
-    "subCategory": "Occasion Wear",
+    "subCategory": "Gowns",
     "description": "Floor length evening gowns, cocktail dresses & pleated maxis.",
     "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-gown.jpg",
     "isActive": true,
@@ -1104,7 +1104,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Bags & Accessories",
     "subCategory": "Backpacks",
     "description": "Zip degreasing, compartment sanitation, fabric stain extraction & strap wash.",
-    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bag-backpack.jpg",
     "isActive": true,
     "sortOrder": 1
   },
@@ -1116,7 +1116,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Bags & Accessories",
     "subCategory": "Handbags",
     "description": "Designer leather and fabric handbag gentle spa, conditioning & hardware polish.",
-    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bag-luxury.jpg",
     "isActive": true,
     "sortOrder": 2
   },
@@ -1128,7 +1128,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Bags & Accessories",
     "subCategory": "Belts & Wallets",
     "description": "Inner antibacterial ozone foam sanitization, visor scratch buffing & deodorizing.",
-    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-helmet.jpg",
     "isActive": true,
     "sortOrder": 3
   },
@@ -1140,7 +1140,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Bags & Accessories",
     "subCategory": "Luggage & Trolley",
     "description": "Hard-shell scuff removal, zipper lubrication, inner lining steam wash & wheel disinfection.",
-    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-trolley-cabin.jpg",
     "isActive": true,
     "sortOrder": 4
   },
@@ -1152,7 +1152,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Bags & Accessories",
     "subCategory": "Luggage & Trolley",
     "description": "Complete high-pressure sanitizing wash, deep fabric extraction & protective wrapping.",
-    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-trolley-large.jpg",
     "isActive": true,
     "sortOrder": 5
   }
@@ -1160,14 +1160,14 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
 
 
 export const INITIAL_SERVICE_MASTERS: ServiceMaster[] = [
-  { id: 'srv-m-steam-iron', name: 'Iron Only (Steam Press)', slug: 'steam-iron', serviceCode: 'PRESS', icon: '🔥', pricingType: 'PER_ITEM', turnaroundHours: 18, description: 'High-pressure wrinkle removal, crease setting & crisp hanger finish.', isActive: true },
-  { id: 'srv-m-wash-fold', name: 'Wash & Fold', slug: 'wash-and-fold', serviceCode: 'WASH_FOLD', icon: '🧺', pricingType: 'PER_KG', baseKgPrice: 60, minOrderKg: 3, turnaroundHours: 24, description: 'Hygienic wash, tumble dry, and neat compact fold.', isActive: true },
-  { id: 'srv-m-wash-iron', name: 'Wash & Steam Iron', slug: 'wash-and-iron', serviceCode: 'WASH_IRON', icon: '👔', pricingType: 'PER_KG', baseKgPrice: 85, minOrderKg: 3, turnaroundHours: 36, description: 'Eco-wash + industrial steam pressing on hangers.', isActive: true },
-  { id: 'srv-m-dry-clean', name: 'Dry Cleaning', slug: 'dry-cleaning', serviceCode: 'DRY_CLEAN', icon: '🧥', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Hydrocarbon solvent treatment with breathable garment cover.', isActive: true },
-  { id: 'srv-m-charak', name: 'Saree Polishing & Charak', slug: 'saree-charak', serviceCode: 'SAREE_POLISH', icon: '✨', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Traditional starching, roll pressing & zari shine revival.', isActive: true },
-  { id: 'srv-m-starch', name: 'Starch & Crisp Finish', slug: 'starch-finish', serviceCode: 'STARCH', icon: '👔', pricingType: 'PER_ITEM', turnaroundHours: 24, description: 'Stiff starching for crisp cotton shirts, dhotis & uniforms.', isActive: true },
-  { id: 'srv-m-spa', name: 'Deep Shoe & Leather Spa', slug: 'shoe-spa', serviceCode: 'SHOE_SPA', icon: '👞', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Ultrasonic stain treatment and antibacterial ozone sanitization.', isActive: true },
-  { id: 'srv-m-express', name: 'Express Emergency Laundry', slug: 'express-emergency', serviceCode: 'EXPRESS', icon: '⚡', pricingType: 'PER_KG', baseKgPrice: 120, minOrderKg: 3, turnaroundHours: 12, description: 'Dedicated machine slot with same-day return.', isActive: true },
+  { id: 'srv-m-steam-iron', name: 'Iron Only (Steam Press)', slug: 'steam-iron', serviceCode: 'PRESS', icon: '🔥', pricingType: 'PER_ITEM', turnaroundHours: 18, description: 'High-pressure wrinkle removal, crease setting & crisp hanger finish.', isActive: true, imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_steam_press.jpg' },
+  { id: 'srv-m-wash-fold', name: 'Wash & Fold', slug: 'wash-and-fold', serviceCode: 'WASH_FOLD', icon: '🧺', pricingType: 'PER_KG', baseKgPrice: 60, minOrderKg: 3, turnaroundHours: 24, description: 'Hygienic wash, tumble dry, and neat compact fold.', isActive: true, imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_wash_fold.jpg' },
+  { id: 'srv-m-wash-iron', name: 'Wash & Steam Iron', slug: 'wash-and-iron', serviceCode: 'WASH_IRON', icon: '👔', pricingType: 'PER_KG', baseKgPrice: 85, minOrderKg: 3, turnaroundHours: 36, description: 'Eco-wash + industrial steam pressing on hangers.', isActive: true, imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_wash_iron.jpg' },
+  { id: 'srv-m-dry-clean', name: 'Dry Cleaning', slug: 'dry-cleaning', serviceCode: 'DRY_CLEAN', icon: '🧥', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Hydrocarbon solvent treatment with breathable garment cover.', isActive: true, imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_dry_cleaning.jpg' },
+  { id: 'srv-m-charak', name: 'Saree Polishing & Charak', slug: 'saree-charak', serviceCode: 'SAREE_POLISH', icon: '✨', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Traditional starching, roll pressing & zari shine revival.', isActive: true, imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/cat-wedding-silk.jpg' },
+  { id: 'srv-m-starch', name: 'Starch & Crisp Finish', slug: 'starch-finish', serviceCode: 'STARCH', icon: '👔', pricingType: 'PER_ITEM', turnaroundHours: 24, description: 'Stiff starching for crisp cotton shirts, dhotis & uniforms.', isActive: true, imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-shirt.jpg' },
+  { id: 'srv-m-spa', name: 'Deep Shoe & Leather Spa', slug: 'shoe-spa', serviceCode: 'SHOE_SPA', icon: '👞', pricingType: 'PER_ITEM', turnaroundHours: 48, description: 'Ultrasonic stain treatment and antibacterial ozone sanitization.', isActive: true, imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_shoe_clean.jpg' },
+  { id: 'srv-m-express', name: 'Express Emergency Laundry', slug: 'express-emergency', serviceCode: 'EXPRESS', icon: '⚡', pricingType: 'PER_KG', baseKgPrice: 120, minOrderKg: 3, turnaroundHours: 12, description: 'Dedicated machine slot with same-day return.', isActive: true, imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/delivery_van_driver.jpg' },
 ];
 
 export const INITIAL_SERVICE_PRICE_MATRIX: ServicePriceItem[] = [
@@ -5887,7 +5887,7 @@ export const INITIAL_BANNERS: Banner[] = [
     badgeText: 'FIRST ORDER SPECIAL',
     couponCode: 'FIRST50',
     discountPercent: 50,
-    imageUrl: 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/banners/banner-bulk.jpg',
     actionType: 'BOOK',
     actionTarget: '',
     displayOrder: 3,
@@ -5902,7 +5902,7 @@ export const INITIAL_BANNERS: Banner[] = [
     badgeText: 'PREMIUM DRY CLEAN',
     couponCode: 'SILKSPA',
     discountPercent: 25,
-    imageUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/cat-wedding-silk.jpg',
     actionType: 'CATEGORY',
     actionTarget: 'bridal-wear',
     displayOrder: 4,
@@ -5917,7 +5917,7 @@ export const INITIAL_BANNERS: Banner[] = [
     badgeText: 'FAMILY SAVER',
     couponCode: 'BULKSAVE',
     discountPercent: 20,
-    imageUrl: 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/banners/banner-bulk.jpg',
     actionType: 'CATEGORY',
     actionTarget: 'bulk-laundry',
     displayOrder: 5,
@@ -5932,7 +5932,7 @@ export const INITIAL_BANNERS: Banner[] = [
     badgeText: 'SUPER EXPRESS',
     couponCode: 'EXPRESS24',
     discountPercent: 15,
-    imageUrl: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/delivery_van_driver.jpg',
     actionType: 'BOOK',
     actionTarget: '',
     displayOrder: 6,
@@ -6322,7 +6322,7 @@ class BackendDatabase {
 
   async createOrder(data: any): Promise<Order> {
     const id = `LAU${randomUUID().replace(/-/g, '').slice(0, 16).toUpperCase()}`;
-    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const now = new Date().toISOString();
     const order: Order = {
       ...data,
       id,
@@ -6400,7 +6400,7 @@ class BackendDatabase {
     const order = this.getOrderById(id);
     if (!order) return null;
     order.currentStatus = status;
-    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const now = new Date().toISOString();
     order.statusHistory.push({
       status,
       title: status.replace(/_/g, ' '),
@@ -6432,7 +6432,7 @@ class BackendDatabase {
     if (newPaymentStatus) {
       order.paymentStatus = newPaymentStatus as any;
     }
-    const now = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const now = new Date().toISOString();
     order.statusHistory.push({
       status: 'CANCELLED',
       title: 'Order Cancelled',
@@ -6459,7 +6459,7 @@ class BackendDatabase {
     if (!order) return null;
     if (agentType === 'DELIVERY') order.assignedDeliveryAgent = agent;
     else order.assignedPickupAgent = agent;
-    order.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    order.updatedAt = new Date().toISOString();
     if (isDbConnected && pool) {
       const column = agentType === 'DELIVERY' ? 'assigned_delivery_agent' : 'assigned_pickup_agent';
       pool.query(`UPDATE orders SET ${column} = ?, updated_at = ? WHERE id = ?`, [JSON.stringify(agent), order.updatedAt, order.id])
@@ -6506,7 +6506,7 @@ class BackendDatabase {
     order.paymentGateway = 'RAZORPAY';
     order.paymentGatewayOrderId = gatewayOrderId;
     order.paymentStatus = 'PENDING';
-    order.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    order.updatedAt = new Date().toISOString();
 
     if (isDbConnected && pool) {
       pool
@@ -6526,7 +6526,7 @@ class BackendDatabase {
 
     order.paymentStatus = 'PAID';
     order.paymentTransactionId = paymentId;
-    order.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    order.updatedAt = new Date().toISOString();
 
     if (isDbConnected && pool) {
       pool
@@ -6546,7 +6546,7 @@ class BackendDatabase {
 
     order.paymentStatus = 'FAILED';
     order.currentStatus = 'CANCELLED';
-    order.updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    order.updatedAt = new Date().toISOString();
 
     if (isDbConnected && pool) {
       pool
@@ -7419,7 +7419,7 @@ class BackendDatabase {
       title: data.title || 'Special Promotion',
       subtitle: data.subtitle || 'Doorstep Laundry Service',
       badgeText: data.badgeText || 'SPECIAL OFFER',
-      imageUrl: data.imageUrl || 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: data.imageUrl || 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/banners/banner-bulk.jpg',
       mediaType: data.mediaType || 'IMAGE',
       videoUrl: data.videoUrl || undefined,
       couponCode: data.couponCode || '',

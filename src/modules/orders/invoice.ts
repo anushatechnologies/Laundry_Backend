@@ -35,7 +35,12 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
   const storeEmail = 'support@laundryfresh.in';
   
   const invoiceNo = `INV-${order.id.replace(/\D/g, '').slice(-8) || order.id.slice(-8).toUpperCase()}`;
-  const orderDate = new Date(order.createdAt).toLocaleDateString('en-IN', {
+  const rawCreatedAt = String(order.createdAt || '').trim();
+  const safeCreatedDate = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/.test(rawCreatedAt)
+    ? new Date(rawCreatedAt.replace(' ', 'T') + 'Z')
+    : new Date(rawCreatedAt || Date.now());
+  const orderDate = safeCreatedDate.toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -78,7 +83,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tax Invoice - #${escapeHtml(order.id)}</title>
+  <title>${totalTax > 0 ? 'Tax Invoice' : 'Order Receipt'} - #${escapeHtml(order.id)}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -411,7 +416,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
         </div>
       </div>
       <div class="invoice-meta">
-        <div class="invoice-tag">TAX INVOICE (GST-COMPLIANT)</div>
+        <div class="invoice-tag">${totalTax > 0 ? 'TAX INVOICE (GST-COMPLIANT)' : 'ORDER RECEIPT'}</div>
         <div class="invoice-number">${escapeHtml(invoiceNo)}</div>
         <div class="invoice-date">Order ID: <strong>#${escapeHtml(order.id)}</strong></div>
         <div class="invoice-date">Date: ${escapeHtml(orderDate)}</div>
@@ -477,6 +482,7 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
           <span style="color: #16a34a;">Discount Applied ${order.couponCode ? `(${escapeHtml(order.couponCode)})` : ''}</span>
           <span class="summary-val" style="color: #16a34a;">-₹${discount.toFixed(2)}</span>
         </div>` : ''}
+        ${totalTax > 0 ? `
         <div class="summary-line">
           <span>CGST (2.5%)</span>
           <span class="summary-val">₹${cgst}</span>
@@ -484,17 +490,17 @@ export function renderTaxInvoiceHtml(order: Order, settings?: PricingSettings): 
         <div class="summary-line">
           <span>SGST (2.5%)</span>
           <span class="summary-val">₹${sgst}</span>
-        </div>
+        </div>` : ''}
         <div class="summary-divider"></div>
         <div class="summary-grand">
-          <span>Total Amount</span>
+          <span>${totalTax > 0 ? 'Total Amount (Inc. GST)' : 'Total Amount'}</span>
           <span class="summary-grand-val">₹${grandTotal.toFixed(2)}</span>
         </div>
       </div>
     </div>
 
     <div class="footer-note">
-      <p>This is a computer-generated tax invoice issued in accordance with the Goods and Services Tax Act. No physical signature is required.</p>
+      <p>${totalTax > 0 ? 'This is a computer-generated tax invoice issued in accordance with the Goods and Services Tax Act. No physical signature is required.' : 'This is an official computer-generated receipt for your laundry booking. No physical signature is required.'}</p>
       <p style="margin-top: 4px;">Thank you for trusting ${escapeHtml(storeName)} for your premium garment care!</p>
     </div>
   </div>
