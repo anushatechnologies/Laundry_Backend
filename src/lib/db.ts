@@ -125,6 +125,26 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     color: 'slate',
     imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/home-textiles.jpg',
   },
+  {
+    id: 'cat-footwear',
+    name: 'Footwear & Shoes',
+    slug: 'footwear',
+    icon: '👟',
+    description: 'Sneakers, Formal Leather Shoes, Sports Shoes, Boots & Suede Care.',
+    isPopular: true,
+    color: 'amber',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_shoe_clean.jpg',
+  },
+  {
+    id: 'cat-accessories',
+    name: 'Bags & Accessories',
+    slug: 'bags-accessories',
+    icon: '🎒',
+    description: 'Backpacks, Handbags, Suitcases, Trolley Bags, Belts & Wallets.',
+    isPopular: true,
+    color: 'emerald',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg',
+  },
 ];
 
 export const INITIAL_SUBCATEGORIES: Subcategory[] = [
@@ -1039,6 +1059,102 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-doormat-heavy.jpg",
     "isActive": true,
     "sortOrder": 30
+  },
+  {
+    "id": "cloth-shoes-formal",
+    "name": "Formal Leather Shoes",
+    "icon": "👞",
+    "categoryTag": "FOOTWEAR",
+    "categoryLabel": "Footwear & Shoes",
+    "subCategory": "Formal Shoes",
+    "description": "Leather conditioning, buffing, crease relaxation & sole disinfection.",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_shoe_clean.jpg",
+    "isActive": true,
+    "sortOrder": 1
+  },
+  {
+    "id": "cloth-shoes-sneaker",
+    "name": "Sneakers / Sports Shoes",
+    "icon": "👟",
+    "categoryTag": "FOOTWEAR",
+    "categoryLabel": "Footwear & Shoes",
+    "subCategory": "Sneakers",
+    "description": "Deep ultrasonic foam wash, midsole whitening, deodorizing & lace cleaning.",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_shoe_clean.jpg",
+    "isActive": true,
+    "sortOrder": 2
+  },
+  {
+    "id": "cloth-shoes-suede",
+    "name": "Suede / Nubuck Shoes",
+    "icon": "🥾",
+    "categoryTag": "FOOTWEAR",
+    "categoryLabel": "Footwear & Shoes",
+    "subCategory": "Sports Shoes",
+    "description": "Specialty dry foam extraction, nap restoration & hydrophobic protector coat.",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_shoe_clean.jpg",
+    "isActive": true,
+    "sortOrder": 3
+  },
+  {
+    "id": "cloth-bag-backpack",
+    "name": "Backpack / School Bag",
+    "icon": "🎒",
+    "categoryTag": "ACCESSORIES",
+    "categoryLabel": "Bags & Accessories",
+    "subCategory": "Backpacks",
+    "description": "Zip degreasing, compartment sanitation, fabric stain extraction & strap wash.",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg",
+    "isActive": true,
+    "sortOrder": 1
+  },
+  {
+    "id": "cloth-bag-luxury",
+    "name": "Luxury Handbag",
+    "icon": "👜",
+    "categoryTag": "ACCESSORIES",
+    "categoryLabel": "Bags & Accessories",
+    "subCategory": "Handbags",
+    "description": "Designer leather and fabric handbag gentle spa, conditioning & hardware polish.",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg",
+    "isActive": true,
+    "sortOrder": 2
+  },
+  {
+    "id": "cloth-helmet",
+    "name": "Bike Riding Helmet",
+    "icon": "🪖",
+    "categoryTag": "ACCESSORIES",
+    "categoryLabel": "Bags & Accessories",
+    "subCategory": "Belts & Wallets",
+    "description": "Inner antibacterial ozone foam sanitization, visor scratch buffing & deodorizing.",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg",
+    "isActive": true,
+    "sortOrder": 3
+  },
+  {
+    "id": "cloth-trolley-cabin",
+    "name": "Cabin Trolley Bag (20\")",
+    "icon": "🧳",
+    "categoryTag": "ACCESSORIES",
+    "categoryLabel": "Bags & Accessories",
+    "subCategory": "Luggage & Trolley",
+    "description": "Hard-shell scuff removal, zipper lubrication, inner lining steam wash & wheel disinfection.",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg",
+    "isActive": true,
+    "sortOrder": 4
+  },
+  {
+    "id": "cloth-trolley-large",
+    "name": "Check-in Suitcase (28\")",
+    "icon": "🧳",
+    "categoryTag": "ACCESSORIES",
+    "categoryLabel": "Bags & Accessories",
+    "subCategory": "Luggage & Trolley",
+    "description": "Complete high-pressure sanitizing wash, deep fabric extraction & protective wrapping.",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/accessories.jpg",
+    "isActive": true,
+    "sortOrder": 5
   }
 ];
 
@@ -5086,7 +5202,32 @@ export const INITIAL_SERVICE_PRICE_MATRIX: ServicePriceItem[] = [
     "turnaroundHours": 48,
     "isActive": true,
     "isAvailable": true
-  }
+  },
+  { "id": "pr-shoes-formal-spa", "clothTypeId": "cloth-shoes-formal", "clothName": "Formal Leather Shoes", "clothIcon": "👞", "categoryTag": "FOOTWEAR", "serviceId": "srv-m-spa", "serviceName": "Deep Shoe & Leather Spa", "price": 290, "expressPrice": 390, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-shoes-formal-dc", "clothTypeId": "cloth-shoes-formal", "clothName": "Formal Leather Shoes", "clothIcon": "👞", "categoryTag": "FOOTWEAR", "serviceId": "srv-m-dry-clean", "serviceName": "Dry Cleaning", "price": 250, "expressPrice": 350, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-shoes-formal-ex", "clothTypeId": "cloth-shoes-formal", "clothName": "Formal Leather Shoes", "clothIcon": "👞", "categoryTag": "FOOTWEAR", "serviceId": "srv-m-express", "serviceName": "Express Emergency Laundry", "price": 220, "expressPrice": 300, "turnaroundHours": 24, "isActive": true, "isAvailable": true },
+  { "id": "pr-sneakers-spa", "clothTypeId": "cloth-shoes-sneaker", "clothName": "Sneakers / Sports Shoes", "clothIcon": "👟", "categoryTag": "FOOTWEAR", "serviceId": "srv-m-spa", "serviceName": "Deep Shoe & Leather Spa", "price": 250, "expressPrice": 350, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-shoes-sneaker-dc", "clothTypeId": "cloth-shoes-sneaker", "clothName": "Sneakers / Sports Shoes", "clothIcon": "👟", "categoryTag": "FOOTWEAR", "serviceId": "srv-m-dry-clean", "serviceName": "Dry Cleaning", "price": 220, "expressPrice": 300, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-shoes-sneaker-ex", "clothTypeId": "cloth-shoes-sneaker", "clothName": "Sneakers / Sports Shoes", "clothIcon": "👟", "categoryTag": "FOOTWEAR", "serviceId": "srv-m-express", "serviceName": "Express Emergency Laundry", "price": 190, "expressPrice": 280, "turnaroundHours": 24, "isActive": true, "isAvailable": true },
+  { "id": "pr-shoes-suede-spa", "clothTypeId": "cloth-shoes-suede", "clothName": "Suede / Nubuck Shoes", "clothIcon": "🥾", "categoryTag": "FOOTWEAR", "serviceId": "srv-m-spa", "serviceName": "Deep Shoe & Leather Spa", "price": 350, "expressPrice": 450, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-shoes-suede-dc", "clothTypeId": "cloth-shoes-suede", "clothName": "Suede / Nubuck Shoes", "clothIcon": "🥾", "categoryTag": "FOOTWEAR", "serviceId": "srv-m-dry-clean", "serviceName": "Dry Cleaning", "price": 300, "expressPrice": 400, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-shoes-suede-ex", "clothTypeId": "cloth-shoes-suede", "clothName": "Suede / Nubuck Shoes", "clothIcon": "🥾", "categoryTag": "FOOTWEAR", "serviceId": "srv-m-express", "serviceName": "Express Emergency Laundry", "price": 260, "expressPrice": 360, "turnaroundHours": 24, "isActive": true, "isAvailable": true },
+  { "id": "pr-bag-backpack-spa", "clothTypeId": "cloth-bag-backpack", "clothName": "Backpack / School Bag", "clothIcon": "🎒", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-spa", "serviceName": "Deep Shoe & Leather Spa", "price": 180, "expressPrice": 250, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-bag-backpack-dc", "clothTypeId": "cloth-bag-backpack", "clothName": "Backpack / School Bag", "clothIcon": "🎒", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-dry-clean", "serviceName": "Dry Cleaning", "price": 150, "expressPrice": 220, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-bag-backpack-wf", "clothTypeId": "cloth-bag-backpack", "clothName": "Backpack / School Bag", "clothIcon": "🎒", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-wash-fold", "serviceName": "Wash & Fold", "price": 120, "expressPrice": 180, "turnaroundHours": 24, "isActive": true, "isAvailable": true },
+  { "id": "pr-bag-backpack-ex", "clothTypeId": "cloth-bag-backpack", "clothName": "Backpack / School Bag", "clothIcon": "🎒", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-express", "serviceName": "Express Emergency Laundry", "price": 140, "expressPrice": 200, "turnaroundHours": 24, "isActive": true, "isAvailable": true },
+  { "id": "pr-handbag-spa", "clothTypeId": "cloth-bag-luxury", "clothName": "Luxury Handbag", "clothIcon": "👜", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-spa", "serviceName": "Deep Shoe & Leather Spa", "price": 490, "expressPrice": 650, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-bag-luxury-dc", "clothTypeId": "cloth-bag-luxury", "clothName": "Luxury Handbag", "clothIcon": "👜", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-dry-clean", "serviceName": "Dry Cleaning", "price": 420, "expressPrice": 550, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-bag-luxury-ex", "clothTypeId": "cloth-bag-luxury", "clothName": "Luxury Handbag", "clothIcon": "👜", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-express", "serviceName": "Express Emergency Laundry", "price": 380, "expressPrice": 500, "turnaroundHours": 24, "isActive": true, "isAvailable": true },
+  { "id": "pr-helmet-spa", "clothTypeId": "cloth-helmet", "clothName": "Bike Riding Helmet", "clothIcon": "🪖", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-spa", "serviceName": "Deep Shoe & Leather Spa", "price": 180, "expressPrice": 250, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-helmet-dc", "clothTypeId": "cloth-helmet", "clothName": "Bike Riding Helmet", "clothIcon": "🪖", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-dry-clean", "serviceName": "Dry Cleaning", "price": 160, "expressPrice": 230, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-helmet-ex", "clothTypeId": "cloth-helmet", "clothName": "Bike Riding Helmet", "clothIcon": "🪖", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-express", "serviceName": "Express Emergency Laundry", "price": 150, "expressPrice": 220, "turnaroundHours": 24, "isActive": true, "isAvailable": true },
+  { "id": "pr-trolley-cabin-spa", "clothTypeId": "cloth-trolley-cabin", "clothName": "Cabin Trolley Bag (20\")", "clothIcon": "🧳", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-spa", "serviceName": "Deep Shoe & Leather Spa", "price": 250, "expressPrice": 350, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-trolley-cabin-dc", "clothTypeId": "cloth-trolley-cabin", "clothName": "Cabin Trolley Bag (20\")", "clothIcon": "🧳", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-dry-clean", "serviceName": "Dry Cleaning", "price": 220, "expressPrice": 300, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-trolley-cabin-ex", "clothTypeId": "cloth-trolley-cabin", "clothName": "Cabin Trolley Bag (20\")", "clothIcon": "🧳", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-express", "serviceName": "Express Emergency Laundry", "price": 220, "expressPrice": 300, "turnaroundHours": 24, "isActive": true, "isAvailable": true },
+  { "id": "pr-trolley-large-spa", "clothTypeId": "cloth-trolley-large", "clothName": "Check-in Suitcase (28\")", "clothIcon": "🧳", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-spa", "serviceName": "Deep Shoe & Leather Spa", "price": 390, "expressPrice": 500, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-trolley-large-dc", "clothTypeId": "cloth-trolley-large", "clothName": "Check-in Suitcase (28\")", "clothIcon": "🧳", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-dry-clean", "serviceName": "Dry Cleaning", "price": 350, "expressPrice": 450, "turnaroundHours": 48, "isActive": true, "isAvailable": true },
+  { "id": "pr-trolley-large-ex", "clothTypeId": "cloth-trolley-large", "clothName": "Check-in Suitcase (28\")", "clothIcon": "🧳", "categoryTag": "ACCESSORIES", "serviceId": "srv-m-express", "serviceName": "Express Emergency Laundry", "price": 340, "expressPrice": 440, "turnaroundHours": 24, "isActive": true, "isAvailable": true }
 ];
 
 export const INITIAL_PRICING_SETTINGS: PricingSettings = {
@@ -5838,6 +5979,17 @@ class BackendDatabase {
           subCategory: r.sub_category || undefined, description: r.description,
           isActive: Boolean(r.is_active), sortOrder: r.sort_order, imageUrl: r.image_url || undefined,
         }));
+        // Ensure any new master items (e.g. Footwear & Accessories) exist in MySQL
+        const existingIds = new Set(this.clothTypes.map((c) => c.id));
+        for (const item of INITIAL_CLOTH_TYPES) {
+          if (!existingIds.has(item.id)) {
+            await pool.query(
+              'INSERT INTO cloth_types (id, name, icon, category_tag, category_label, sub_category, description, is_active, sort_order, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), icon=VALUES(icon), category_tag=VALUES(category_tag), category_label=VALUES(category_label), sub_category=VALUES(sub_category), description=VALUES(description), is_active=VALUES(is_active), sort_order=VALUES(sort_order), image_url=VALUES(image_url)',
+              [item.id, item.name, item.icon, item.categoryTag, item.categoryLabel, item.subCategory || null, item.description, item.isActive ? 1 : 0, item.sortOrder, item.imageUrl || null]
+            ).catch(() => {});
+            this.clothTypes.push(item);
+          }
+        }
       } else {
         this.clothTypes = [...INITIAL_CLOTH_TYPES];
         for (const item of this.clothTypes) {
@@ -5876,6 +6028,17 @@ class BackendDatabase {
           price: Number(r.price), expressPrice: r.express_price ? Number(r.express_price) : undefined,
           turnaroundHours: r.turnaround_hours, isActive: Boolean(r.is_active),
         }));
+        // Ensure any missing price matrix items exist in MySQL
+        const existingPmIds = new Set(this.priceMatrix.map((p) => p.id));
+        for (const p of INITIAL_SERVICE_PRICE_MATRIX) {
+          if (!existingPmIds.has(p.id)) {
+            await pool.query(
+              'INSERT INTO service_price_matrix (id, cloth_type_id, cloth_name, cloth_icon, category_tag, service_id, service_name, price, express_price, turnaround_hours, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE price=VALUES(price)',
+              [p.id, p.clothTypeId, p.clothName, p.clothIcon, p.categoryTag, p.serviceId, p.serviceName, p.price, p.expressPrice || null, p.turnaroundHours, p.isActive ? 1 : 0]
+            ).catch(() => {});
+            this.priceMatrix.push(p);
+          }
+        }
       } else {
         this.priceMatrix = [...INITIAL_SERVICE_PRICE_MATRIX];
         for (const p of this.priceMatrix) {
