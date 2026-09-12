@@ -280,6 +280,8 @@ async function createTables() {
       coupon_code VARCHAR(100),
       discount_percent DECIMAL(5, 2) DEFAULT 0,
       image_url TEXT NOT NULL,
+      media_type VARCHAR(20) DEFAULT 'IMAGE',
+      video_url TEXT,
       action_type VARCHAR(50) DEFAULT 'BOOK',
       action_target VARCHAR(255) DEFAULT '',
       display_order INT DEFAULT 1,
@@ -290,6 +292,13 @@ async function createTables() {
       updated_at VARCHAR(100)
     )
   `);
+
+  await database.query(`
+    ALTER TABLE banners ADD COLUMN IF NOT EXISTS media_type VARCHAR(20) DEFAULT 'IMAGE';
+  `).catch(() => undefined);
+  await database.query(`
+    ALTER TABLE banners ADD COLUMN IF NOT EXISTS video_url TEXT;
+  `).catch(() => undefined);
   
   await database.query(`
     CREATE TABLE IF NOT EXISTS customer_addresses (

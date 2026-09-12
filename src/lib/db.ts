@@ -6096,6 +6096,8 @@ class BackendDatabase {
           couponCode: r.coupon_code || undefined,
           discountPercent: r.discount_percent ? Number(r.discount_percent) : 0,
           imageUrl: r.image_url,
+          mediaType: (r.media_type as any) || 'IMAGE',
+          videoUrl: r.video_url || undefined,
           actionType: r.action_type || 'BOOK',
           actionTarget: r.action_target || '',
           displayOrder: Number(r.display_order) || 1,
@@ -7211,6 +7213,8 @@ class BackendDatabase {
       subtitle: data.subtitle || 'Doorstep Laundry Service',
       badgeText: data.badgeText || 'SPECIAL OFFER',
       imageUrl: data.imageUrl || 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=1200&q=80',
+      mediaType: data.mediaType || 'IMAGE',
+      videoUrl: data.videoUrl || undefined,
       couponCode: data.couponCode || '',
       discountPercent: data.discountPercent || 0,
       actionType: data.actionType || 'BOOK',
@@ -7226,8 +7230,8 @@ class BackendDatabase {
 
     if (isDbConnected && pool) {
       pool.query(
-        'INSERT INTO banners (id, title, subtitle, badge_text, coupon_code, discount_percent, image_url, action_type, action_target, display_order, is_active, start_date, end_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=VALUES(title), subtitle=VALUES(subtitle), badge_text=VALUES(badge_text), coupon_code=VALUES(coupon_code), discount_percent=VALUES(discount_percent), image_url=VALUES(image_url), action_type=VALUES(action_type), action_target=VALUES(action_target), display_order=VALUES(display_order), is_active=VALUES(is_active), updated_at=VALUES(updated_at)',
-        [newBanner.id, newBanner.title, newBanner.subtitle || null, newBanner.badgeText || null, newBanner.couponCode || null, newBanner.discountPercent || 0, newBanner.imageUrl, newBanner.actionType || 'BOOK', newBanner.actionTarget || '', newBanner.displayOrder || 1, newBanner.isActive ? 1 : 0, newBanner.startDate || null, newBanner.endDate || null, newBanner.createdAt, newBanner.updatedAt]
+        'INSERT INTO banners (id, title, subtitle, badge_text, coupon_code, discount_percent, image_url, media_type, video_url, action_type, action_target, display_order, is_active, start_date, end_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=VALUES(title), subtitle=VALUES(subtitle), badge_text=VALUES(badge_text), coupon_code=VALUES(coupon_code), discount_percent=VALUES(discount_percent), image_url=VALUES(image_url), media_type=VALUES(media_type), video_url=VALUES(video_url), action_type=VALUES(action_type), action_target=VALUES(action_target), display_order=VALUES(display_order), is_active=VALUES(is_active), updated_at=VALUES(updated_at)',
+        [newBanner.id, newBanner.title, newBanner.subtitle || null, newBanner.badgeText || null, newBanner.couponCode || null, newBanner.discountPercent || 0, newBanner.imageUrl, newBanner.mediaType || 'IMAGE', newBanner.videoUrl || null, newBanner.actionType || 'BOOK', newBanner.actionTarget || '', newBanner.displayOrder || 1, newBanner.isActive ? 1 : 0, newBanner.startDate || null, newBanner.endDate || null, newBanner.createdAt, newBanner.updatedAt]
       ).catch((err) => console.error('Error inserting banner to MySQL:', err));
     }
 
@@ -7247,8 +7251,8 @@ class BackendDatabase {
     if (isDbConnected && pool) {
       const b = this.banners[idx];
       pool.query(
-        'UPDATE banners SET title = ?, subtitle = ?, badge_text = ?, coupon_code = ?, discount_percent = ?, image_url = ?, action_type = ?, action_target = ?, display_order = ?, is_active = ?, start_date = ?, end_date = ?, updated_at = ? WHERE id = ?',
-        [b.title, b.subtitle || null, b.badgeText || null, b.couponCode || null, b.discountPercent || 0, b.imageUrl, b.actionType || 'BOOK', b.actionTarget || '', b.displayOrder || 1, b.isActive ? 1 : 0, b.startDate || null, b.endDate || null, b.updatedAt, id]
+        'UPDATE banners SET title = ?, subtitle = ?, badge_text = ?, coupon_code = ?, discount_percent = ?, image_url = ?, media_type = ?, video_url = ?, action_type = ?, action_target = ?, display_order = ?, is_active = ?, start_date = ?, end_date = ?, updated_at = ? WHERE id = ?',
+        [b.title, b.subtitle || null, b.badgeText || null, b.couponCode || null, b.discountPercent || 0, b.imageUrl, b.mediaType || 'IMAGE', b.videoUrl || null, b.actionType || 'BOOK', b.actionTarget || '', b.displayOrder || 1, b.isActive ? 1 : 0, b.startDate || null, b.endDate || null, b.updatedAt, id]
       ).catch((err) => console.error('Error updating banner in MySQL:', err));
     }
 

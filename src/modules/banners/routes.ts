@@ -1,4 +1,4 @@
-﻿import { Router, Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { db } from '../../lib/db';
 import { requireAdmin } from '../../middleware/admin';
 
@@ -32,6 +32,8 @@ router.post('/', requireAdmin, (req: Request, res: Response) => {
     subtitle,
     badgeText,
     imageUrl,
+    mediaType,
+    videoUrl,
     couponCode,
     discountPercent,
     actionType,
@@ -51,6 +53,8 @@ router.post('/', requireAdmin, (req: Request, res: Response) => {
     subtitle: String(subtitle || '').trim(),
     badgeText: String(badgeText || 'SPECIAL OFFER').trim(),
     imageUrl: String(imageUrl).trim(),
+    mediaType: mediaType === 'VIDEO' ? 'VIDEO' : 'IMAGE',
+    videoUrl: videoUrl ? String(videoUrl).trim() : undefined,
     couponCode: couponCode ? String(couponCode).toUpperCase().trim() : '',
     discountPercent: typeof discountPercent === 'number' ? discountPercent : parseFloat(discountPercent) || 0,
     actionType: actionType || 'BOOK',
