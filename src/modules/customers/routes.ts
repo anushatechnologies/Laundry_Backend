@@ -14,6 +14,7 @@ import { pool, isDbConnected } from '../../lib/mysql';
 import { sendSmsOtp } from '../../lib/sms';
 import { logAuditEvent } from '../../lib/audit';
 import { rewardReferralOnRegistration } from '../referrals/service';
+import { validateEmail } from '../../lib/validation';
 
 export const customersRouter = Router();
 
@@ -266,6 +267,17 @@ customersRouter.post('/firebase-login', async (req: Request, res: Response) => {
     }
 
     const { name = '', email = '', referralCode = '' } = req.body ?? {};
+
+    if (email && String(email).trim() !== '') {
+      const emailCheck = validateEmail(String(email).trim());
+      if (!emailCheck.isValid) {
+        return res.status(400).json({
+          success: false,
+          message: emailCheck.error || 'Invalid email address format.',
+        });
+      }
+    }
+
     let customer = findByPhone(phone);
     if (!customer && isDbConnected && pool) {
       try {
@@ -602,11 +614,11 @@ customersRouter.put('/:id', async (req: Request, res: Response) => {
   // Validate email format if provided
   if (email !== undefined && String(email).trim() !== '') {
     const emailStr = String(email).trim().toLowerCase();
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(emailStr)) {
+    const emailCheck = validateEmail(emailStr);
+    if (!emailCheck.isValid) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid email address format. Please enter a valid email (e.g. name@example.com).',
+        message: emailCheck.error || 'Invalid email address format. Please enter a valid email (e.g. name@example.com).',
       });
     }
   }

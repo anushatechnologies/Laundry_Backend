@@ -20,6 +20,7 @@ import { sendOrderStatusPushNotification } from '../../lib/push';
 import { logAuditEvent } from '../../lib/audit';
 import { renderTaxInvoiceHtml } from './invoice';
 import { computeDeliveryFee } from '../../lib/delivery';
+import { isValidEmail } from '../../lib/validation';
 
 const router = Router();
 
@@ -97,7 +98,14 @@ const createOrderSchema = z.object({
   customerId: z.string().trim().min(1).max(100),
   customerName: z.string().trim().min(1).max(120),
   customerPhone: z.string().trim().min(6).max(30),
-  customerEmail: z.string().trim().email().max(254).optional().or(z.literal('')).nullable(),
+  customerEmail: z
+    .string()
+    .trim()
+    .max(254)
+    .optional()
+    .or(z.literal(''))
+    .nullable()
+    .refine((val) => !val || isValidEmail(val), { message: 'Invalid email address or domain extension.' }),
   address: z.object({
     id: z.string().trim().max(100).optional().nullable(),
     type: z.enum(['Home', 'Office', 'Other']),

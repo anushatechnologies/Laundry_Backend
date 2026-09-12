@@ -6773,6 +6773,16 @@ class BackendDatabase {
     }
   }
 
+  deletePriceItem(id: string): boolean {
+    const idx = this.priceMatrix.findIndex((p) => p.id === id);
+    if (idx === -1) return false;
+    this.priceMatrix.splice(idx, 1);
+    if (isDbConnected && pool) {
+      pool.query('DELETE FROM service_price_matrix WHERE id = ?', [id]).catch((err) => console.error('Error deleting price item from MySQL:', err));
+    }
+    return true;
+  }
+
   // Settings
   getPricingSettings(): PricingSettings {
     return this.pricingSettings;

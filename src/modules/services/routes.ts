@@ -294,6 +294,14 @@ router.post('/pricing-matrix/upsert', requireAdmin, (req: Request, res: Response
   res.json({ success: true, data: result });
 });
 
+router.delete('/pricing-matrix/:id', requireAdmin, (req: Request, res: Response) => {
+  const deleted = db.deletePriceItem(req.params.id);
+  if (!deleted) {
+    return res.status(404).json({ success: false, error: 'Price item not found' });
+  }
+  res.json({ success: true, message: 'Price item deleted successfully' });
+});
+
 
 
 // ─── Distance-Based Delivery Fee Calculator ───────────────────────────────────
