@@ -6170,7 +6170,7 @@ class BackendDatabase {
 
       // Sync Subcategories
       const [subcatRows]: any = await pool.query('SELECT * FROM subcategories ORDER BY sort_order ASC').catch(() => [[]]);
-      if (subcatRows && subcatRows.length > 0) {
+      if (Array.isArray(subcatRows)) {
         this.subcategories = subcatRows.map((r: any) => ({
           id: r.id, categoryTag: r.category_tag, name: r.name,
           imageUrl: r.image_url || undefined, isActive: Boolean(r.is_active), sortOrder: r.sort_order || 0,
@@ -6766,15 +6766,50 @@ class BackendDatabase {
   }
 
   deleteSubcategory(id: string): boolean {
-    const idx = this.subcategories.findIndex((s) => s.id === id);
-    if (idx === -1) return false;
+    let idx = this.subcategories.findIndex((s) => s.id === id);
+    if (idx === -1) {
+      idx = this.subcategories.findIndex(
+        (s) => s.name.toLowerCase() === id.toLowerCase() ||
+               s.id.toLowerCase() === id.toLowerCase() ||
+               (id.startsWith('sub-seed-') && s.name.toLowerCase() === id.replace(/^sub-seed-\d+-?/, '').toLowerCase())
+      );
+    }
+    if (idx === -1) {
+      if (isDbConnected && pool) {
+        pool.query('DELETE FROM subcategories WHERE id = ?', [id]).catch(() => {});
+      }
+      return false;
+    }
+
+    const item = this.subcategories[idx];
+    const realId = item.id;
     this.subcategories.splice(idx, 1);
 
     if (isDbConnected && pool) {
-      pool.query('DELETE FROM subcategories WHERE id = ?', [id]).catch((err) => console.error('Error deleting subcategory from MySQL:', err));
+      pool.query('DELETE FROM subcategories WHERE id = ? OR name = ?', [realId, item.name]).catch((err) => console.error('Error deleting subcategory from MySQL:', err));
+      pool.query('UPDATE cloth_types SET sub_category = NULL WHERE LOWER(sub_category) = LOWER(?)', [item.name]).catch(() => {});
     }
 
+    this.clothTypes.forEach((c) => {
+      if (c.subCategory && c.subCategory.toLowerCase() === item.name.toLowerCase()) {
+        c.subCategory = undefined;
+      }
+    });
+
     return true;
+  }
+
+  async seedDefaultSubcategories(): Promise<Subcategory[]> {
+    this.subcategories = [...INITIAL_SUBCATEGORIES];
+    if (isDbConnected && pool) {
+      for (const item of INITIAL_SUBCATEGORIES) {
+        await pool.query(
+          'INSERT INTO subcategories (id, category_tag, name, image_url, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name), category_tag = VALUES(category_tag), image_url = VALUES(image_url), is_active = VALUES(is_active), sort_order = VALUES(sort_order)',
+          [item.id, item.categoryTag, item.name, item.imageUrl || null, item.isActive ? 1 : 0, item.sortOrder || 0]
+        ).catch((err) => console.error('Error seeding default subcategory in MySQL:', err));
+      }
+    }
+    return this.subcategories;
   }
 
   // Price Matrix

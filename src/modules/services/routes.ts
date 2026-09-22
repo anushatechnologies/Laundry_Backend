@@ -257,6 +257,15 @@ router.post('/subcategories', requireAdmin, (req: Request, res: Response) => {
   res.status(201).json({ success: true, data: created });
 });
 
+router.post('/subcategories/seed-defaults', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const seeded = await db.seedDefaultSubcategories();
+    res.status(200).json({ success: true, data: seeded });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message || 'Failed to seed defaults' });
+  }
+});
+
 router.put('/subcategories/:id', requireAdmin, (req: Request, res: Response) => {
   const updated = db.updateSubcategory(req.params.id, req.body);
   if (!updated) {

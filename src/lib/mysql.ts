@@ -477,7 +477,7 @@ async function seedTablesIfEmpty(data: InitialData) {
       await database.query('INSERT INTO service_masters (id, name, slug, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [item.id, item.name, item.slug, item.icon, item.pricingType, item.baseKgPrice || null, item.minOrderKg || null, item.turnaroundHours, item.description, item.isActive ? 1 : 0, item.imageUrl || null]);
     }
   }
-  if (data.subcategories && await tableIsEmpty('subcategories')) {
+  if (data.subcategories && await tableIsEmpty('subcategories') && await tableIsEmpty('categories')) {
     for (const item of data.subcategories) {
       await database.query('INSERT INTO subcategories (id, category_tag, name, image_url, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?)', [item.id, item.categoryTag, item.name, item.imageUrl || null, item.isActive ? 1 : 0, item.sortOrder || 0]);
     }
