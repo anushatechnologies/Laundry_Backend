@@ -6585,7 +6585,7 @@ class BackendDatabase {
   }
 
   createClothType(data: Partial<ClothType>): ClothType {
-    const id = `cloth-${Date.now()}`;
+    const id = data.id || `cloth-${Date.now()}`;
     const newCloth: ClothType = {
       id,
       name: data.name || 'New Garment',
@@ -6594,6 +6594,7 @@ class BackendDatabase {
       categoryLabel: data.categoryLabel || "Men's Clothing",
       subCategory: typeof data.subCategory === 'string' ? data.subCategory.trim() || undefined : undefined,
       description: data.description || '',
+      imageUrl: data.imageUrl || undefined,
       isActive: data.isActive !== undefined ? data.isActive : true,
       sortOrder: this.clothTypes.length + 1,
     };
