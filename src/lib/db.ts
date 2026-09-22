@@ -6056,12 +6056,29 @@ class BackendDatabase {
       // Sync Price Matrix
       const [pmRows]: any = await pool.query('SELECT * FROM service_price_matrix').catch(() => [[]]);
       if (pmRows && pmRows.length >= 150) {
-        this.priceMatrix = pmRows.map((r: any) => ({
+        const rawPm = pmRows.map((r: any) => ({
           id: r.id, clothTypeId: r.cloth_type_id, clothName: r.cloth_name, clothIcon: r.cloth_icon,
           categoryTag: r.category_tag, serviceId: r.service_id, serviceName: r.service_name,
           price: Number(r.price), expressPrice: r.express_price ? Number(r.express_price) : undefined,
           turnaroundHours: r.turnaround_hours, isActive: Boolean(r.is_active),
         }));
+        const pmMap = new Map<string, any>();
+        for (const item of rawPm) {
+          const key = `${item.clothTypeId}::${item.serviceId}`;
+          const existing = pmMap.get(key);
+          if (!existing) {
+            pmMap.set(key, item);
+          } else {
+            const existingScore = (existing.clothName ? 2 : 0) + (existing.id?.includes('srv-m') ? 1 : 0);
+            const newScore = (item.clothName ? 2 : 0) + (item.id?.includes('srv-m') ? 1 : 0);
+            if (newScore > existingScore) {
+              pmMap.set(key, item);
+            }
+          }
+        }
+        this.priceMatrix = Array.from(pmMap.values());
+        // Clean up orphaned duplicates in background
+        pool.query('DELETE FROM service_price_matrix WHERE cloth_name IS NULL AND (id LIKE "pr-%-dc" OR id LIKE "pr-%-si" OR id LIKE "pr-%-wf" OR id LIKE "pr-%-wi")').catch(() => {});
         // Ensure any missing price matrix items exist in MySQL
         const existingPmIds = new Set(this.priceMatrix.map((p) => p.id));
         for (const p of INITIAL_SERVICE_PRICE_MATRIX) {
@@ -6926,12 +6943,27 @@ class BackendDatabase {
   }
 
   getFullCatalog() {
+    const dedupedPriceMap = new Map<string, any>();
+    for (const p of this.priceMatrix) {
+      if (!p.clothTypeId || !p.serviceId) continue;
+      const key = `${p.clothTypeId}::${p.serviceId}`;
+      const existing = dedupedPriceMap.get(key);
+      if (!existing) {
+        dedupedPriceMap.set(key, p);
+      } else {
+        const existingScore = (existing.clothName ? 2 : 0) + (existing.id?.includes('srv-m') ? 1 : 0);
+        const newScore = (p.clothName ? 2 : 0) + (p.id?.includes('srv-m') ? 1 : 0);
+        if (newScore > existingScore) {
+          dedupedPriceMap.set(key, p);
+        }
+      }
+    }
     return {
       categories: this.categories,
       subcategories: this.subcategories,
       clothTypes: this.clothTypes,
       serviceMasters: this.serviceMasters,
-      priceMatrix: this.priceMatrix,
+      priceMatrix: Array.from(dedupedPriceMap.values()),
       bulkPricing: this.bulkPricing,
       settings: this.pricingSettings,
       perKgServices: this.serviceMasters.filter((s) => s.pricingType === 'PER_KG' && s.isActive),
