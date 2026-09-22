@@ -7055,13 +7055,47 @@ class BackendDatabase {
     return true;
   }
 
-  getCategories(): ServiceCategory[] { return this.categories; }
+  getCategories(): ServiceCategory[] {
+    const seen = new Set<string>();
+    return this.categories.filter((c) => {
+      const key = String(c.id || '').trim().toUpperCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  async reloadCategories(): Promise<void> {
+    if (isDbConnected && pool) {
+      const [catRows]: any = await pool.query('SELECT * FROM categories').catch(() => [[]]);
+      if (Array.isArray(catRows)) {
+        this.categories = catRows.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          slug: r.slug,
+          icon: r.icon,
+          description: r.description,
+          isPopular: Boolean(r.is_popular),
+          color: r.color || undefined,
+          image: r.image_url || undefined,
+          imageUrl: r.image_url || undefined,
+        }));
+      }
+    }
+  }
 
   addCategory(category: ServiceCategory): ServiceCategory {
-    this.categories.push(category);
+    const existingIndex = this.categories.findIndex(
+      (c) => c.id === category.id || (c.slug && category.slug && c.slug === category.slug)
+    );
+    if (existingIndex !== -1) {
+      this.categories[existingIndex] = { ...this.categories[existingIndex], ...category };
+    } else {
+      this.categories.push(category);
+    }
     if (isDbConnected && pool) {
       pool.query(
-        'INSERT INTO categories (id, name, slug, icon, description, is_popular, color, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO categories (id, name, slug, icon, description, is_popular, color, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name), slug = VALUES(slug), icon = VALUES(icon), description = VALUES(description), is_popular = VALUES(is_popular), color = VALUES(color), image_url = VALUES(image_url)',
         [category.id, category.name, category.slug, category.icon, category.description, category.isPopular ? 1 : 0, category.color || null, category.imageUrl || category.image || null]
       ).catch((err) => console.error('Error adding category to MySQL:', err));
     }

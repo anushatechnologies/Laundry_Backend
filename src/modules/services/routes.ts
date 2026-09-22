@@ -207,7 +207,8 @@ router.delete('/masters/:id', requireAdmin, (req: Request, res: Response) => {
 });
 
 // Categories CRUD
-router.get('/categories', (req: Request, res: Response) => {
+router.get('/categories', async (req: Request, res: Response) => {
+  await db.reloadCategories().catch(() => {});
   const categories = db.getCategories();
   res.json({ success: true, data: categories });
 });
