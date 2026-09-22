@@ -6645,18 +6645,19 @@ class BackendDatabase {
   }
 
   createServiceMaster(data: Partial<ServiceMaster>): ServiceMaster {
-    const id = `srv-m-${Date.now()}`;
+    const id = data.id || `srv-m-${Date.now()}`;
+    const cleanSlug = data.slug || (data.name || 'service').toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const service: ServiceMaster = {
       id,
       name: data.name || 'New Service',
-      slug: (data.name || 'service').toLowerCase().replace(/\s+/g, '-'),
+      slug: cleanSlug,
       icon: data.icon || '✨',
       pricingType: data.pricingType || 'PER_ITEM',
-      baseKgPrice: data.baseKgPrice,
-      minOrderKg: data.minOrderKg,
-      turnaroundHours: data.turnaroundHours || 24,
+      baseKgPrice: data.baseKgPrice ? Number(data.baseKgPrice) : undefined,
+      minOrderKg: data.minOrderKg ? Number(data.minOrderKg) : undefined,
+      turnaroundHours: Number(data.turnaroundHours) || 24,
       description: data.description || '',
-      isActive: true,
+      isActive: data.isActive !== undefined ? Boolean(data.isActive) : true,
       imageUrl: data.imageUrl,
     };
     this.serviceMasters.push(service);
@@ -6664,7 +6665,7 @@ class BackendDatabase {
     if (isDbConnected && pool) {
       pool.query(
         'INSERT INTO service_masters (id, name, slug, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [service.id, service.name, service.slug, service.icon, service.pricingType, service.baseKgPrice || null, service.minOrderKg || null, service.turnaroundHours, service.description, 1, service.imageUrl || null]
+        [service.id, service.name, service.slug, service.icon, service.pricingType, service.baseKgPrice || null, service.minOrderKg || null, service.turnaroundHours, service.description, service.isActive ? 1 : 0, service.imageUrl || null]
       ).catch((err) => console.error('Error creating service master in MySQL:', err));
     }
 
@@ -6678,14 +6679,25 @@ class BackendDatabase {
     if (data.imageUrl !== undefined) {
       service.imageUrl = data.imageUrl;
     }
+    if (data.isActive !== undefined) {
+      service.isActive = Boolean(data.isActive);
+    }
+    if (data.turnaroundHours !== undefined) {
+      service.turnaroundHours = Number(data.turnaroundHours) || 24;
+    }
+    if (data.baseKgPrice !== undefined) {
+      service.baseKgPrice = data.baseKgPrice ? Number(data.baseKgPrice) : undefined;
+    }
+    if (data.minOrderKg !== undefined) {
+      service.minOrderKg = data.minOrderKg ? Number(data.minOrderKg) : undefined;
+    }
 
     if (isDbConnected && pool) {
       pool.query(
-        'UPDATE service_masters SET name = ?, slug = ?, service_code = ?, icon = ?, pricing_type = ?, base_kg_price = ?, min_order_kg = ?, turnaround_hours = ?, description = ?, is_active = ?, image_url = ? WHERE id = ?',
+        'UPDATE service_masters SET name = ?, slug = ?, icon = ?, pricing_type = ?, base_kg_price = ?, min_order_kg = ?, turnaround_hours = ?, description = ?, is_active = ?, image_url = ? WHERE id = ?',
         [
           service.name,
           service.slug,
-          service.serviceCode || null,
           service.icon || null,
           service.pricingType,
           service.baseKgPrice || null,
