@@ -580,36 +580,19 @@ class BackendDatabase {
 
       // Sync Cloth Types
       const [ctRows]: any = await pool.query('SELECT * FROM cloth_types ORDER BY sort_order ASC').catch(() => [[]]);
-      if (ctRows && ctRows.length >= 50) {
+      if (ctRows && Array.isArray(ctRows) && ctRows.length > 0) {
         this.clothTypes = ctRows.map((r: any) => ({
           id: r.id, name: r.name, icon: r.icon, categoryTag: r.category_tag, categoryLabel: r.category_label,
           subCategory: r.sub_category || undefined, description: r.description,
           isActive: Boolean(r.is_active), sortOrder: r.sort_order, imageUrl: r.image_url || undefined,
         }));
-        // Ensure any new master items (e.g. Footwear & Accessories) exist in MySQL
-        const existingIds = new Set(this.clothTypes.map((c) => c.id));
-        for (const item of INITIAL_CLOTH_TYPES) {
-          if (!existingIds.has(item.id)) {
-            await pool.query(
-              'INSERT INTO cloth_types (id, name, icon, category_tag, category_label, sub_category, description, is_active, sort_order, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), icon=VALUES(icon), category_tag=VALUES(category_tag), category_label=VALUES(category_label), sub_category=VALUES(sub_category), description=VALUES(description), is_active=VALUES(is_active), sort_order=VALUES(sort_order), image_url=VALUES(image_url)',
-              [item.id, item.name, item.icon, item.categoryTag, item.categoryLabel, item.subCategory || null, item.description, item.isActive ? 1 : 0, item.sortOrder, item.imageUrl || null]
-            ).catch(() => {});
-            this.clothTypes.push(item);
-          }
-        }
       } else {
         this.clothTypes = [...INITIAL_CLOTH_TYPES];
-        for (const item of this.clothTypes) {
-          await pool.query(
-            'INSERT INTO cloth_types (id, name, icon, category_tag, category_label, sub_category, description, is_active, sort_order, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), icon=VALUES(icon), category_tag=VALUES(category_tag), category_label=VALUES(category_label), sub_category=VALUES(sub_category), description=VALUES(description), is_active=VALUES(is_active), sort_order=VALUES(sort_order), image_url=VALUES(image_url)',
-            [item.id, item.name, item.icon, item.categoryTag, item.categoryLabel, item.subCategory || null, item.description, item.isActive ? 1 : 0, item.sortOrder, item.imageUrl || null]
-          ).catch(() => {});
-        }
       }
 
       // Sync Service Masters
       const [smRows]: any = await pool.query('SELECT * FROM service_masters').catch(() => [[]]);
-      if (smRows && smRows.length >= 6) {
+      if (smRows && Array.isArray(smRows) && smRows.length > 0) {
         this.serviceMasters = smRows.map((r: any) => ({
           id: r.id, name: r.name, slug: r.slug, serviceCode: r.service_code, icon: r.icon,
           pricingType: r.pricing_type, baseKgPrice: r.base_kg_price ? Number(r.base_kg_price) : undefined,
@@ -618,17 +601,11 @@ class BackendDatabase {
         }));
       } else {
         this.serviceMasters = [...INITIAL_SERVICE_MASTERS];
-        for (const sm of this.serviceMasters) {
-          await pool.query(
-            'INSERT INTO service_masters (id, name, slug, service_code, icon, pricing_type, base_kg_price, min_order_kg, turnaround_hours, description, is_active, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name)',
-            [sm.id, sm.name, sm.slug, sm.serviceCode || null, sm.icon, sm.pricingType, sm.baseKgPrice || null, sm.minOrderKg || null, sm.turnaroundHours, sm.description, sm.isActive ? 1 : 0, sm.imageUrl || null]
-          ).catch(() => {});
-        }
       }
 
       // Sync Price Matrix
       const [pmRows]: any = await pool.query('SELECT * FROM service_price_matrix').catch(() => [[]]);
-      if (pmRows && pmRows.length >= 150) {
+      if (pmRows && Array.isArray(pmRows) && pmRows.length > 0) {
         const rawPm = pmRows.map((r: any) => ({
           id: r.id, clothTypeId: r.cloth_type_id, clothName: r.cloth_name, clothIcon: r.cloth_icon,
           categoryTag: r.category_tag, serviceId: r.service_id, serviceName: r.service_name,
