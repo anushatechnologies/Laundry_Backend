@@ -62,7 +62,14 @@ export async function uploadBase64ToS3(imageBase64: string, fileName = 'service-
   const extension = contentType === 'image/jpeg' || contentType === 'image/jpg' ? 'jpg' : contentType.slice(6);
   const baseName = path.basename(fileName).replace(/[^a-zA-Z0-9._-]/g, '-').replace(/\.+/g, '.');
   const name = baseName.includes('.') ? baseName : `${baseName}.${extension}`;
-  return uploadToS3(`services/${Date.now()}-${name}`, buffer, contentType);
+  const folder = fileName.includes('subcat')
+    ? 'subcategories'
+    : fileName.includes('banner')
+    ? 'banners'
+    : fileName.includes('category') || fileName.includes('cat-')
+    ? 'categories'
+    : 'services';
+  return uploadToS3(`${folder}/${Date.now()}-${name}`, buffer, contentType);
 }
 
 export function getS3Url(key: string): string {
