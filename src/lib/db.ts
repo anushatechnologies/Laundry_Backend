@@ -33,7 +33,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Shirts, T-Shirts, Trousers, Suits, Blazers, Kurtas & Jackets.',
     isPopular: true,
     color: 'blue',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-suit-2p.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/1790066590403-category-mens-wear-1790066590053.jpg',
   },
   {
     id: 'cat-2',
@@ -43,7 +43,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Sarees, Kurtis, Salwar Suits, Dresses, Gowns, Dupattas & Tops.',
     isPopular: true,
     color: 'pink',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-kurti.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_saree_charak.jpg',
   },
   {
     id: 'cat-3',
@@ -53,7 +53,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Bridal Lehengas, Heavy Sarees, Gowns, Sherwanis & Designer Wear.',
     isPopular: true,
     color: 'purple',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/cat-wedding-silk.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_saree_charak.jpg',
   },
   {
     id: 'cat-4',
@@ -63,7 +63,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Shirts, Frocks, Uniforms, Baby Rompers & Baby Blankets.',
     isPopular: false,
     color: 'amber',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/cat-school-uniforms.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/categories/1790066590403-category-mens-wear-1790066590053.jpg',
   },
   {
     id: 'cat-5',
@@ -73,7 +73,7 @@ export const INITIAL_CATEGORIES: ServiceCategory[] = [
     description: 'Bedsheets, Blankets, Comforters, Curtains, Towels & Cushion Covers.',
     isPopular: true,
     color: 'teal',
-    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-bedsheet-king.jpg',
+    imageUrl: 'https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_home_textiles.jpg',
   },
   {
     id: 'cat-6',
