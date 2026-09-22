@@ -1068,7 +1068,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Footwear & Shoes",
     "subCategory": "Formal Shoes",
     "description": "Leather conditioning, buffing, crease relaxation & sole disinfection.",
-    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_shoe_clean.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-shoes-formal.jpg",
     "isActive": true,
     "sortOrder": 1
   },
@@ -1092,7 +1092,7 @@ export const INITIAL_CLOTH_TYPES: ClothType[] = [
     "categoryLabel": "Footwear & Shoes",
     "subCategory": "Sports Shoes",
     "description": "Specialty dry foam extraction, nap restoration & hydrophobic protector coat.",
-    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/services/service_shoe_clean.jpg",
+    "imageUrl": "https://anjanilaundry.s3.ap-south-2.amazonaws.com/garments/cloth-shoes-suede.jpg",
     "isActive": true,
     "sortOrder": 3
   },
