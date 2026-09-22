@@ -7073,33 +7073,61 @@ class BackendDatabase {
     const cat = this.categories.find((c) => 
       c.id === target || 
       c.slug === target || 
-      c.slug.toLowerCase() === target.toLowerCase() ||
+      c.slug?.toLowerCase() === target.toLowerCase() ||
       c.slug === target.toLowerCase().replace(/_/g, '-') ||
-      (target === 'MENS' && c.slug === 'mens-wear') ||
-      (target === 'WOMENS' && c.slug === 'womens-wear') ||
-      (target === 'KIDS' && c.slug === 'kids-wear') ||
-      (target === 'HOME_TEXTILES' && c.slug === 'home-textiles') ||
-      (target === 'BRIDAL' && c.slug === 'bridal-wear') ||
-      (target === 'SPECIAL' && c.slug === 'special-cleaning')
+      (target === 'MENS' && (c.slug === 'mens-wear' || c.id === 'cat-1')) ||
+      (target === 'WOMENS' && (c.slug === 'womens-wear' || c.id === 'cat-2')) ||
+      (target === 'KIDS' && (c.slug === 'kids-wear' || c.id === 'cat-3')) ||
+      (target === 'HOME_TEXTILES' && (c.slug === 'home-textiles' || c.id === 'cat-4')) ||
+      (target === 'FOOTWEAR' && (c.slug === 'footwear' || c.slug === 'shoes' || c.id === 'cat-5')) ||
+      (target === 'ACCESSORIES' && (c.slug === 'bags-accessories' || c.slug === 'accessories' || c.id === 'cat-6')) ||
+      (target === 'BRIDAL' && (c.slug === 'bridal-wear' || c.slug === 'wedding-wear' || c.id === 'cat-7')) ||
+      (target === 'SPECIAL' && (c.slug === 'special-cleaning' || c.slug === 'bulk-laundry' || c.id === 'cat-8'))
     );
     if (!cat) return null;
     Object.assign(cat, updates);
     if (updates.imageUrl) cat.imageUrl = updates.imageUrl;
     if (isDbConnected && pool) {
       pool.query(
-        'UPDATE categories SET name = ?, slug = ?, icon = ?, description = ?, is_popular = ?, color = ?, image_url = ? WHERE id = ?',
-        [cat.name, cat.slug, cat.icon, cat.description, cat.isPopular ? 1 : 0, cat.color || null, cat.imageUrl || cat.image || null, cat.id]
+        'UPDATE categories SET name = ?, slug = ?, icon = ?, description = ?, is_popular = ?, color = ?, image_url = ? WHERE id = ? OR slug = ?',
+        [cat.name, cat.slug, cat.icon, cat.description, cat.isPopular ? 1 : 0, cat.color || null, cat.imageUrl || cat.image || null, cat.id, cat.slug]
       ).catch((err) => console.error('Error updating category in MySQL:', err));
     }
     return cat;
   }
 
   deleteCategory(id: string): boolean {
-    const idx = this.categories.findIndex((c) => c.id === id);
-    if (idx < 0) return false;
+    const target = String(id || '').trim();
+    const idx = this.categories.findIndex((c) =>
+      c.id === target ||
+      c.slug === target ||
+      c.slug?.toLowerCase() === target.toLowerCase() ||
+      c.slug === target.toLowerCase().replace(/_/g, '-') ||
+      (target === 'MENS' && (c.slug === 'mens-wear' || c.id === 'cat-1')) ||
+      (target === 'WOMENS' && (c.slug === 'womens-wear' || c.id === 'cat-2')) ||
+      (target === 'KIDS' && (c.slug === 'kids-wear' || c.id === 'cat-3')) ||
+      (target === 'HOME_TEXTILES' && (c.slug === 'home-textiles' || c.id === 'cat-4')) ||
+      (target === 'FOOTWEAR' && (c.slug === 'footwear' || c.slug === 'shoes' || c.id === 'cat-5')) ||
+      (target === 'ACCESSORIES' && (c.slug === 'bags-accessories' || c.slug === 'accessories' || c.id === 'cat-6')) ||
+      (target === 'BRIDAL' && (c.slug === 'bridal-wear' || c.slug === 'wedding-wear' || c.id === 'cat-7')) ||
+      (target === 'SPECIAL' && (c.slug === 'special-cleaning' || c.slug === 'bulk-laundry' || c.id === 'cat-8'))
+    );
+
+    if (idx < 0) {
+      // Also try deleting directly from MySQL in case in-memory was out of sync
+      if (isDbConnected && pool) {
+        pool.query('DELETE FROM categories WHERE id = ? OR slug = ?', [target, target.toLowerCase().replace(/_/g, '-')]).catch(() => {});
+      }
+      return false;
+    }
+
+    const cat = this.categories[idx];
     this.categories.splice(idx, 1);
     if (isDbConnected && pool) {
-      pool.query('DELETE FROM categories WHERE id = ?', [id]).catch((err) => console.error('Error deleting category from MySQL:', err));
+      pool.query(
+        'DELETE FROM categories WHERE id = ? OR id = ? OR slug = ?',
+        [cat.id, target, cat.slug]
+      ).catch((err) => console.error('Error deleting category from MySQL:', err));
     }
     return true;
   }
